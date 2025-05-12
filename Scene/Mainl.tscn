@@ -1,13 +1,11 @@
-[gd_scene load_steps=11 format=3 uid="uid://b7ejf85dch6ca"]
+[gd_scene load_steps=9 format=3 uid="uid://b7ejf85dch6ca"]
 
-[ext_resource type="Script" uid="uid://cqs4v5sodq50e" path="res://Scripts/CodeParser.cs" id="1_4d5fb"]
-[ext_resource type="Script" uid="uid://n411x57rdj3p" path="res://Scripts/UIHandler.cs" id="2_tskrj"]
+[ext_resource type="Script" uid="uid://qmol38bao4ve" path="res://Scripts/Main.cs" id="1_wd0a3"]
 [ext_resource type="Texture2D" uid="uid://c5wpnxu86o5xb" path="res://Assets/Sprites/upload-box.svg" id="3_tcius"]
 [ext_resource type="Texture2D" uid="uid://dtppnewjl66p5" path="res://Assets/Sprites/content-save-all.svg" id="4_1kkme"]
 [ext_resource type="Texture2D" uid="uid://1dak3kh5lwow" path="res://Assets/Sprites/play.svg" id="5_yp2nk"]
 [ext_resource type="Texture2D" uid="uid://bxl2bf8gpnhvl" path="res://Assets/Sprites/resize.svg" id="6_nscx6"]
 [ext_resource type="FontFile" uid="uid://rfw3rqoliwjx" path="res://Assets/Fonts/FiraCode-Regular.ttf" id="7_ofvyg"]
-[ext_resource type="Script" uid="uid://bkg2waex2bj51" path="res://Scripts/CanvasManager.cs" id="8_g66g2"]
 
 [sub_resource type="CodeHighlighter" id="CodeHighlighter_64pev"]
 
@@ -20,14 +18,13 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+script = ExtResource("1_wd0a3")
 
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
-script = ExtResource("1_4d5fb")
 
 [node name="VBoxContainer" type="VBoxContainer" parent="CanvasLayer"]
-offset_right = 1280.0
-offset_bottom = 720.0
-script = ExtResource("2_tskrj")
+offset_right = 1920.0
+offset_bottom = 1080.0
 
 [node name="HBoxContainer" type="HBoxContainer" parent="CanvasLayer/VBoxContainer"]
 layout_mode = 2
@@ -57,10 +54,10 @@ layout_mode = 2
 
 [node name="HSplitContainer" type="HSplitContainer" parent="CanvasLayer/VBoxContainer"]
 layout_mode = 2
-split_offset = 765
+split_offset = 1005
 
 [node name="CodeEdit" type="CodeEdit" parent="CanvasLayer/VBoxContainer/HSplitContainer"]
-custom_minimum_size = Vector2(0, 650)
+custom_minimum_size = Vector2(0, 1000)
 layout_mode = 2
 theme_override_fonts/font = ExtResource("7_ofvyg")
 theme_override_font_sizes/font_size = 16
@@ -71,4 +68,5 @@ gutters_draw_line_numbers = true
 [node name="TextureRect" type="TextureRect" parent="CanvasLayer/VBoxContainer/HSplitContainer"]
 layout_mode = 2
 texture = SubResource("CanvasTexture_oqmcm")
-script = ExtResource("8_g66g2")
+
+[connection signal="pressed" from="CanvasLayer/VBoxContainer/HBoxContainer/Run" to="." method="Run"]
