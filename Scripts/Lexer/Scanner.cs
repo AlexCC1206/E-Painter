@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
-using System.Data.Common;
-using System.Runtime.InteropServices;
-using System.Security.Cryptography;
+using EPainter;
 
-class Scanner
+namespace EPainter
+{
+    class Scanner
 {
     private string source;
     private List<Token> tokens = new List<Token>();
@@ -52,7 +52,7 @@ class Scanner
 
     private void ScanTokens()
     {
-        char c = Advance();
+        char c = Advance(); 
         switch (c)
         {   
             case '(': addToken(TokenType.LEFT_PAREN); break;
@@ -104,7 +104,7 @@ class Scanner
                 }
                 else
                 {
-                    ReportError(line, "Unexpected character");
+                    EPainter.Error(line, "Unexpected character");
                 }
                 break;
         }
@@ -145,7 +145,7 @@ class Scanner
 
         if (isAtEnd())
         {
-            ReportError(line, "Undeterminated string");
+            EPainter.Error(line, "Undeterminated string");
             return;
         }
 
@@ -175,7 +175,7 @@ class Scanner
     {
         return (c >= 'a' && c <= 'z') ||
                 (c >= 'A' && c <= 'Z') ||
-                c == '-';
+                c == '_';
     }
 
     private bool isAlphaNumeric(char c)
@@ -209,9 +209,5 @@ class Scanner
         string text = source.Substring(start, current);
         tokens.Add(new Token(type, text, literal, line));
     }
-
-    private void ReportError(int line, string message)
-    {
-        throw new Exception($"Error en línea {line}: {message}");
-    }
+}
 }

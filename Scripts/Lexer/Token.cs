@@ -1,4 +1,6 @@
-public class Token
+namespace EPainter
+{
+    public class Token
 {
     public TokenType type;
     public string lexeme;
@@ -42,3 +44,5 @@ public enum TokenType
     EOF
 }
     
+}
+
