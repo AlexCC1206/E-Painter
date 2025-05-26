@@ -5,7 +5,7 @@ namespace EPainter
 {
     public class Parser
     {
-        private class ParseError : System.Exception{}
+        private class ParseError : Exception{}
         private List<Token> tokens;
         private int current = 0;
 
@@ -14,89 +14,115 @@ namespace EPainter
             this.tokens = tokens;
         }
 
-        private Expression expression()
+        private Expr Expr()
         {
-            return equality();
+            return LogicalOr();
         }
 
-        private Expression equality()
+        private Expr LogicalOr()
         {
-            Expression expression = comparison();
+            Expr expr = LogicalAnd();
+
+            while(match(TokenType.OR))
+            {
+                Token op = previous();
+                Expr rigth = LogicalAnd();
+                expr = new Binary(expr, op, rigth);
+            }
+
+            return expr;
+        }
+
+        private Expr LogicalAnd()
+        {
+            Expr expr = equality();
+
+            while(match(TokenType.AND))
+            {
+                Token op = previous();
+                Expr rigth = equality();
+                expr = new Binary(expr, op, rigth);
+            }
+
+            return expr;
+        }
+
+        private Expr equality()
+        {
+            Expr Expr = comparison();
 
             while(match(TokenType.EQUAL_EQUAL))
             {
                 Token Operator = previous();
-                Expression right = comparison();
-                expression = new Binary(expression, Operator, right);
+                Expr right = comparison();
+                Expr = new Binary(Expr, Operator, right);
             }
 
-            return expression;
+            return Expr;
         }
 
-        private Expression comparison()
+        private Expr comparison()
         {
-            Expression expression = term();
+            Expr Expr = term();
 
             while(match(TokenType.GREATER, TokenType.GREATER_EQUAL,TokenType.LESS, TokenType.LESS_EQUAL))
             {
                 Token Operator = previous();
-                Expression right = term();
-                expression = new Binary(expression, Operator, right);
+                Expr right = term();
+                Expr = new Binary(Expr, Operator, right);
             }
 
-            return expression;
+            return Expr;
         }
 
-        private Expression term()
+        private Expr term()
         {
-            Expression expression = factor();
+            Expr Expr = factor();
 
             while(match(TokenType.MIN, TokenType.SUM))
             {
                 Token Operator = previous();
-                Expression right = factor();
-                expression = new Binary(expression, Operator, right);
+                Expr right = factor();
+                Expr = new Binary(Expr, Operator, right);
             }
 
-            return expression;
+            return Expr;
         }
 
-        private Expression factor()
+        private Expr factor()
         {
-            Expression expression = pow();
+            Expr Expr = pow();
 
             while(match(TokenType.MULT, TokenType.DIV, TokenType.MOD))
             {
                 Token Operator = previous();
-                Expression right = pow();
-                expression = new Binary(expression, Operator, right);
+                Expr right = pow();
+                Expr = new Binary(Expr, Operator, right);
             }
 
-            return expression;
+            return Expr;
         }
 
-        private Expression pow()
+        private Expr pow()
         {
-            Expression expression = unary();
+            Expr Expr = unary();
 
-            while(match(TokenType.MULT, TokenType.DIV, TokenType.MOD))
+            while(match(TokenType.POW))
             {
                 Token Operator = previous();
-                Expression right = unary();
-                expression = new Binary(expression, Operator, right);
+                Expr right = unary();
+                Expr = new Binary(Expr, Operator, right);
             }
 
-            return expression;
+            return Expr;
         }
 
-        private Expression unary()
+        private Expr unary()
         {
-            Expression expression = unary();
-
             if (match(TokenType.MIN))
             {
                 Token Operator = previous();
-                Expression right = unary();
+                Expr right = unary();
 
                 return new Unary(Operator, right);
             }
@@ -104,33 +130,29 @@ namespace EPainter
             return primary();
         }
 
-        private Expression primary()
+        private Expr primary()
         {
-            if(match(TokenType.STRING, TokenType.NUMBER))
+            if(match(TokenType.NUMBER, TokenType.STRING, 
+                    TokenType.RED, TokenType.BLUE, TokenType.GREEN,
+                    TokenType.YELLOW, TokenType.ORANGE, TokenType.PURPLE,
+                    TokenType.BLACK, TokenType.WHITE, TokenType.TRANSPARENT))
             {
                 return new Literal(previous().literal);
             }
 
+            if(match(TokenType.IDENTIFIER))
+            {
+                return new Variable(previous().lexeme);
+            }
+
             if(match(TokenType.LEFT_PAREN))
             {
-                Expression expr = expression();
-                consume(TokenType.RIGHT_PAREN, "Expect ')' after expression");
+                Expr expr = Expr();
+                consume(TokenType.RIGHT_PAREN, "Expect ')' after Expr");
                 return new Grouping(expr);
             }
 
-            throw Error(peek(), "Expected expression");
-        }
-
-        Expression Parse()
-        {
-            try
-            {
-                return expression();
-            }
-            catch (ParseError Error)
-            {
-                return null;
-            }
+            throw Error(peek(), "Expected Expr");
         }
 
         private bool match(params TokenType[] types)
@@ -159,7 +181,7 @@ namespace EPainter
 
         private ParseError Error(Token token, string message)
         {
-            EPainter.Error(token, message);
+            error(token, message);
             return new ParseError();
         }
 
@@ -167,17 +189,20 @@ namespace EPainter
         {
             if(token.type == TokenType.EOF)
             {
-                report(token.line, " at end", message);
+                Report(token.line, " at end", message);
             }
             else
             {
-                report(token.line, " at " + token.lexeme + "'", message);
+                Report(token.line, $" at '{token.lexeme}'", message);
             }
         }
 
-        private void report(int line, string v, string message)
+        private static bool hadError = false;
+
+        public static void Report(int line, string where, string message)
         {
-            throw new NotImplementedException();
+            Console.Error.WriteLine($"[line {line}] Error{where}: {message}");
+            hadError = true;
         }
 
         private void syncronize()
@@ -186,7 +211,7 @@ namespace EPainter
 
             while(!isAtEnd())
             {
-                if(previous().type == TokenType.SEMICOLON)
+                if(previous().type == TokenType.NEWLINE)
                 {
                     return;
                 }
@@ -195,7 +220,6 @@ namespace EPainter
                 {
                     case TokenType.SPAWN :
                     case TokenType.COLOR :
-                    case TokenType.SIZE :
                     case TokenType.DRAWLINE :
                     case TokenType.DRAWCIRCLE :
                     case TokenType.DRAWRECTANGLE :
@@ -230,7 +254,7 @@ namespace EPainter
 
         private bool isAtEnd()
         {
-            return peek().type = TokenType.EOF;
+            return peek().type == TokenType.EOF;
         }
 
         private Token peek()
@@ -241,6 +265,18 @@ namespace EPainter
         private Token previous()
         {
             return tokens[current - 1];
+        }
+
+        internal Expr parse()
+        {
+            try
+            {
+                return Expr();
+            }
+            catch (ParseError)
+            {
+                return null;
+            }
         }
     }
 }

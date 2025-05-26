@@ -12,13 +12,10 @@ namespace EPainter
     private int current = 0;
     private int line = 1;
 
-    public Scanner(string source)
-    {
-        this.source = source;
-    }
-
     private static readonly Dictionary<string, TokenType> keywords = new()
     {
+
+        // Commands
         {"Spawn", TokenType.SPAWN},
         {"Color", TokenType.COLOR},
         {"Size", TokenType.SIZE},
@@ -26,6 +23,8 @@ namespace EPainter
         {"DrawCircle", TokenType.DRAWCIRCLE},
         {"DrawRectangle", TokenType.DRAWRECTANGLE},
         {"Fill", TokenType.FILL},
+
+        // Function
         {"GetActualX", TokenType.GETACTUALX},
         {"GetActualY", TokenType.GETACTUALY},
         {"GetCanvasSize", TokenType.GETCANVASIZE},
@@ -33,10 +32,23 @@ namespace EPainter
         {"IsBrushColor", TokenType.ISBRUSHCOLOR},
         {"IsBrushSize", TokenType.ISBRUSHSIZE},
         {"IsCanvasColor", TokenType.ISCANVASCOLOR},
-        {"Goto", TokenType.GOTO},
-        {"label", TokenType.LABEL},
-        {"var", TokenType.VAR}
+
+        // Colors
+        {"Red", TokenType.RED},
+        {"Blue", TokenType.BLUE},
+        {"Green", TokenType.GREEN},
+        {"Yellow", TokenType.YELLOW},
+        {"Orange", TokenType.ORANGE},
+        {"Purple", TokenType.PURPLE},
+        {"Black", TokenType.BLACK},
+        {"White", TokenType.WHITE},
+        {"Transparent", TokenType.TRANSPARENT} 
     };
+
+    public Scanner(string source)
+    {
+        this.source = source;
+    }
 
     public List<Token> scanTokens()
     {
@@ -55,18 +67,21 @@ namespace EPainter
         char c = Advance(); 
         switch (c)
         {   
+            // Character
             case '(': addToken(TokenType.LEFT_PAREN); break;
             case ')': addToken(TokenType.RIGHT_PAREN); break;
             case ',': addToken(TokenType.COMMA); break;
-            case ';': addToken(TokenType.SEMICOLON); break;
+
+            // Operators
             case '+': addToken(TokenType.SUM); break;
             case '-': addToken(TokenType.MIN); break;
             case '/': addToken(TokenType.DIV); break;
             case '%': addToken(TokenType.MOD); break;
-            
             case '*': 
                 addToken(match('*') ? TokenType.POW : TokenType.MULT); 
                 break;
+
+            // Comparison operators
             case '&':
                 addToken(match('&') ? TokenType.AND : TokenType.AND);
                 break;
@@ -83,6 +98,7 @@ namespace EPainter
                 addToken(match('=') ? TokenType.LESS_EQUAL : TokenType.LESS);
                 break;
 
+            // Ignore whitespace
             case ' ':
             case '\r':
             case '\t':
@@ -91,20 +107,21 @@ namespace EPainter
                 line++;
                 break;
 
+            // Strings
             case '"': String(); break;
 
             default:
-                if(isDigit(c))
+                if(char.IsDigit(c))
                 {
                     number();
                 }
-                else if(isAlpha(c))
+                else if(char.IsLetter(c) || c == '_')
                 {
                     identifier();
                 }
                 else
                 {
-                    EPainter.Error(line, "Unexpected character");
+                    EPainter.Error(line, "Unexpected character" + c);
                 }
                 break;
         }
@@ -112,65 +129,82 @@ namespace EPainter
 
     private void identifier()
     {
-        while(isAlphaNumeric(peek())) Advance();
+        while(char.IsLetterOrDigit(peek()) || peek() == '_') Advance();
 
         string text = source.Substring(start, current - start);
-        TokenType type;
         
-        if(!keywords.TryGetValue(text, out type))
+        if(!keywords.TryGetValue(text, out TokenType type))
         {
-            type = TokenType.IDENTIFIER;
+            addToken(type);
         }
-
-        addToken(type);
+        else
+        {
+            addToken(TokenType.IDENTIFIER);
+        }
     }
 
     private void number()
     {
-        while(isDigit(peek())) Advance();
+        while(char.IsDigit(peek())) Advance();
 
-        AddToken(TokenType.NUMBER, int.Parse(source.Substring(start, current)));
-    }
-
-    private void String()
-    {
-        while (peek() != '"' && !isAtEnd())
+        if (peek() == '.' && char.IsDigit(PeekNext()))
         {
-            if (peek() == '\n')
-            {
-                line++;
-            }
             Advance();
+            while (char.IsDigit(peek())) Advance();
         }
 
-        if (isAtEnd())
+        AddToken(TokenType.NUMBER, 
+            double.Parse(source.Substring(start, current - start)));
+    }
+
+        
+
+        private void String()
         {
-            EPainter.Error(line, "Undeterminated string");
-            return;
+            while (peek() != '"' && !isAtEnd())
+            {
+                if (peek() == '\n')
+                {
+                    line++;
+                }
+                Advance();
+            }
+
+            if (isAtEnd())
+            {
+                EPainter.Error(line, "Undeterminated string");
+                return;
+            }
+
+            Advance();
+
+            string value = source.Substring(start + 1, current - start - 2);
+            AddToken(TokenType.STRING, value);
         }
 
-        Advance();
+        private bool match(char expected)
+        {
+            if(isAtEnd()) return false;
+            if(source[current] != expected) return false;
 
-        string value = source.Substring(start + 1, current - 1);
-        AddToken(TokenType.STRING, value);
-    }
+            current++;
+            return true;
+        }
 
-    private bool match(char expected)
-    {
-        if(isAtEnd()) return false;
-        if(source[current] != expected) return false;
+        public char peek()
+        {
+            if(isAtEnd()) return '\0';
 
-        current++;
-        return true;
-    }
+            return source[current];
+        }
 
-    public char peek()
-    {
-        if(isAtEnd()) return '\0';
+        private char PeekNext()
+        {
+            if (current + 1 >= source.Length) return '\0';
 
-        return source[current];
-    }
-
+            return source[current + 1];
+        }
+/*
     private bool isAlpha(char c)
     {
         return (c >= 'a' && c <= 'z') ||
@@ -186,7 +220,7 @@ namespace EPainter
     private bool isDigit(char c)
     {
         return c >= '0' && c <= '9';
-    }
+    }*/
 
     private bool isAtEnd()
     {
@@ -206,7 +240,7 @@ namespace EPainter
 
     private void AddToken(TokenType type, object literal)
     {
-        string text = source.Substring(start, current);
+        string text = source.Substring(start, current - start);
         tokens.Add(new Token(type, text, literal, line));
     }
 }

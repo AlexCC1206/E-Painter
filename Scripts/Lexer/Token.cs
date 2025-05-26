@@ -17,32 +17,39 @@ namespace EPainter
 
     public override string ToString()
     {
-        return type + " " + lexeme + " " + literal;
+        return $"{type} {lexeme} {literal}";
     }
 }
 
-public enum TokenType
-{
-    // Keywords
-    SPAWN, COLOR, SIZE, DRAWLINE, DRAWCIRCLE, DRAWRECTANGLE, FILL,
-    GETACTUALX, GETACTUALY, GETCANVASIZE, GETCOLORCOUNT,
-    ISBRUSHCOLOR, ISBRUSHSIZE, ISCANVASCOLOR,
-    GOTO, LABEL, VAR,
-
-    // Operator and Symbol
-    LEFT_PAREN, RIGHT_PAREN, COMMA, SEMICOLON,
-    SUM, MIN, MULT, DIV, MOD, POW,
-    EQUAL, EQUAL_EQUAL,
-    GREATER, GREATER_EQUAL,
-    LESS, LESS_EQUAL,
-    AND, OR,
-
-    // Literal
-    IDENTIFIER, STRING, NUMBER,
-
-    // Others
-    EOF
-}
+    public enum TokenType
+    {
+        // Keywords
+        SPAWN, COLOR, SIZE, DRAWLINE, DRAWCIRCLE, DRAWRECTANGLE, FILL,
+        GETACTUALX, GETACTUALY, GETCANVASIZE, GETCOLORCOUNT,
+        ISBRUSHCOLOR, ISBRUSHSIZE, ISCANVASCOLOR,
     
+        // Control Structures
+        GOTO, LABEL,
+
+        // Operator
+        LEFT_PAREN, RIGHT_PAREN, COMMA,
+        SUM, MIN, MULT, DIV, MOD, POW,
+        EQUAL, EQUAL_EQUAL, GREATER, GREATER_EQUAL, LESS, LESS_EQUAL,
+        AND, OR,
+
+
+        // Assignment
+        LEFT_ARROW,
+
+        // Literal
+        IDENTIFIER, STRING, NUMBER,
+
+        // Colors
+        RED, BLUE, GREEN, YELLOW, ORANGE, PURPLE, BLACK, WHITE, TRANSPARENT,
+
+        // Others
+        EOF,
+        NEWLINE
+    }
 }
 
