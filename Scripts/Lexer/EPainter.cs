@@ -77,7 +77,7 @@ namespace EPainter
             Parser parser = new Parser(tokens);
             Expr expr = parser.parse();
 
-            if(hadError) return;
+            if (hadError) return;
             // For now, just print the tokens.
             Console.WriteLine(new AstPrinter().Print(expr));
         }
@@ -98,6 +98,14 @@ namespace EPainter
         public static void Error(Token token, string message)
         {
             Console.WriteLine($"[Línea {token.line}] Error en '{token.lexeme}': {message}");
+        }
+
+        private static bool hadRuntimeError = false;
+        
+        public static void runtimeError(RuntimeError error)
+        {
+            Console.Error.WriteLine($"{error.Message} n[line {error.token.line}]");
+            hadRuntimeError = true;
         }
     }
 }
