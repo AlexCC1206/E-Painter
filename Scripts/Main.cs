@@ -18,6 +18,6 @@ public partial class Main : Control
 	{
 		string code = codeEdit.Text;
 
-		Scanner scanner = new Scanner(code);
+		//Scanner scanner = new Scanner(code);
 	}
 }

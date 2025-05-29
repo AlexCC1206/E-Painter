@@ -1,167 +1,329 @@
 using System;
 using System.Collections.Generic;
+using System.Linq.Expressions;
 
 namespace EPainter
 {
     public class Parser
     {
-        private class ParseError : Exception{}
         private List<Token> tokens;
         private int current = 0;
+        private Dictionary<string, int> labels = new Dictionary<string, int>();
 
         public Parser(List<Token> tokens)
         {
             this.tokens = tokens;
+            PreprocessLabels();
+        }
+
+        public void PreprocessLabels()
+        {
+            for (var i = 0; i < tokens.Count; i++)
+            {
+                if (tokens[i].type == TokenType.IDENTIFIER && i + 1 < tokens.Count && tokens[i + 1].type == TokenType.NEWLINE)
+                {
+                    labels[tokens[i].lexeme] = 1;
+                }
+            }
+        }
+
+        public List<Command> Parse()
+        {
+            var commands = new List<Command>();
+
+            while (!IsAtEnd())
+            {
+                try
+                {
+                    commands.Add(ParseCommand());
+                }
+                catch (ParseError error)
+                {
+                    Console.WriteLine($"Syntax error: {error.Message}");
+                }
+            }
+
+            return commands;
+
+        }
+
+        private Command ParseCommand()
+        {
+            if (Match(TokenType.SPAWN)) return ParseSpawn();
+            if (Match(TokenType.COLOR)) return ParseColor();
+            if (Match(TokenType.SIZE)) return ParseSize();
+            if (Match(TokenType.DRAWLINE)) return ParseDrawline();
+            if (Match(TokenType.DRAWCIRCLE)) return ParseDrawCircle();
+            if (Match(TokenType.DRAWRECTANGLE)) return ParseDrawRectangle();
+            if (Match(TokenType.FILL)) return ParseFill();
+
+            if (Check(TokenType.IDENTIFIER) && Peek().type == TokenType.LEFT_ARROW) return ParseAssignment();
+
+            if (Check(TokenType.IDENTIFIER) && Peek().type != TokenType.LEFT_ARROW && Peek().type != TokenType.LEFT_PAREN) return ParseLabel();
+
+            if (Match(TokenType.GOTO)) return ParseGoto();
+
+            throw Error(Peek(), "Comando no reconocido");
+        }
+
+        private Command ParseSpawn()
+        {
+            Consume(TokenType.LEFT_PAREN, "Expect '(' after Spawn");
+            Expr x = Expr();
+            Consume(TokenType.COMMA, "Expect ',' between x and y coordinates");
+            Expr y = Expr();
+            Consume(TokenType.RIGHT_PAREN, "Expect ')' after Spawn arguments");
+            return new Command.Spawn(x, y);
+        }
+
+        private Command ParseColor()
+        {
+            Consume(TokenType.LEFT_PAREN, "Expect '(' after Color");
+            Expr color = Expr();
+            Consume(TokenType.RIGHT_PAREN, "Expect ')' after Color arguments");
+            return new Command.Color(color);
+        }
+
+        private Command ParseSize()
+        {
+            Consume(TokenType.LEFT_PAREN, "Expect '(' after Size");
+            Expr k = Expr();
+            Consume(TokenType.RIGHT_PAREN, "Expect ')' after Size arguments");
+            return new Command.Size(k);
+        }
+
+        private Command ParseDrawline()
+        {
+            Consume(TokenType.LEFT_PAREN, "Expect '(' after DrawLine");
+            Expr dirX = Expr();
+            Consume(TokenType.COMMA, "Expect ',' between dirX");
+            Expr dirY = Expr();
+            Consume(TokenType.COMMA, "Expect ',' between dirY");
+            Expr distance = Expr();
+            Consume(TokenType.RIGHT_PAREN, "Expect ')' after Spawn arguments");
+            return new Command.DrawLine(dirX, dirY, distance);
+        }
+
+        private Command ParseDrawCircle()
+        {
+            Consume(TokenType.LEFT_PAREN, "Expect '(' after DrawCircle");
+            Expr dirX = Expr();
+            Consume(TokenType.COMMA, "Expect ',' between dirX");
+            Expr dirY = Expr();
+            Consume(TokenType.COMMA, "Expect ',' between dirY");
+            Expr radius = Expr();
+            Consume(TokenType.RIGHT_PAREN, "Expect ')' after DrawCircle arguments");
+            return new Command.DrawLine(dirX, dirY, radius);
+        }
+
+        private Command ParseDrawRectangle()
+        {
+            Consume(TokenType.LEFT_PAREN, "Expect '(' after DrawRectangle");
+            Expr dirX = Expr();
+            Consume(TokenType.COMMA, "Expect ',' between dirX");
+            Expr dirY = Expr();
+            Consume(TokenType.COMMA, "Expect ',' between dirY");
+            Expr distance = Expr();
+            Consume(TokenType.COMMA, "Expect ',' between distance");
+            Expr width = Expr();
+            Consume(TokenType.COMMA, "Expect ',' between width");
+            Expr height = Expr();
+            Consume(TokenType.RIGHT_PAREN, "Expect ')' after DrawRectangle arguments");
+            return new Command.DrawLine(dirX, dirY, distance);
+        }
+
+        private Command ParseFill()
+        {
+            Consume(TokenType.LEFT_PAREN, "Expect '(' after Fill");
+            Consume(TokenType.RIGHT_PAREN, "Expect ')' after Fill arguments");
+            return new Command.Fill();
+        }
+        
+        private Command ParseAssignment()
+        {
+            Token name = Consume(TokenType.IDENTIFIER, "Expect variable name");
+            Consume(TokenType.LEFT_ARROW, "Expect '<-' after variable name");
+            Expr value = Expr();
+            return new Command.Assignment(name, value);
+        }
+
+        private Command ParseLabel()
+        {
+            Token name = Consume(TokenType.IDENTIFIER, "Expect label name");
+            //Consume(TokenType.COLON, "Expect ':' after label name");
+            return new Command.Label(name);
+        }
+
+        private Command ParseGoto()
+        {
+            Consume(TokenType.LEFT_BRACKET, "Expect '[' after  GoTo");
+            Token label = Consume(TokenType.IDENTIFIER, "Expect label name");
+            Consume(TokenType.RIGHT_BRACKET, "Expect ']' after label name");
+            Consume(TokenType.LEFT_PAREN, "Expect '(' before condition");
+            Expr condition = Expr();
+            Consume(TokenType.RIGHT_PAREN, "Expect ')' after condition");
+            return new Command.Goto(label, condition);
         }
 
         private Expr Expr()
         {
-            return LogicalOr();
-        }
-
-        private Expr LogicalOr()
-        {
-            Expr expr = LogicalAnd();
-
-            while(match(TokenType.OR))
-            {
-                Token op = previous();
-                Expr rigth = LogicalAnd();
-                expr = new Binary(expr, op, rigth);
-            }
-
-            return expr;
+            return LogicalAnd();
         }
 
         private Expr LogicalAnd()
         {
-            Expr expr = equality();
+            Expr expr = LogicalOr();
 
-            while(match(TokenType.AND))
+            while (Match(TokenType.AND))
             {
-                Token op = previous();
-                Expr rigth = equality();
-                expr = new Binary(expr, op, rigth);
+                Token op = Previous();
+                Expr rigth = LogicalOr();
+                expr = new Expr.Binary(expr, op, rigth);
             }
 
             return expr;
         }
 
-        private Expr equality()
+        private Expr LogicalOr()
         {
-            Expr Expr = comparison();
+            Expr expr = Equality();
 
-            while(match(TokenType.EQUAL_EQUAL))
+            while (Match(TokenType.OR))
             {
-                Token Operator = previous();
-                Expr right = comparison();
-                Expr = new Binary(Expr, Operator, right);
+                Token op = Previous();
+                Expr rigth = Equality();
+                expr = new Expr.Binary(expr, op, rigth);
+            }
+
+            return expr;
+        }
+
+        private Expr Equality()
+        {
+            Expr Expr = Comparison();
+
+            while (Match(TokenType.EQUAL_EQUAL))
+            {
+                Token Operator = Previous();
+                Expr right = Comparison();
+                Expr = new Expr.Binary(Expr, Operator, right);
             }
 
             return Expr;
         }
 
-        private Expr comparison()
+        private Expr Comparison()
         {
-            Expr Expr = term();
+            Expr Expr = Term();
 
-            while(match(TokenType.GREATER, TokenType.GREATER_EQUAL,TokenType.LESS, TokenType.LESS_EQUAL))
+            while (Match(TokenType.GREATER, TokenType.GREATER_EQUAL, TokenType.LESS, TokenType.LESS_EQUAL))
             {
-                Token Operator = previous();
-                Expr right = term();
-                Expr = new Binary(Expr, Operator, right);
+                Token Operator = Previous();
+                Expr right = Term();
+                Expr = new Expr.Binary(Expr, Operator, right);
             }
 
             return Expr;
         }
 
-        private Expr term()
+        private Expr Term()
         {
-            Expr Expr = factor();
+            Expr Expr = Factor();
 
-            while(match(TokenType.MIN, TokenType.SUM))
+            while (Match(TokenType.MIN, TokenType.SUM))
             {
-                Token Operator = previous();
-                Expr right = factor();
-                Expr = new Binary(Expr, Operator, right);
+                Token Operator = Previous();
+                Expr right = Factor();
+                Expr = new Expr.Binary(Expr, Operator, right);
             }
 
             return Expr;
         }
 
-        private Expr factor()
+        private Expr Factor()
         {
-            Expr Expr = pow();
+            Expr Expr = Pow();
 
-            while(match(TokenType.MULT, TokenType.DIV, TokenType.MOD))
+            while (Match(TokenType.MULT, TokenType.DIV, TokenType.MOD))
             {
-                Token Operator = previous();
-                Expr right = pow();
-                Expr = new Binary(Expr, Operator, right);
+                Token Operator = Previous();
+                Expr right = Pow();
+                Expr = new Expr.Binary(Expr, Operator, right);
             }
 
             return Expr;
         }
 
-        private Expr pow()
+        private Expr Pow()
         {
-            Expr Expr = unary();
+            Expr Expr = Primary();
 
-            while(match(TokenType.POW))
+            while (Match(TokenType.POW))
             {
-                Token Operator = previous();
-                Expr right = unary();
-                Expr = new Binary(Expr, Operator, right);
+                Token Operator = Previous();
+                Expr right = Primary();
+                Expr = new Expr.Binary(Expr, Operator, right);
             }
 
             return Expr;
         }
 
-        private Expr unary()
+        private Expr Primary()
         {
-            if (match(TokenType.MIN))
-            {
-                Token Operator = previous();
-                Expr right = unary();
-
-                return new Unary(Operator, right);
-            }
-
-            return primary();
-        }
-
-        private Expr primary()
-        {
-            if(match(TokenType.NUMBER, TokenType.STRING, 
+            if (Match(TokenType.NUMBER, TokenType.STRING,
                     TokenType.RED, TokenType.BLUE, TokenType.GREEN,
                     TokenType.YELLOW, TokenType.ORANGE, TokenType.PURPLE,
                     TokenType.BLACK, TokenType.WHITE, TokenType.TRANSPARENT))
             {
-                return new Literal(previous().literal);
+                return new Expr.Literal(Previous().literal);
             }
 
-            if(match(TokenType.IDENTIFIER))
+            if (Match(TokenType.IDENTIFIER))
             {
-                return new Variable(previous().lexeme);
+                if (Check(TokenType.LEFT_PAREN))
+                {
+                    return ParseFunctionCall();
+                }
+
+                return new Expr.Variable(Previous());
             }
 
-            if(match(TokenType.LEFT_PAREN))
+            if (Match(TokenType.LEFT_PAREN))
             {
                 Expr expr = Expr();
-                consume(TokenType.RIGHT_PAREN, "Expect ')' after Expr");
-                return new Grouping(expr);
+                Consume(TokenType.RIGHT_PAREN, "Expect ')' after Expr");
+                return new Expr.Grouping(expr);
             }
 
-            throw Error(peek(), "Expected Expr");
+            throw Error(Peek(), "Expected expression");
         }
 
-        private bool match(params TokenType[] types)
+        private Expr ParseFunctionCall()
+        {
+            Token name = Previous();
+            Consume(TokenType.LEFT_PAREN, "Expect '(' after function name");
+
+            List<Expr> arguments = new List<Expr>();
+            if (!Check(TokenType.RIGHT_PAREN))
+            {
+                do
+                {
+                    arguments.Add(Expr());
+                }
+                while (Match(TokenType.COMMA));
+            }
+
+            Consume(TokenType.RIGHT_PAREN, "Expect ')' after function arguments");
+            return new Expr.FunctionCall(name, arguments);
+        }
+
+        private bool Match(params TokenType[] types)
         {
             foreach (var type in types)
             {
-                if(check(type))
+                if (Check(type))
                 {
-                    advance();
+                    Advance();
                     return true;
                 }
             }
@@ -169,114 +331,82 @@ namespace EPainter
             return false;
         }
 
-        private Token consume(TokenType type, string message)
+        private Token Consume(TokenType type, string message)
         {
-            if(check(type))
+            if (Check(type))
             {
-                return advance();
+                return Advance();
             }
 
-            throw Error(peek(), message);
+            throw Error(Peek(), message);
         }
 
         private ParseError Error(Token token, string message)
         {
-            error(token, message);
+            ErrorHandler.Error(token, message);
             return new ParseError();
         }
 
-        private void error(Token token, string message)
+        private void Syncronize()
         {
-            if(token.type == TokenType.EOF)
+            Advance();
+
+            while (!IsAtEnd())
             {
-                Report(token.line, " at end", message);
-            }
-            else
-            {
-                Report(token.line, $" at '{token.lexeme}'", message);
-            }
-        }
-
-        private static bool hadError = false;
-
-        public static void Report(int line, string where, string message)
-        {
-            Console.Error.WriteLine($"[line {line}] Error{where}: {message}");
-            hadError = true;
-        }
-
-        private void syncronize()
-        {
-            advance();
-
-            while(!isAtEnd())
-            {
-                if(previous().type == TokenType.NEWLINE)
+                if (Previous().type == TokenType.NEWLINE)
                 {
                     return;
                 }
 
-                switch(peek().type)
+                switch (Peek().type)
                 {
-                    case TokenType.SPAWN :
-                    case TokenType.COLOR :
-                    case TokenType.DRAWLINE :
-                    case TokenType.DRAWCIRCLE :
-                    case TokenType.DRAWRECTANGLE :
-                    case TokenType.FILL :
-                    case TokenType.GOTO :
-                    return;
+                    case TokenType.SPAWN:
+                    case TokenType.COLOR:
+                    case TokenType.DRAWLINE:
+                    case TokenType.DRAWCIRCLE:
+                    case TokenType.DRAWRECTANGLE:
+                    case TokenType.FILL:
+                    case TokenType.GOTO:
+                        return;
                 }
 
-                advance();
+                Advance();
             }
         }
 
-        private bool check(TokenType type)
+        private bool Check(TokenType type)
         {
-            if(isAtEnd())
+            if (IsAtEnd())
             {
                 return false;
-            } 
-
-            return peek().type == type;
-        }
-
-        private Token advance()
-        {
-            if(!isAtEnd())
-            {
-                current ++;
             }
-            
-            return previous();
+
+            return Peek().type == type;
         }
 
-        private bool isAtEnd()
+        private Token Advance()
         {
-            return peek().type == TokenType.EOF;
+            if (!IsAtEnd())
+            {
+                current++;
+            }
+
+            return Previous();
         }
 
-        private Token peek()
+        private bool IsAtEnd()
+        {
+            return Peek().type == TokenType.EOF;
+        }
+
+        private Token Peek()
         {
             return tokens[current];
         }
 
-        private Token previous()
+        private Token Previous()
         {
             return tokens[current - 1];
-        }
-
-        internal Expr parse()
-        {
-            try
-            {
-                return Expr();
-            }
-            catch (ParseError)
-            {
-                return null;
-            }
         }
     }
 }

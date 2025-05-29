@@ -5,116 +5,97 @@ namespace EPainter
     public abstract class Expr
     {
         public abstract T Accept<T>(IVisitor<T> visitor);
-    }
 
-    public interface IVisitor<T>
-    {
-        T VisitBinaryExpr(Binary binary);
-        T VisitGroupingExpr(Grouping grouping);
-        T VisitLiteralExpr(Literal literal);
-        T VisitUnaryExpr(Unary unary);
-        T VisitVariableExpr(Variable variable);
-        T VisitFunctionCallExpr(FunctionCall functionCall);   
-    }
-
-    public class Binary : Expr
-    {
-        public Expr left;
-        public Token Operator;
-        public Expr rigth;
-
-        public Binary(Expr left, Token Operator, Expr rigth)
+        public interface IVisitor<T>
         {
-            this.left = left;
-            this.Operator = Operator;
-            this.rigth = rigth;
+            T VisitBinaryExpr(Binary binary);
+            T VisitGroupingExpr(Grouping grouping);
+            T VisitLiteralExpr(Literal literal);
+            T VisitVariableExpr(Variable variable);
+            T VisitFunctionCallExpr(FunctionCall functionCall);
         }
 
-        public override T Accept<T>(IVisitor<T> visitor)
+        public class Binary : Expr
         {
-            return visitor.VisitBinaryExpr(this);
-        }
-    }
+            public Expr left;
+            public Token Operator;
+            public Expr rigth;
 
-    public class Grouping : Expr
-    {
-        public Expr Expr;
+            public Binary(Expr left, Token Operator, Expr rigth)
+            {
+                this.left = left;
+                this.Operator = Operator;
+                this.rigth = rigth;
+            }
 
-        public Grouping(Expr Expr)
-        {
-            this.Expr = Expr;
-        }
-
-        public override T Accept<T>(IVisitor<T> visitor)
-        {
-            return visitor.VisitGroupingExpr(this);
-        }
-    }
-
-    public class Unary : Expr
-    {
-        public Token Operator;
-        public Expr right;
-
-        public Unary(Token Operator, Expr right)
-        {
-            this.Operator = Operator;
-            this.right = right;
+            public override T Accept<T>(IVisitor<T> visitor)
+            {
+                return visitor.VisitBinaryExpr(this);
+            }
         }
 
-        public override T Accept<T>(IVisitor<T> visitor)
+        public class Grouping : Expr
         {
-            return visitor.VisitUnaryExpr(this);
-        }
-    }
+            public Expr Expr;
 
-    public class Literal : Expr
-    {
-        public object Value;
+            public Grouping(Expr Expr)
+            {
+                this.Expr = Expr;
+            }
 
-        public Literal(object Value)
-        {
-            this.Value = Value;
-        }
-
-        public override T Accept<T>(IVisitor<T> visitor)
-        {
-            return visitor.VisitLiteralExpr(this);
-        }
-    }
-
-    public class Variable : Expr
-    {
-        public string Name;
-
-        public Variable(string Name)
-        {
-            this.Name = Name;
+            public override T Accept<T>(IVisitor<T> visitor)
+            {
+                return visitor.VisitGroupingExpr(this);
+            }
         }
 
-        public override T Accept<T>(IVisitor<T> visitor)
+        public class Literal : Expr
         {
-            return visitor.VisitVariableExpr(this);
+            public object Value;
+
+            public Literal(object Value)
+            {
+                this.Value = Value;
+            }
+
+            public override T Accept<T>(IVisitor<T> visitor)
+            {
+                return visitor.VisitLiteralExpr(this);
+            }
         }
-    }
-
-    public class FunctionCall : Expr
-    {
-        public string Name;
-        public List<Expr> Arguments;
-
-        public FunctionCall(string name, List<Expr> args)
+        
+        public class Variable : Expr
         {
-            Name = name;
-            Arguments = args;
+            public Token Name;
+
+            public Variable(Token name)
+            {
+                Name = name;
+            }
+
+            public override T Accept<T>(IVisitor<T> visitor)
+            {
+                return visitor.VisitVariableExpr(this);
+            }
         }
 
-        public override T Accept<T>(IVisitor<T> visitor)
+        public class FunctionCall : Expr
         {
-            return visitor.VisitFunctionCallExpr(this);
+            public Token Name;
+            public List<Expr> Arguments;
+
+            public FunctionCall(Token name, List<Expr> args)
+            {
+                Name = name;
+                Arguments = args;
+            }
+
+            public override T Accept<T>(IVisitor<T> visitor)
+            {
+                return visitor.VisitFunctionCallExpr(this);
+            }
         }
     }
 }
 
 
-    
