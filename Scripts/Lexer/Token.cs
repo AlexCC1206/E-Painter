@@ -2,29 +2,31 @@ namespace EPainter
 {
     public class Token
     {
-        public TokenType type;
-        public string lexeme;
-        public object literal;
-        public int line;
+        public TokenType Type { get; }
+        public string Lexeme { get; }
+        public object Literal { get; }
+        public int Line { get; }
 
         public Token(TokenType type, string lexeme, object literal, int line)
         {
-            this.type = type;
-            this.lexeme = lexeme;
-            this.literal = literal;
-            this.line = line;
+            Type = type;
+            Lexeme = lexeme;
+            Literal = literal;
+            Line = line;
         }
 
         public override string ToString()
         {
-            return $"{type} {lexeme} {literal}";
+            return $"{Type} {Lexeme} {Literal}";
         }
     }
 
     public enum TokenType
     {
-        // Keywords
+        // Commands
         SPAWN, COLOR, SIZE, DRAWLINE, DRAWCIRCLE, DRAWRECTANGLE, FILL,
+
+        // Functions
         GETACTUALX, GETACTUALY, GETCANVASIZE, GETCOLORCOUNT,
         ISBRUSHCOLOR, ISBRUSHSIZE, ISCANVASCOLOR,
 

@@ -11,13 +11,13 @@ namespace EPainter
         private int current = 0;
         private int line = 1;
 
-        private static readonly Dictionary<string, TokenType> keywords = new()
+        private static readonly Dictionary<string, TokenType> Keywords = new Dictionary<string, TokenType>
     {
         // Commands
         {"Spawn", TokenType.SPAWN},
         {"Color", TokenType.COLOR},
         {"Size", TokenType.SIZE},
-        {"Drawline", TokenType.DRAWLINE},
+        {"DrawLine", TokenType.DRAWLINE},
         {"DrawCircle", TokenType.DRAWCIRCLE},
         {"DrawRectangle", TokenType.DRAWRECTANGLE},
         {"Fill", TokenType.FILL},
@@ -31,6 +31,9 @@ namespace EPainter
         {"IsBrushSize", TokenType.ISBRUSHSIZE},
         {"IsCanvasColor", TokenType.ISCANVASCOLOR},
 
+        // Control
+        {"GoTo", TokenType.GOTO},
+
         // Colors
         {"Red", TokenType.RED},
         {"Blue", TokenType.BLUE},
@@ -41,16 +44,21 @@ namespace EPainter
         {"Black", TokenType.BLACK},
         {"White", TokenType.WHITE},
         {"Transparent", TokenType.TRANSPARENT}
-    };
+        };
 
         public Scanner(string source)
         {
             this.source = source;
         }
 
+        /// <summary>
+        /// Escanea el código fuente y genera una lista de tokens.
+        /// </summary>
+        /// <returns>Lista de tokens reconocidos</returns>
+        /// <exception cref="PixelWallEException">Cuando se encuentra un error léxico</exception>
         public List<Token> scanTokens()
         {
-            while (!isAtEnd())
+            while (!IsAtEnd())
             {
                 start = current;
                 ScanTokens();
@@ -66,44 +74,40 @@ namespace EPainter
             switch (c)
             {
                 // Character
-                case '(': addToken(TokenType.LEFT_PAREN); break;
-                case ')': addToken(TokenType.RIGHT_PAREN); break;
-                case ',': addToken(TokenType.COMMA); break;
+                case '(': AddToken(TokenType.LEFT_PAREN); break;
+                case ')': AddToken(TokenType.RIGHT_PAREN); break;
+                case '[': AddToken(TokenType.LEFT_BRACKET); break;
+                case ']': AddToken(TokenType.RIGHT_BRACKET); break;
+                case ',': AddToken(TokenType.COMMA); break;
 
                 // Operators
-                case '+': addToken(TokenType.SUM); break;
-                case '-': addToken(TokenType.MIN); break;
-                case '/': addToken(TokenType.DIV); break;
-                case '%': addToken(TokenType.MOD); break;
+                case '+': AddToken(TokenType.SUM); break;
+                case '-': AddToken(TokenType.MIN); break;
+                case '/': AddToken(TokenType.DIV); break;
+                case '%': AddToken(TokenType.MOD); break;
                 case '*':
-                    addToken(match('*') ? TokenType.POW : TokenType.MULT);
+                    AddToken(Match('*') ? TokenType.POW : TokenType.MULT);
                     break;
 
                 // Comparison operators
                 case '&':
-                    if (match('&')) addToken(TokenType.AND);
+                    if (Match('&')) AddToken(TokenType.AND);
                     break;
                 case '|':
-                    if (match('|')) addToken(TokenType.OR);
+                    if (Match('|')) AddToken(TokenType.OR);
                     break;
                 case '<':
-                    if (match('-')) addToken(TokenType.LEFT_ARROW);
-                    else addToken(match('=') ? TokenType.LESS_EQUAL : TokenType.LESS);
+                    if (Match('-')) AddToken(TokenType.LEFT_ARROW);
+                    else AddToken(Match('=') ? TokenType.LESS_EQUAL : TokenType.LESS);
                     break;
                 case '=':
-                    addToken(match('=') ? TokenType.EQUAL_EQUAL : TokenType.EQUAL);
+                    AddToken(Match('=') ? TokenType.EQUAL_EQUAL : TokenType.EQUAL);
                     break;
                 case '>':
-                    addToken(match('=') ? TokenType.GREATER_EQUAL : TokenType.GREATER);
+                    AddToken(Match('=') ? TokenType.GREATER_EQUAL : TokenType.GREATER);
                     break;
-
-                // Ignore whitespace
-                case ' ':
-                case '\r':
-                case '\t':
-                    break;
-
                 case '\n':
+                    AddToken(TokenType.NEWLINE);
                     line++;
                     break;
 
@@ -113,58 +117,58 @@ namespace EPainter
                 default:
                     if (char.IsDigit(c))
                     {
-                        number();
+                        Number();
                     }
                     else if (char.IsLetter(c) || c == '_')
                     {
-                        identifier();
+                        Identifier();
                     }
-                    else
+                    else if (!char.IsWhiteSpace(c))
                     {
-                        EPainter.Error(line, "Unexpected character" + c);
+                        ErrorHandler.Error(line, "Unexpected character" + c);
                     }
                     break;
             }
         }
 
-        private void identifier()
+        private void Identifier()
         {
-            while (char.IsLetterOrDigit(peek()) || peek() == '_') Advance();
+            while (char.IsLetterOrDigit(Peek()) || Peek() == '_') Advance();
 
             string text = source.Substring(start, current - start);
 
-            if (keywords.TryGetValue(text, out TokenType type))
+            if (Keywords.TryGetValue(text, out TokenType type))
             {
-                addToken(type);
+                AddToken(type);
             }
             else
             {
-                addToken(TokenType.IDENTIFIER);
+                AddToken(TokenType.IDENTIFIER);
             }
         }
 
-        private void number()
+        private void Number()
         {
-            while (char.IsDigit(peek())) Advance();
-            
-            AddToken(TokenType.NUMBER,
-                int.Parse(source.Substring(start, current - start)));
+            while (char.IsDigit(Peek())) Advance();
+
+            string value = source.Substring(start, current - start);
+            AddToken(TokenType.NUMBER, Convert.ToInt32(value));
         }
 
         private void String()
         {
-            while (peek() != '"' && !isAtEnd())
+            while (Peek() != '"' && !IsAtEnd())
             {
-                if (peek() == '\n')
+                if (Peek() == '\n')
                 {
                     line++;
                 }
                 Advance();
             }
 
-            if (isAtEnd())
+            if (IsAtEnd())
             {
-                EPainter.Error(line, "Undeterminated string");
+                ErrorHandler.Error(line, "Undeterminated string");
                 return;
             }
 
@@ -174,23 +178,22 @@ namespace EPainter
             AddToken(TokenType.STRING, value);
         }
 
-        private bool match(char expected)
+        private bool Match(char expected)
         {
-            if (isAtEnd()) return false;
+            if (IsAtEnd()) return false;
             if (source[current] != expected) return false;
 
             current++;
             return true;
         }
 
-        public char peek()
+        public char Peek()
         {
-            if (isAtEnd()) return '\0';
-
+            if (IsAtEnd()) return '\0';
             return source[current];
         }
 
-        private bool isAtEnd()
+        private bool IsAtEnd()
         {
             return current >= source.Length;
         }
@@ -201,7 +204,7 @@ namespace EPainter
             return source[current - 1];
         }
 
-        private void addToken(TokenType type)
+        private void AddToken(TokenType type)
         {
             AddToken(type, null);
         }

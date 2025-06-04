@@ -1,24 +1,24 @@
 namespace EPainter
 {
-    public abstract class Command
+    public abstract class Statement
     {
-        public abstract T Accept<T>(ICommandVisitor<T> visitor);
+        public abstract T Accept<T>(IStatementVisitor<T> visitor);
 
-        public interface ICommandVisitor<T>
+        public interface IStatementVisitor<T>
         {
-            T VisitSpawnCommand(Spawn spawn);
-            T VisitColorCommand(Color color);
-            T VisitSizeCommand(Size size);
-            T VisitDrawLineCommand(DrawLine drawline);
-            T VisitDrawCircleCommand(DrawCircle drawCircle);
-            T VisitDrawRectangleCommand(DrawRectangle drawRectangle);
-            T VisitFillCommand(Fill fill);
-            T VisitAssignmentCommand(Assignment assignment);
-            T VisitLabelCommand(Label label);
-            T VisitGotoCommand(Goto @goto);
+            T VisitSpawnStatement(Spawn spawn);
+            T VisitColorStatement(Color color);
+            T VisitSizeStatement(Size size);
+            T VisitDrawLineStatement(DrawLine drawline);
+            T VisitDrawCircleStatement(DrawCircle drawCircle);
+            T VisitDrawRectangleStatement(DrawRectangle drawRectangle);
+            T VisitFillStatement(Fill fill);
+            T VisitAssignmentStatement(Assignment assignment);
+            T VisitLabelStatement(Label label);
+            T VisitGotoStatement(Goto @goto);
         }
 
-        public class Spawn : Command
+        public class Spawn : Statement
         {
             public Expr X;
             public Expr Y;
@@ -29,13 +29,13 @@ namespace EPainter
                 Y = y;
             }
 
-            public override T Accept<T>(ICommandVisitor<T> visitor)
+            public override T Accept<T>(IStatementVisitor<T> visitor)
             {
-                return visitor.VisitSpawnCommand(this);
+                return visitor.VisitSpawnStatement(this);
             }
         }
 
-        public class Color : Command
+        public class Color : Statement
         {
             public Expr ColorName;
 
@@ -44,13 +44,13 @@ namespace EPainter
                 ColorName = colorName;
             }
 
-            public override T Accept<T>(ICommandVisitor<T> visitor)
+            public override T Accept<T>(IStatementVisitor<T> visitor)
             {
-                return visitor.VisitColorCommand(this);
+                return visitor.VisitColorStatement(this);
             }
         }
 
-        public class Size : Command
+        public class Size : Statement
         {
             public Expr SizeValue;
 
@@ -59,13 +59,13 @@ namespace EPainter
                 SizeValue = sizeValue;
             }
 
-            public override T Accept<T>(ICommandVisitor<T> visitor)
+            public override T Accept<T>(IStatementVisitor<T> visitor)
             {
-                return visitor.VisitSizeCommand(this);
+                return visitor.VisitSizeStatement(this);
             }
         }
 
-        public class DrawLine : Command
+        public class DrawLine : Statement
         {
             public Expr DirX;
             public Expr DirY;
@@ -78,13 +78,13 @@ namespace EPainter
                 Distance = distance;
             }
 
-            public override T Accept<T>(ICommandVisitor<T> visitor)
+            public override T Accept<T>(IStatementVisitor<T> visitor)
             {
-                return visitor.VisitDrawLineCommand(this);
+                return visitor.VisitDrawLineStatement(this);
             }
         }
 
-        public class DrawCircle : Command
+        public class DrawCircle : Statement
         {
             public Expr DirX;
             public Expr DirY;
@@ -96,13 +96,13 @@ namespace EPainter
                 Radius = radius;
             }
 
-            public override T Accept<T>(ICommandVisitor<T> visitor)
+            public override T Accept<T>(IStatementVisitor<T> visitor)
             {
-                return visitor.VisitDrawCircleCommand(this);
+                return visitor.VisitDrawCircleStatement(this);
             }
         }
 
-        public class DrawRectangle : Command
+        public class DrawRectangle : Statement
         {
             public Expr DirX;
             public Expr DirY;
@@ -119,21 +119,21 @@ namespace EPainter
                 Height = height;
             }
 
-            public override T Accept<T>(ICommandVisitor<T> visitor)
+            public override T Accept<T>(IStatementVisitor<T> visitor)
             {
-                return visitor.VisitDrawRectangleCommand(this);
+                return visitor.VisitDrawRectangleStatement(this);
             }
         }
 
-        public class Fill : Command
+        public class Fill : Statement
         {
-            public override T Accept<T>(ICommandVisitor<T> visitor)
+            public override T Accept<T>(IStatementVisitor<T> visitor)
             {
-                return visitor.VisitFillCommand(this);
+                return visitor.VisitFillStatement(this);
             }
         }
 
-        public class Assignment : Command
+        public class Assignment : Statement
         {
             public Token Name;
             public Expr Value;
@@ -144,13 +144,13 @@ namespace EPainter
                 Value = value;
             }
 
-            public override T Accept<T>(ICommandVisitor<T> visitor)
+            public override T Accept<T>(IStatementVisitor<T> visitor)
             {
-                return visitor.VisitAssignmentCommand(this);
+                return visitor.VisitAssignmentStatement(this);
             }
         }
 
-        public class Label : Command
+        public class Label : Statement
         {
             public Token Name;
 
@@ -159,13 +159,13 @@ namespace EPainter
                 Name = name;
             }
 
-            public override T Accept<T>(ICommandVisitor<T> visitor)
+            public override T Accept<T>(IStatementVisitor<T> visitor)
             {
-                return visitor.VisitLabelCommand(this);
+                return visitor.VisitLabelStatement(this);
             }
         }
 
-        public class Goto : Command
+        public class Goto : Statement
         {
             public Token label;
             public Expr Condition;
@@ -176,9 +176,9 @@ namespace EPainter
                 Condition = condition;
             }
 
-            public override T Accept<T>(ICommandVisitor<T> visitor)
+            public override T Accept<T>(IStatementVisitor<T> visitor)
             {
-                return visitor.VisitGotoCommand(this);
+                return visitor.VisitGotoStatement(this);
             }
         }
     }

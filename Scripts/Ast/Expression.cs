@@ -13,6 +13,7 @@ namespace EPainter
             T VisitLiteralExpr(Literal literal);
             T VisitVariableExpr(Variable variable);
             T VisitFunctionCallExpr(FunctionCall functionCall);
+            T VisitUnaryExpr(Unary unary);
         }
 
         public class Binary : Expr
@@ -33,6 +34,23 @@ namespace EPainter
                 return visitor.VisitBinaryExpr(this);
             }
         }
+
+        public class Unary : Expr
+    {
+        public Token Operator;
+        public Expr right;
+
+        public Unary(Token Operator, Expr right)
+        {
+            this.Operator = Operator;
+            this.right = right;
+        }
+
+        public override T Accept<T>(IVisitor<T> visitor)
+        {
+            return visitor.VisitUnaryExpr(this);
+        }
+    }
 
         public class Grouping : Expr
         {

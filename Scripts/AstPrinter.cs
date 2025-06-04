@@ -3,24 +3,24 @@ using System.Text;
 
 namespace EPainter
 {
-    public class AstPrinter : Expr.IVisitor<string>, Command.ICommandVisitor<string>
+    public class AstPrinter : Expr.IVisitor<string>, Statement.IStatementVisitor<string>
     {
         public string Print(Expr expr)
         {
             return expr.Accept(this);
         }
 
-        public string Print(Command command)
+        public string Print(Statement Statement)
         {
-            return command.Accept(this);
+            return Statement.Accept(this);
         }
 
-        public string PrintProgram(List<Command> commands)
+        public string PrintProgram(List<Statement> Statements)
         {
             var builder = new StringBuilder();
-            foreach (var command in commands)
+            foreach (var Statement in Statements)
             {
-                builder.AppendLine(command.Accept(this));
+                builder.AppendLine(Statement.Accept(this));
             }
 
             return builder.ToString();
@@ -28,7 +28,7 @@ namespace EPainter
 
         public string VisitBinaryExpr(Expr.Binary binary)
         {
-            return Parenthesize(binary.Operator.lexeme, binary.left, binary.rigth);
+            return Parenthesize(binary.Operator.Lexeme, binary.left, binary.rigth);
         }
 
         public string VisitGroupingExpr(Expr.Grouping grouping)
@@ -53,7 +53,7 @@ namespace EPainter
 
         public string VisitVariableExpr(Expr.Variable variable)
         {
-            return variable.Name.lexeme;
+            return variable.Name.Lexeme;
         }
 
         public string VisitFunctionCallExpr(Expr.FunctionCall functionCall)
@@ -71,54 +71,54 @@ namespace EPainter
             return builder.ToString();
         }
 
-        public string VisitSpawnCommand(Command.Spawn spawn)
+        public string VisitSpawnStatement(Statement.Spawn spawn)
         {
             return $"Spawn({spawn.X.Accept(this)}, {spawn.Y.Accept(this)})";
         }
 
-        public string VisitColorCommand(Command.Color color)
+        public string VisitColorStatement(Statement.Color color)
         {
             return $"Color({color.ColorName.Accept(this)})";
         }
 
-        public string VisitSizeCommand(Command.Size size)
+        public string VisitSizeStatement(Statement.Size size)
         {
             return $"Size({size.SizeValue.Accept(this)})";
         }
 
-        public string VisitDrawLineCommand(Command.DrawLine drawline)
+        public string VisitDrawLineStatement(Statement.DrawLine drawline)
         {
             return $"DrawLine({drawline.DirX.Accept(this)}, {drawline.DirY.Accept(this)}, {drawline.Distance.Accept(this)})";
         }
 
-        public string VisitDrawCircleCommand(Command.DrawCircle drawCircle)
+        public string VisitDrawCircleStatement(Statement.DrawCircle drawCircle)
         {
             return $"DrawCircle({drawCircle.DirX.Accept(this)}, {drawCircle.DirY.Accept(this)}, {drawCircle.Radius.Accept(this)})";
         }
 
-        public string VisitDrawRectangleCommand(Command.DrawRectangle drawRectangle)
+        public string VisitDrawRectangleStatement(Statement.DrawRectangle drawRectangle)
         {
             return $"DrawRectangle({drawRectangle.DirX.Accept(this)}, {drawRectangle.DirY.Accept(this)}, {drawRectangle.Distance.Accept(this)}, {drawRectangle.Width.Accept(this)}, {drawRectangle.Height.Accept(this)})";
         }
 
-        public string VisitFillCommand(Command.Fill fill)
+        public string VisitFillStatement(Statement.Fill fill)
         {
             return $"Fill()";
         }
 
-        public string VisitAssignmentCommand(Command.Assignment assignment)
+        public string VisitAssignmentStatement(Statement.Assignment assignment)
         {
-            return $"{assignment.Name.lexeme} <- {assignment.Value.Accept(this)}";
+            return $"{assignment.Name.Lexeme} <- {assignment.Value.Accept(this)}";
         }
 
-        public string VisitLabelCommand(Command.Label label)
+        public string VisitLabelStatement(Statement.Label label)
         {
-            return $"{label.Name.lexeme}:";
+            return $"{label.Name.Lexeme}:";
         }
 
-        public string VisitGotoCommand(Command.Goto @goto)
+        public string VisitGotoStatement(Statement.Goto @goto)
         {
-            return $"Goto [{@goto.label.lexeme}] ({@goto.Condition.Accept(this)})";
+            return $"Goto [{@goto.label.Lexeme}] ({@goto.Condition.Accept(this)})";
         }
 
         public string Parenthesize(string name, params Expr[] exprs)

@@ -7,7 +7,7 @@ namespace EPainter
     {
         public static bool HadError;
         public static bool HadRuntimeError;
-        public static List<string> ErrorMessages;
+        public static List<string> ErrorMessages = new List<string>();
 
         public static void Reset()
         {
@@ -16,20 +16,22 @@ namespace EPainter
             ErrorMessages.Clear();
         }
 
-        public static void Error(int line, string message)
+        public static void Error(int Line, string message)
         {
-            Report(line, "", message);
+            var fullMessage = $"[Line {Line}] Error: {message}";
+            ErrorMessages.Add(fullMessage);
+            Report(Line, "", message);
         }
 
         public static void Error(Token token, string message)
         {
-            if (token.type == TokenType.EOF)
+            if (token.Type == TokenType.EOF)
             {
-                Report(token.line, "at end", message);
+                Report(token.Line, "at end", message);
             }
             else
             {
-                Report(token.line, $" at '{token.lexeme}'", message);
+                Report(token.Line, $" at '{token.Lexeme}'", message);
             }
         }
 
@@ -37,7 +39,7 @@ namespace EPainter
         {
             if (error.Token != null)
             {
-                Console.Error.WriteLine($"[line {error.Token.line}] {error.Message}");
+                Console.Error.WriteLine($"[Line {error.Token.Line}] {error.Message}");
             }
             else
             {
@@ -46,28 +48,14 @@ namespace EPainter
             HadRuntimeError = true;
         }
 
-        private static void Report(int line, string where, string message)
+        private static void Report(int Line, string where, string message)
         {
-            Console.Error.WriteLine($"[line {line}] Error{where}: {message}");
+            Console.Error.WriteLine($"[Line {Line}] Error{where}: {message}");
             HadError = true;
         }
     }
 
     public class ParseError : Exception{}
 
-    public class RuntimeError : Exception
-    {
-        public Token Token;
-
-        public RuntimeError(Token token, string message) : base(message)
-        {
-            Token = token;
-        }
-
-        public RuntimeError(string message) : base(message)
-        {
-            Token = null;
-        }
-
-    }
+    
 }
