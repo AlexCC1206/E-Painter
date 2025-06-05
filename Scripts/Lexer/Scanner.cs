@@ -3,7 +3,10 @@ using System.Collections.Generic;
 
 namespace EPainter
 {
-    class Scanner
+    /// <summary>
+    /// Clase encargada de escanear el código fuente y generar una lista de tokens.
+    /// </summary>
+    public class Scanner
     {
         private string source;
         private List<Token> tokens = new List<Token>();
@@ -11,15 +14,18 @@ namespace EPainter
         private int current = 0;
         private int line = 1;
 
+        /// <summary>
+        /// Diccionario que contiene las palabras clave y su tipo de token correspondiente.
+        /// </summary>
         private static readonly Dictionary<string, TokenType> Keywords = new Dictionary<string, TokenType>
     {
         // Commands
         {"Spawn", TokenType.SPAWN},
         {"Color", TokenType.COLOR},
         {"Size", TokenType.SIZE},
-        {"DrawLine", TokenType.DRAWLINE},
-        {"DrawCircle", TokenType.DRAWCIRCLE},
-        {"DrawRectangle", TokenType.DRAWRECTANGLE},
+        {"DrawLine", TokenType.DRAW_LINE},
+        {"DrawCircle", TokenType.DRAW_CIRCLE},
+        {"DrawRectangle", TokenType.DRAW_RECTANGLE },
         {"Fill", TokenType.FILL},
 
         // Function
@@ -46,6 +52,10 @@ namespace EPainter
         {"Transparent", TokenType.TRANSPARENT}
         };
 
+        /// <summary>
+        /// Constructor de la clase Scanner.
+        /// </summary>
+        /// <param name="source">El código fuente a escanear.</param>
         public Scanner(string source)
         {
             this.source = source;
@@ -61,13 +71,26 @@ namespace EPainter
             while (!IsAtEnd())
             {
                 start = current;
-                ScanTokens();
+                try
+                {
+                    ScanTokens();
+                }
+                catch (EPainterException)
+                {
+                    while (!IsAtEnd() && !char.IsWhiteSpace(Peek()))
+                    {
+                        Advance();
+                    }
+                }
             }
 
             tokens.Add(new Token(TokenType.EOF, "", null, line));
             return tokens;
         }
 
+        /// <summary>
+        /// Escanea un carácter y lo convierte en un token.
+        /// </summary>
         private void ScanTokens()
         {
             char c = Advance();
@@ -131,6 +154,9 @@ namespace EPainter
             }
         }
 
+        /// <summary>
+        /// Identifica un identificador o palabra clave.
+        /// </summary>
         private void Identifier()
         {
             while (char.IsLetterOrDigit(Peek()) || Peek() == '_') Advance();
@@ -147,6 +173,9 @@ namespace EPainter
             }
         }
 
+        /// <summary>
+        /// Escanea un número y lo convierte en un token.
+        /// </summary>
         private void Number()
         {
             while (char.IsDigit(Peek())) Advance();
@@ -155,6 +184,9 @@ namespace EPainter
             AddToken(TokenType.NUMBER, Convert.ToInt32(value));
         }
 
+        /// <summary>
+        /// Escanea una cadena de texto y la convierte en un token.
+        /// </summary>
         private void String()
         {
             while (Peek() != '"' && !IsAtEnd())
@@ -178,6 +210,11 @@ namespace EPainter
             AddToken(TokenType.STRING, value);
         }
 
+        /// <summary>
+        /// Verifica si el siguiente carácter coincide con el esperado.
+        /// </summary>
+        /// <param name="expected">El carácter esperado.</param>
+        /// <returns>True si coincide, de lo contrario False.</returns>
         private bool Match(char expected)
         {
             if (IsAtEnd()) return false;
@@ -187,28 +224,49 @@ namespace EPainter
             return true;
         }
 
+        /// <summary>
+        /// Obtiene el carácter actual sin avanzar el puntero.
+        /// </summary>
+        /// <returns>El carácter actual.</returns>
         public char Peek()
         {
             if (IsAtEnd()) return '\0';
             return source[current];
         }
 
+        /// <summary>
+        /// Verifica si se ha alcanzado el final del código fuente.
+        /// </summary>
+        /// <returns>True si se ha alcanzado el final, de lo contrario False.</returns>
         private bool IsAtEnd()
         {
             return current >= source.Length;
         }
 
+        /// <summary>
+        /// Avanza el puntero al siguiente carácter y lo devuelve.
+        /// </summary>
+        /// <returns>El carácter actual antes de avanzar.</returns>
         private char Advance()
         {
             current++;
             return source[current - 1];
         }
 
+        /// <summary>
+        /// Agrega un token a la lista de tokens.
+        /// </summary>
+        /// <param name="type">El tipo de token.</param>
         private void AddToken(TokenType type)
         {
             AddToken(type, null);
         }
 
+        /// <summary>
+        /// Agrega un token a la lista de tokens con un valor literal.
+        /// </summary>
+        /// <param name="type">El tipo de token.</param>
+        /// <param name="literal">El valor literal del token.</param>
         private void AddToken(TokenType type, object literal)
         {
             string text = source.Substring(start, current - start);

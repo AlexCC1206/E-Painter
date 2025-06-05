@@ -55,7 +55,15 @@ namespace EPainter
         }
     }
 
-    public class ParseError : Exception{}
+    public class ParseError : Exception { }
 
-    
+    public class EPainterException : Exception
+    {
+        public int Line { get; }
+
+        public EPainterException(int line, string message) : base($"Line {line}: {message}")
+        {
+            Line = line;
+        }
+    }
 }
