@@ -202,6 +202,31 @@ namespace EPainter
         }
 
         /// <summary>
+        /// Representa una declaración para realizar un salto condicional o incondicional a una etiqueta.
+        /// </summary>
+        public class Goto : Stmt
+        {
+            public Token label { get; }
+            public Expr Condition { get; }
+
+            /// <summary>
+            /// Inicializa una nueva instancia de la clase <see cref="Goto"/>.
+            /// </summary>
+            /// <param name="label">La etiqueta a la que se realizará el salto.</param>
+            /// <param name="condition">La condición para realizar el salto.</param>
+            public Goto(Token label, Expr condition)
+            {
+                this.label = label;
+                Condition = condition;
+            }
+
+            public override T Accept<T>(IStmtVisitor<T> visitor)
+            {
+                return visitor.VisitGotoStmt(this);
+            }
+        }
+
+        /// <summary>
         /// Representa una declaración para asignar un valor a una variable.
         /// </summary>
         public class Assignment : Stmt
@@ -226,6 +251,7 @@ namespace EPainter
             }
         }
 
+
         /// <summary>
         /// Representa una declaración para definir una etiqueta en el código.
         /// </summary>
@@ -245,31 +271,6 @@ namespace EPainter
             public override T Accept<T>(IStmtVisitor<T> visitor)
             {
                 return visitor.VisitLabelStmt(this);
-            }
-        }
-
-        /// <summary>
-        /// Representa una declaración para realizar un salto condicional o incondicional a una etiqueta.
-        /// </summary>
-        public class Goto : Stmt
-        {
-            public Token label { get; }
-            public Expr Condition { get; }
-
-            /// <summary>
-            /// Inicializa una nueva instancia de la clase <see cref="Goto"/>.
-            /// </summary>
-            /// <param name="label">La etiqueta a la que se realizará el salto.</param>
-            /// <param name="condition">La condición para realizar el salto.</param>
-            public Goto(Token label, Expr condition)
-            {
-                this.label = label;
-                Condition = condition;
-            }
-
-            public override T Accept<T>(IStmtVisitor<T> visitor)
-            {
-                return visitor.VisitGotoStmt(this);
             }
         }
     }

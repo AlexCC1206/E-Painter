@@ -8,7 +8,7 @@ namespace EPainter
     /// </summary>
     public class Scanner
     {
-        private string source;
+        private string Source;
         private List<Token> tokens = new List<Token>();
         private int start = 0;
         private int current = 0;
@@ -29,27 +29,27 @@ namespace EPainter
         {"Fill", TokenType.FILL},
 
         // Function
-        {"GetActualX", TokenType.GETACTUALX},
-        {"GetActualY", TokenType.GETACTUALY},
-        {"GetCanvasSize", TokenType.GETCANVASIZE},
-        {"GetColorCount", TokenType.GETCOLORCOUNT},
-        {"IsBrushColor", TokenType.ISBRUSHCOLOR},
-        {"IsBrushSize", TokenType.ISBRUSHSIZE},
-        {"IsCanvasColor", TokenType.ISCANVASCOLOR},
+        {"GetActualX", TokenType.GET_ACTUAL_X},
+        {"GetActualY", TokenType.GET_ACTUAL_Y},
+        {"GetCanvasSize", TokenType.GET_CANVAS_SIZE},
+        {"GetColorCount", TokenType.GET_COLOR_COUNT},
+        {"IsBrushColor", TokenType.IS_BRUSH_COLOR},
+        {"IsBrushSize", TokenType.IS_BRUSH_SIZE},
+        {"IsCanvasColor", TokenType.IS_CANVAS_COLOR},
 
         // Control
         {"GoTo", TokenType.GOTO},
 
         // Colors
-        {"Red", TokenType.RED},
-        {"Blue", TokenType.BLUE},
-        {"Green", TokenType.GREEN},
-        {"Yellow", TokenType.YELLOW},
-        {"Orange", TokenType.ORANGE},
-        {"Purple", TokenType.PURPLE},
-        {"Black", TokenType.BLACK},
-        {"White", TokenType.WHITE},
-        {"Transparent", TokenType.TRANSPARENT}
+        {"Red", TokenType.COLOR_LITERAL},
+        {"Blue", TokenType.COLOR_LITERAL},
+        {"Green", TokenType.COLOR_LITERAL},
+        {"Yellow", TokenType.COLOR_LITERAL},
+        {"Orange", TokenType.COLOR_LITERAL},
+        {"Purple", TokenType.COLOR_LITERAL},
+        {"Black", TokenType.COLOR_LITERAL},
+        {"White", TokenType.COLOR_LITERAL},
+        {"Transparent", TokenType.COLOR_LITERAL}
         };
 
         /// <summary>
@@ -58,7 +58,7 @@ namespace EPainter
         /// <param name="source">El código fuente a escanear.</param>
         public Scanner(string source)
         {
-            this.source = source;
+            Source = source;
         }
 
         /// <summary>
@@ -71,17 +71,7 @@ namespace EPainter
             while (!IsAtEnd())
             {
                 start = current;
-                try
-                {
-                    ScanTokens();
-                }
-                catch (EPainterException)
-                {
-                    while (!IsAtEnd() && !char.IsWhiteSpace(Peek()))
-                    {
-                        Advance();
-                    }
-                }
+                ScanTokens();
             }
 
             tokens.Add(new Token(TokenType.EOF, "", null, line));
@@ -148,7 +138,7 @@ namespace EPainter
                     }
                     else if (!char.IsWhiteSpace(c))
                     {
-                        ErrorHandler.Error(line, "Unexpected character" + c);
+                        throw new ScannerException(line, "Unexpected character: " + c);
                     }
                     break;
             }
@@ -161,7 +151,7 @@ namespace EPainter
         {
             while (char.IsLetterOrDigit(Peek()) || Peek() == '_') Advance();
 
-            string text = source.Substring(start, current - start);
+            string text = Source.Substring(start, current - start);
 
             if (Keywords.TryGetValue(text, out TokenType type))
             {
@@ -180,7 +170,7 @@ namespace EPainter
         {
             while (char.IsDigit(Peek())) Advance();
 
-            string value = source.Substring(start, current - start);
+            string value = Source.Substring(start, current - start);
             AddToken(TokenType.NUMBER, Convert.ToInt32(value));
         }
 
@@ -200,13 +190,12 @@ namespace EPainter
 
             if (IsAtEnd())
             {
-                ErrorHandler.Error(line, "Undeterminated string");
-                return;
+                throw new ScannerException(line, "Undeterminated string");
             }
 
             Advance();
 
-            string value = source.Substring(start + 1, current - start - 2);
+            string value = Source.Substring(start + 1, current - start - 2);
             AddToken(TokenType.STRING, value);
         }
 
@@ -218,7 +207,7 @@ namespace EPainter
         private bool Match(char expected)
         {
             if (IsAtEnd()) return false;
-            if (source[current] != expected) return false;
+            if (Source[current] != expected) return false;
 
             current++;
             return true;
@@ -231,7 +220,7 @@ namespace EPainter
         public char Peek()
         {
             if (IsAtEnd()) return '\0';
-            return source[current];
+            return Source[current];
         }
 
         /// <summary>
@@ -240,7 +229,7 @@ namespace EPainter
         /// <returns>True si se ha alcanzado el final, de lo contrario False.</returns>
         private bool IsAtEnd()
         {
-            return current >= source.Length;
+            return current >= Source.Length;
         }
 
         /// <summary>
@@ -250,7 +239,7 @@ namespace EPainter
         private char Advance()
         {
             current++;
-            return source[current - 1];
+            return Source[current - 1];
         }
 
         /// <summary>
@@ -269,7 +258,7 @@ namespace EPainter
         /// <param name="literal">El valor literal del token.</param>
         private void AddToken(TokenType type, object literal)
         {
-            string text = source.Substring(start, current - start);
+            string text = Source.Substring(start, current - start);
             tokens.Add(new Token(type, text, literal, line));
         }
     }

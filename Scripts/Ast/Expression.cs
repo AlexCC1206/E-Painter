@@ -24,9 +24,12 @@ namespace EPainter
             T VisitBinaryExpr(Binary expr);
             T VisitGroupingExpr(Grouping expr);
             T VisitLiteralExpr(Literal expr);
-            T VisitVariableExpr(Variable expr);
-            T VisitFunctionCallExpr(FunctionCall expr);
             T VisitUnaryExpr(Unary expr);
+            T VisitVariableExpr(Variable expr);
+            T VisitLogicalExpr(Logical expr);
+            T VisitCallExpr(Call expr);
+            
+
         }
 
         /// <summary>
@@ -54,31 +57,6 @@ namespace EPainter
             public override T Accept<T>(IVisitor<T> visitor)
             {
                 return visitor.VisitBinaryExpr(this);
-            }
-        }
-
-        /// <summary>
-        /// Representa una expresión unaria.
-        /// </summary>
-        public class Unary : Expr
-        {
-            public Token Op { get; }
-            public Expr Right { get; }
-
-            /// <summary>
-            /// Constructor para inicializar una expresión unaria.
-            /// </summary>
-            /// <param name="op">El operador.</param>
-            /// <param name="right">La expresión del lado derecho.</param>
-            public Unary(Token op, Expr right)
-            {
-                Op = op;
-                Right = right;
-            }
-
-            public override T Accept<T>(IVisitor<T> visitor)
-            {
-                return visitor.VisitUnaryExpr(this);
             }
         }
 
@@ -127,6 +105,31 @@ namespace EPainter
         }
 
         /// <summary>
+        /// Representa una expresión unaria.
+        /// </summary>
+        public class Unary : Expr
+        {
+            public Token Op { get; }
+            public Expr Right { get; }
+
+            /// <summary>
+            /// Constructor para inicializar una expresión unaria.
+            /// </summary>
+            /// <param name="op">El operador.</param>
+            /// <param name="right">La expresión del lado derecho.</param>
+            public Unary(Token op, Expr right)
+            {
+                Op = op;
+                Right = right;
+            }
+
+            public override T Accept<T>(IVisitor<T> visitor)
+            {
+                return visitor.VisitUnaryExpr(this);
+            }
+        }
+
+        /// <summary>
         /// Representa una expresión de variable.
         /// </summary>
         public class Variable : Expr
@@ -147,11 +150,30 @@ namespace EPainter
                 return visitor.VisitVariableExpr(this);
             }
         }
+        
+        public class Logical : Expr
+        {
+            public Expr Left { get; }
+            public Token Op { get; }
+            public Expr Right { get; }
+
+            public Logical(Expr left, Token op, Expr right)
+            {
+                Left = left;
+                Op = op;
+                Right = right;
+            }
+
+            public override T Accept<T>(IVisitor<T> visitor)
+            {
+                return visitor.VisitLogicalExpr(this);
+            }
+        }
 
         /// <summary>
         /// Representa una expresión de llamada a función.
         /// </summary>
-        public class FunctionCall : Expr
+        public class Call : Expr
         {
             public Token Name { get; }
             public List<Expr> Arguments { get; }
@@ -161,7 +183,7 @@ namespace EPainter
             /// </summary>
             /// <param name="name">El token del nombre de la función.</param>
             /// <param name="args">La lista de argumentos.</param>
-            public FunctionCall(Token name, List<Expr> args)
+            public Call(Token name, List<Expr> args)
             {
                 Name = name;
                 Arguments = args;
@@ -169,7 +191,7 @@ namespace EPainter
 
             public override T Accept<T>(IVisitor<T> visitor)
             {
-                return visitor.VisitFunctionCallExpr(this);
+                return visitor.VisitCallExpr(this);
             }
         }
     }

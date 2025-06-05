@@ -45,8 +45,8 @@ namespace EPainter
         SPAWN, COLOR, SIZE, DRAW_LINE, DRAW_CIRCLE, DRAW_RECTANGLE, FILL,
 
         // Functions
-        GETACTUALX, GETACTUALY, GETCANVASIZE, GETCOLORCOUNT,
-        ISBRUSHCOLOR, ISBRUSHSIZE, ISCANVASCOLOR,
+        GET_ACTUAL_X, GET_ACTUAL_Y, GET_CANVAS_SIZE, GET_COLOR_COUNT,
+        IS_BRUSH_COLOR, IS_BRUSH_SIZE, IS_CANVAS_COLOR,
 
         // Control Structures
         GOTO,
@@ -65,7 +65,7 @@ namespace EPainter
         IDENTIFIER, STRING, NUMBER,
 
         // Colors
-        RED, BLUE, GREEN, YELLOW, ORANGE, PURPLE, BLACK, WHITE, TRANSPARENT,
+        COLOR_LITERAL,
 
         // Others
         EOF, NEWLINE,

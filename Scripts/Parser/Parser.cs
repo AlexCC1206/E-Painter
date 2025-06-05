@@ -5,52 +5,40 @@ namespace EPainter
 {
     public class Parser
     {
-        private List<Token> tokens;
+        private List<Token> Tokens;
         private int current = 0;
-
 
         public Parser(List<Token> tokens)
         {
-            this.tokens = tokens;
+            Tokens = tokens;
         }
 
-        public List<Statement> Parse()
+        public List<Stmt> Parse()
         {
-            List<Statement> statements = new List<Statement>();
+            var statements = new List<Stmt>();
 
             while (!IsAtEnd())
             {
-                statements.Add(ParseStatement());
+                statements.Add(Declaration());
             }
 
             return statements;
         }
 
-        private Statement ParseStatement()
+        private Stmt Declaration()
         {
             try
             {
-                if (Match(TokenType.SPAWN)) return ParseSpawn();
-                if (Match(TokenType.COLOR)) return ParseColor();
-                if (Match(TokenType.SIZE)) return ParseSize();
-                if (Match(TokenType.DRAWLINE)) return ParseDrawLine();
-                if (Match(TokenType.DRAWCIRCLE)) return ParseDrawCircle();
-                if (Match(TokenType.DRAWRECTANGLE)) return ParseDrawRectangle();
-                if (Match(TokenType.FILL)) return ParseFill();
-                if (Match(TokenType.GOTO)) return ParseGoto();
+                if (Match(TokenType.SPAWN)) return SpawnStatement();
+                if (Match(TokenType.COLOR)) return ColorStatement();
+                if (Match(TokenType.SIZE)) return SizeStatement();
+                if (Match(TokenType.DRAW_LINE)) return DrawLineStatement();
+                if (Match(TokenType.DRAW_CIRCLE)) return DrawCircleStatement();
+                if (Match(TokenType.DRAW_RECTANGLE)) return DrawRectangleStatement();
+                if (Match(TokenType.FILL)) return FillStatement();
+                if (Match(TokenType.GOTO)) return GotoStatement();
 
-                if (Check(TokenType.IDENTIFIER) && CheckNext(TokenType.LEFT_ARROW))
-                {
-                    return ParseAssignment();
-                }
-
-                if (Check(TokenType.IDENTIFIER) && CheckNext(TokenType.NEWLINE))
-                {
-                    return ParseLabel();
-                }
-
-                throw Error(Peek(), "Comando no reconocido");
-
+                return AssignmenStatement();
             }
             catch (ParseError)
             {
@@ -59,116 +47,99 @@ namespace EPainter
             }
         }
 
-        private Statement ParseSpawn()
+        private Stmt SpawnStatement()
         {
-            Consume(TokenType.LEFT_PAREN, "Expect '(' after Spawn");
-            Expr x = Expr();
-            Consume(TokenType.COMMA, "Expect ',' between x and y coordinates");
-            Expr y = Expr();
-            Consume(TokenType.RIGHT_PAREN, "Expect ')' after Spawn arguments");
-
-            return new Statement.Spawn(x, y);
+            Consume(TokenType.LEFT_PAREN, "Expect '(' after 'Spawn'.");
+            Expr x = Expression();
+            Consume(TokenType.COMMA, "Expect ',' between x and y coordinates.");
+            Expr y = Expression();
+            Consume(TokenType.RIGHT_PAREN, "Expect ')' after Spawn arguments.");
+            return new Stmt.Spawn(x, y);
         }
 
-        private Statement ParseColor()
+        private Stmt ColorStatement()
         {
-            Consume(TokenType.LEFT_PAREN, "Expect '(' after Color");
-            Expr color = Expr();
-            Consume(TokenType.RIGHT_PAREN, "Expect ')' after Color arguments");
-
-            return new Statement.Color(color);
+            Consume(TokenType.LEFT_PAREN, "Expect '(' after 'Color'.");
+            Token color = Consume(TokenType.COLOR_LITERAL, "Expect color literal.");
+            Consume(TokenType.RIGHT_PAREN, "Expect ')' after color.");
+            return new Stmt.Color(new Expr.Literal(color.Lexeme));
         }
 
-        private Statement ParseSize()
+        private Stmt SizeStatement()
         {
-            Consume(TokenType.LEFT_PAREN, "Expect '(' after Size");
-            Expr k = Expr();
-            Consume(TokenType.RIGHT_PAREN, "Expect ')' after Size arguments");
-
-            return new Statement.Size(k);
+            Consume(TokenType.LEFT_PAREN, "Expect '(' after 'Size'");
+            Expr size = Expression();
+            Consume(TokenType.RIGHT_PAREN, "Expect ')' after size.");
+            return new Stmt.Size(size);
         }
 
-        private Statement ParseDrawLine()
+        private Stmt DrawLineStatement()
         {
-            Consume(TokenType.LEFT_PAREN, "Expect '(' after DrawLine");
-            Expr dirX = Expr();
-            Consume(TokenType.COMMA, "Expect ',' between dirX");
-            Expr dirY = Expr();
-            Consume(TokenType.COMMA, "Expect ',' between dirY");
-            Expr distance = Expr();
-            Consume(TokenType.RIGHT_PAREN, "Expect ')' after distance");
-
-            return new Statement.DrawLine(dirX, dirY, distance);
+            Consume(TokenType.LEFT_PAREN, "Expect '(' after 'DrawLine'.");
+            Expr dirX = Expression();
+            Consume(TokenType.COMMA, "Expect ',' after direction X.");
+            Expr dirY = Expression();
+            Consume(TokenType.COMMA, "Expect ',' after direction Y.");
+            Expr distance = Expression();
+            Consume(TokenType.RIGHT_PAREN, "Expect ')' after DrawLine arguments.");
+            return new Stmt.DrawLine(dirX, dirY, distance);
         }
 
-        private Statement ParseDrawCircle()
+        private Stmt DrawCircleStatement()
         {
-            Consume(TokenType.LEFT_PAREN, "Expect '(' after DrawCircle");
-            Expr dirX = Expr();
-            Consume(TokenType.COMMA, "Expect ',' between dirX");
-            Expr dirY = Expr();
-            Consume(TokenType.COMMA, "Expect ',' between dirY");
-            Expr radius = Expr();
-            Consume(TokenType.RIGHT_PAREN, "Expect ')' after radius");
-
-            return new Statement.DrawCircle(dirX, dirY, radius);
+            Consume(TokenType.LEFT_PAREN, "Expect '(' after 'DrawCircle'.");
+            Expr dirX = Expression();
+            Consume(TokenType.COMMA, "Expect ',' after direction X.");
+            Expr dirY = Expression();
+            Consume(TokenType.COMMA, "Expect ',' after direction Y.");
+            Expr radius = Expression();
+            Consume(TokenType.RIGHT_PAREN, "Expect ')' after DrawCircle arguments.");
+            return new Stmt.DrawCircle(dirX, dirY, radius);
         }
 
-        private Statement ParseDrawRectangle()
+        private Stmt DrawRectangleStatement()
         {
-            Consume(TokenType.LEFT_PAREN, "Expect '(' after DrawRectangle");
-            Expr dirX = Expr();
-            Consume(TokenType.COMMA, "Expect ',' between dirX");
-            Expr dirY = Expr();
-            Consume(TokenType.COMMA, "Expect ',' between dirY");
-            Expr distance = Expr();
-            Consume(TokenType.COMMA, "Expect ',' between distance");
-            Expr width = Expr();
-            Consume(TokenType.COMMA, "Expect ',' between width");
-            Expr height = Expr();
-            Consume(TokenType.RIGHT_PAREN, "Expect ')' after height");
-
-            return new Statement.DrawRectangle(dirX, dirY, distance, width, height);
+            Consume(TokenType.LEFT_PAREN, "Expect '(' after 'DrawRectangle'.");
+            Expr dirX = Expression();
+            Consume(TokenType.COMMA, "Expect ',' after direction X.");
+            Expr dirY = Expression();
+            Consume(TokenType.COMMA, "Expect ',' after direction Y.");
+            Expr distance = Expression();
+            Consume(TokenType.COMMA, "Expect ',' after distance.");
+            Expr width = Expression();
+            Consume(TokenType.COMMA, "Expect ',' after width.");
+            Expr height = Expression();
+            Consume(TokenType.RIGHT_PAREN, "Expect ')' after DrawRectangle arguments.");
+            return new Stmt.DrawRectangle(dirX, dirY, distance, width, height);
         }
 
-        private Statement ParseFill()
+        private Stmt FillStatement()
         {
-            Consume(TokenType.LEFT_PAREN, "Expect '(' after Fill");
-            Consume(TokenType.RIGHT_PAREN, "Expect ')'");
-
-            return new Statement.Fill();
+            Consume(TokenType.LEFT_PAREN, "Expect '(' after 'Fill'.");
+            Consume(TokenType.RIGHT_PAREN, "Expect ')' after Fill.");
+            return new Stmt.Fill();
+        }
+        
+        private Stmt GotoStatement()
+        {
+            Consume(TokenType.LEFT_BRACKET, "Expect '[' after  'GoTo'.");
+            Token label = Consume(TokenType.IDENTIFIER, "Expect label name.");
+            Consume(TokenType.RIGHT_BRACKET, "Expect ']' after label name.");
+            Consume(TokenType.LEFT_PAREN, "Expect '(' before condition.");
+            Expr condition = Expression();
+            Consume(TokenType.RIGHT_PAREN, "Expect ')' after condition.");
+            return new Stmt.Goto(label, condition);
         }
 
-        private Statement ParseAssignment()
+        private Stmt AssignmenStatement()
         {
-            Token name = Previous();
+            Token name = Consume(TokenType.IDENTIFIER, "Expect variable name.");
             Consume(TokenType.LEFT_ARROW, "Expect '<-' after variable name");
-            Expr value = Expr();
-
-            return new Statement.Assignment(name, value);
+            Expr value = Expression();
+            return new Stmt.Assignment(name, value);
         }
 
-        private Statement ParseLabel()
-        {
-            Token name = Previous();
-            Consume(TokenType.NEWLINE, "Expect 'Jumpline' after label name");
-
-            return new Statement.Label(name);
-        }
-
-        private Statement ParseGoto()
-        {
-            Consume(TokenType.LEFT_BRACKET, "Expect '[' after  GoTo");
-            Token label = Consume(TokenType.IDENTIFIER, "Expect label name");
-            Consume(TokenType.RIGHT_BRACKET, "Expect ']' after label name");
-            Consume(TokenType.LEFT_PAREN, "Expect '(' before condition");
-            Expr condition = Expr();
-            Consume(TokenType.RIGHT_PAREN, "Expect ')' after condition");
-
-            return new Statement.Goto(label, condition);
-        }
-
-        private Expr Expr()
+        private Expr Expression()
         {
             return LogicalAnd();
         }
@@ -181,7 +152,7 @@ namespace EPainter
             {
                 Token op = Previous();
                 Expr rigth = LogicalOr();
-                expr = new Expr.Binary(expr, op, rigth);
+                expr = new Expr.Logical(expr, op, rigth);
             }
 
             return expr;
@@ -203,58 +174,58 @@ namespace EPainter
 
         private Expr Equality()
         {
-            Expr Expr = Comparison();
+            Expr expr = Comparison();
 
             while (Match(TokenType.EQUAL_EQUAL))
             {
-                Token Operator = Previous();
+                Token op = Previous();
                 Expr right = Comparison();
-                Expr = new Expr.Binary(Expr, Operator, right);
+                expr = new Expr.Binary(expr, op, right);
             }
 
-            return Expr;
+            return expr;
         }
 
         private Expr Comparison()
         {
-            Expr Expr = Term();
+            Expr expr = Term();
 
             while (Match(TokenType.GREATER, TokenType.GREATER_EQUAL, TokenType.LESS, TokenType.LESS_EQUAL))
             {
-                Token Operator = Previous();
+                Token op = Previous();
                 Expr right = Term();
-                Expr = new Expr.Binary(Expr, Operator, right);
+                expr = new Expr.Binary(expr, op, right);
             }
 
-            return Expr;
+            return expr;
         }
 
         private Expr Term()
         {
-            Expr Expr = Factor();
+            Expr expr = Factor();
 
             while (Match(TokenType.MIN, TokenType.SUM))
             {
-                Token Operator = Previous();
+                Token op = Previous();
                 Expr right = Factor();
-                Expr = new Expr.Binary(Expr, Operator, right);
+                expr = new Expr.Binary(expr, op, right);
             }
 
-            return Expr;
+            return expr;
         }
 
         private Expr Factor()
         {
-            Expr Expr = Pow();
+            Expr expr = Pow();
 
             while (Match(TokenType.MULT, TokenType.DIV, TokenType.MOD))
             {
-                Token Operator = Previous();
+                Token op = Previous();
                 Expr right = Pow();
-                Expr = new Expr.Binary(Expr, Operator, right);
+                expr = new Expr.Binary(expr, op, right);
             }
 
-            return Expr;
+            return expr;
         }
 
         private Expr Pow()
@@ -263,9 +234,9 @@ namespace EPainter
 
             while (Match(TokenType.POW))
             {
-                Token Operator = Previous();
+                Token op = Previous();
                 Expr right = Primary();
-                Expr = new Expr.Binary(Expr, Operator, right);
+                Expr = new Expr.Binary(Expr, op, right);
             }
 
             return Expr;
@@ -285,27 +256,33 @@ namespace EPainter
 
         private Expr Primary()
         {
-            if (Match(TokenType.NUMBER, TokenType.STRING,
-                    TokenType.RED, TokenType.BLUE, TokenType.GREEN,
-                    TokenType.YELLOW, TokenType.ORANGE, TokenType.PURPLE,
-                    TokenType.BLACK, TokenType.WHITE, TokenType.TRANSPARENT))
+            if (Match(TokenType.NUMBER))
+            {
+                return new Expr.Literal(Previous().Literal);
+            }
+
+            if (Match(TokenType.COLOR_LITERAL))
+            {
+                return new Expr.Literal(Previous().Lexeme);
+            }
+
+            if (Match(TokenType.STRING))
             {
                 return new Expr.Literal(Previous().Literal);
             }
 
             if (Match(TokenType.IDENTIFIER))
             {
+                if (Match(TokenType.LEFT_PAREN))
+                {
+                    return FunctionCall(Previous());
+                }
                 return new Expr.Variable(Previous());
             }
 
-            if (Match(TokenType.GETACTUALX, TokenType.GETACTUALY,
-                     TokenType.GETCANVASIZE, TokenType.GETCOLORCOUNT,
-                     TokenType.ISBRUSHCOLOR, TokenType.ISBRUSHSIZE,
-                     TokenType.ISCANVASCOLOR)) return ParseFunctionCall();
-
             if (Match(TokenType.LEFT_PAREN))
             {
-                Expr expr = Expr();
+                Expr expr = Expression();
                 Consume(TokenType.RIGHT_PAREN, "Expect ')' after Expr");
                 return new Expr.Grouping(expr);
             }
@@ -313,30 +290,28 @@ namespace EPainter
             throw Error(Peek(), "Expected expression");
         }
 
-        private Expr ParseFunctionCall()
+        private Expr FunctionCall(Token name)
         {
-            Token name = Previous();
-            Consume(TokenType.LEFT_PAREN, "Expect '(' after function name");
+            var arguments = new List<Expr>();
 
-            List<Expr> arguments = new List<Expr>();
             if (!Check(TokenType.RIGHT_PAREN))
             {
                 do
                 {
-                    arguments.Add(Expr());
-                }
-                while (Match(TokenType.COMMA));
+                    arguments.Add(Expression());
+                } while (Match(TokenType.COMMA));
             }
 
             Consume(TokenType.RIGHT_PAREN, "Expect ')' after function arguments");
-            return new Expr.FunctionCall(name, arguments);
+
+            return new Expr.Call(name, arguments);
         }
 
-        private bool Match(params TokenType[] Types)
+        private bool Match(params TokenType[] types)
         {
-            foreach (var Type in Types)
+            foreach (var type in types)
             {
-                if (Check(Type))
+                if (Check(type))
                 {
                     Advance();
                     return true;
@@ -346,38 +321,21 @@ namespace EPainter
             return false;
         }
 
-        private bool Check(TokenType Type)
+        private Token Consume(TokenType type, string message)
         {
-            if (IsAtEnd())
-            {
-                return false;
-            }
-
-            return Peek().Type == Type;
+            if (Check(type)) return Advance();
+            throw Error(Peek(), message);
         }
 
-        private bool CheckNext(TokenType type)
+        private bool Check(TokenType type)
         {
-            if (IsAtEnd())
-            {
-                return false;
-            }
-
-            if (tokens[current + 1].Type == TokenType.EOF)
-            {
-                return false;
-            }
-
-            return tokens[current + 1].Type == type;
+            if (IsAtEnd()) return false;
+            return Peek().Type == type;
         }
 
         private Token Advance()
         {
-            if (!IsAtEnd())
-            {
-                current++;
-            }
-
+            if (!IsAtEnd()) current++;
             return Previous();
         }
 
@@ -388,28 +346,17 @@ namespace EPainter
 
         private Token Peek()
         {
-            return tokens[current];
+            return Tokens[current];
         }
 
         private Token Previous()
         {
-            return tokens[current - 1];
-        }
-
-        private Token Consume(TokenType Type, string message)
-        {
-            if (Check(Type))
-            {
-                return Advance();
-            }
-
-            throw Error(Peek(), message);
+            return Tokens[current - 1];
         }
 
         private ParseError Error(Token token, string message)
         {
-            string errorMessage = $"[Línea {token.Line}] Error: {message}";
-            ErrorHandler.Error(token, errorMessage);
+            ErrorHandler.Error(token, message);
             return new ParseError();
         }
 
@@ -428,9 +375,10 @@ namespace EPainter
                 {
                     case TokenType.SPAWN:
                     case TokenType.COLOR:
-                    case TokenType.DRAWLINE:
-                    case TokenType.DRAWCIRCLE:
-                    case TokenType.DRAWRECTANGLE:
+                    case TokenType.SIZE:
+                    case TokenType.DRAW_LINE:
+                    case TokenType.DRAW_CIRCLE:
+                    case TokenType.DRAW_RECTANGLE:
                     case TokenType.FILL:
                     case TokenType.GOTO:
                         return;
@@ -439,6 +387,7 @@ namespace EPainter
                 Advance();
             }
         }
-
     }
+    
+    public class ParseError : Exception{}
 }

@@ -10,10 +10,5 @@ namespace EPainter
         {
             Token = token;
         }
-
-        public RuntimeError(string message) : base(message)
-        {
-            Token = null;
-        }
     }
 }
