@@ -11,13 +11,13 @@ namespace EPainter
         /// <typeparam name="T">El tipo de resultado producido por el visitante.</typeparam>
         /// <param name="visitor">El visitante que procesa esta declaración.</param>
         /// <returns>El resultado producido por el visitante.</returns>
-        public abstract T Accept<T>(IStmtVisitor<T> visitor);
+        public abstract T Accept<T>(IVisitor<T> visitor);
 
         /// <summary>
         /// Interfaz para implementar visitantes de declaraciones.
         /// </summary>
         /// <typeparam name="T">El tipo de resultado producido por el visitante.</typeparam>
-        public interface IStmtVisitor<T>
+        public interface IVisitor<T>
         {
             T VisitSpawnStmt(Spawn stmt);
             T VisitColorStmt(Color stmt);
@@ -50,7 +50,7 @@ namespace EPainter
                 Y = y;
             }
 
-            public override T Accept<T>(IStmtVisitor<T> visitor)
+            public override T Accept<T>(IVisitor<T> visitor)
             {
                 return visitor.VisitSpawnStmt(this);
             }
@@ -72,7 +72,7 @@ namespace EPainter
                 ColorName = colorName;
             }
 
-            public override T Accept<T>(IStmtVisitor<T> visitor)
+            public override T Accept<T>(IVisitor<T> visitor)
             {
                 return visitor.VisitColorStmt(this);
             }
@@ -94,7 +94,7 @@ namespace EPainter
                 SizeValue = sizeValue;
             }
 
-            public override T Accept<T>(IStmtVisitor<T> visitor)
+            public override T Accept<T>(IVisitor<T> visitor)
             {
                 return visitor.VisitSizeStmt(this);
             }
@@ -122,7 +122,7 @@ namespace EPainter
                 Distance = distance;
             }
 
-            public override T Accept<T>(IStmtVisitor<T> visitor)
+            public override T Accept<T>(IVisitor<T> visitor)
             {
                 return visitor.VisitDrawLineStmt(this);
             }
@@ -150,7 +150,7 @@ namespace EPainter
                 Radius = radius;
             }
 
-            public override T Accept<T>(IStmtVisitor<T> visitor)
+            public override T Accept<T>(IVisitor<T> visitor)
             {
                 return visitor.VisitDrawCircleStmt(this);
             }
@@ -184,7 +184,7 @@ namespace EPainter
                 Height = height;
             }
 
-            public override T Accept<T>(IStmtVisitor<T> visitor)
+            public override T Accept<T>(IVisitor<T> visitor)
             {
                 return visitor.VisitDrawRectangleStmt(this);
             }
@@ -195,7 +195,7 @@ namespace EPainter
         /// </summary>
         public class Fill : Stmt
         {
-            public override T Accept<T>(IStmtVisitor<T> visitor)
+            public override T Accept<T>(IVisitor<T> visitor)
             {
                 return visitor.VisitFillStmt(this);
             }
@@ -220,7 +220,7 @@ namespace EPainter
                 Condition = condition;
             }
 
-            public override T Accept<T>(IStmtVisitor<T> visitor)
+            public override T Accept<T>(IVisitor<T> visitor)
             {
                 return visitor.VisitGotoStmt(this);
             }
@@ -245,7 +245,7 @@ namespace EPainter
                 Value = value;
             }
 
-            public override T Accept<T>(IStmtVisitor<T> visitor)
+            public override T Accept<T>(IVisitor<T> visitor)
             {
                 return visitor.VisitAssignmentStmt(this);
             }
@@ -268,7 +268,7 @@ namespace EPainter
                 Name = name;
             }
 
-            public override T Accept<T>(IStmtVisitor<T> visitor)
+            public override T Accept<T>(IVisitor<T> visitor)
             {
                 return visitor.VisitLabelStmt(this);
             }

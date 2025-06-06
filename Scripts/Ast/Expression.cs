@@ -28,8 +28,6 @@ namespace EPainter
             T VisitVariableExpr(Variable expr);
             T VisitLogicalExpr(Logical expr);
             T VisitCallExpr(Call expr);
-            
-
         }
 
         /// <summary>
@@ -65,15 +63,15 @@ namespace EPainter
         /// </summary>
         public class Grouping : Expr
         {
-            public Expr Expr { get; }
+            public Expr Expression { get; }
 
             /// <summary>
             /// Constructor para inicializar una expresión de agrupación.
             /// </summary>
-            /// <param name="expr">La expresión agrupada.</param>
-            public Grouping(Expr expr)
+            /// <param name="expression">La expresión agrupada.</param>
+            public Grouping(Expr expression)
             {
-                Expr = expr;
+                Expression = expression;
             }
 
             public override T Accept<T>(IVisitor<T> visitor)
@@ -175,7 +173,7 @@ namespace EPainter
         /// </summary>
         public class Call : Expr
         {
-            public Token Name { get; }
+            public Token Callee { get; }
             public List<Expr> Arguments { get; }
 
             /// <summary>
@@ -183,9 +181,9 @@ namespace EPainter
             /// </summary>
             /// <param name="name">El token del nombre de la función.</param>
             /// <param name="args">La lista de argumentos.</param>
-            public Call(Token name, List<Expr> args)
+            public Call(Token callee, List<Expr> args)
             {
-                Name = name;
+                Callee = callee;
                 Arguments = args;
             }
 
