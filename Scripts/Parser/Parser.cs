@@ -400,7 +400,9 @@ namespace EPainter
 
             Consume(TokenType.RIGHT_PAREN, "Expect ')' after function arguments");
 
-            return new Expr.Call(name, arguments);
+            var callee = new Expr.Variable(name);
+            
+            return new Expr.Call(callee, Previous(), arguments);
         }
 
         /// <summary>

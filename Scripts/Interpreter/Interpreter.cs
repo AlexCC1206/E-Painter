@@ -40,6 +40,28 @@ namespace EPainter
             Globals.Define("IsCanvasColor", new IsCanvasColor());
         }
 
+        /*
+        public void Interpret(List<Stmt> statements)
+        {
+            try
+            {
+                // Primero hacer análisis semántico
+                var resolver = new Resolver(this);
+                resolver.Resolve(statements);
+
+                if (ErrorReporter.HasErrors) return;
+
+                // Ejecutar si no hay errores
+                foreach (var statement in statements)
+                {
+                    Execute(statement);
+                }
+            }
+            catch (RuntimeError error)
+            {
+                ErrorReporter.RuntimeError(error);
+            }
+        }*/
 
         public void Interpret(List<Stmt> statements)
         {
@@ -132,14 +154,6 @@ namespace EPainter
                     return (int)left <= (int)right;
                 case TokenType.EQUAL_EQUAL:
                     return isEqual(left, right);
-                    /*
-                                    case TokenType.AND:
-                                        return IsTruty(left) && IsTruty(right);
-                                    case TokenType.OR:
-                                        return IsTruty(left) || IsTruty(right);
-
-                                    default:
-                                        throw new RuntimeError($"Unknown operator: {expr.Op.Lexeme}");*/
             }
 
             return null;
@@ -200,7 +214,7 @@ namespace EPainter
         {
             object callee = Evaluate(expr.Callee);
 
-            var arguments = new List<object>();
+            List<object> arguments = new List<object>();
             foreach (var argument in expr.Arguments)
             {
                 arguments.Add(Evaluate(argument));
@@ -208,7 +222,7 @@ namespace EPainter
 
             if (!(callee is ICallable function))
             {
-                throw new RuntimeError(expr.Paren, "Can only call functions and methods.");
+                throw new RuntimeError(expr.Paren, "Can only call functions and classes.");
             }
 
             if (arguments.Count != function.Arity)
@@ -362,15 +376,17 @@ namespace EPainter
             return null;
         }
 
-        private object LookUpVariable(Token name)
+        private object LookUpVariable(Token token)
         {
+            var name = new Expr.Variable(token);
+
             if (locals.TryGetValue(name, out int distance))
             {
-                return environment.GetAt(distance, name.Lexeme);
+                return environment.GetAt(distance, name.ToString());
             }
             else
             {
-                return Globals.Get(name);
+                return Globals.Get(token);
             }
         }
 

@@ -7,7 +7,7 @@ namespace EPainter
     {
         public Interpreter interpreter;
         private Stack<Dictionary<string, bool>> scopes = new Stack<Dictionary<string, bool>>();
-        private FunctionType currenFunction = FunctionType.NONE;
+        private FunctionType currentFunction = FunctionType.NONE;
 
         public Resolver(Interpreter interpreter)
         {
@@ -37,7 +37,7 @@ namespace EPainter
         {
             expr.Accept(this);
         }
-
+/*
         private void BeginScope()
         {
             scopes.Push(new Dictionary<string, bool>());
@@ -72,7 +72,7 @@ namespace EPainter
                 return;
             }
             scopes.Peek()[name.Lexeme] = true;
-        }
+        }*/
 
         private void ResolveLocal(Expr expr, Token name)
         {
