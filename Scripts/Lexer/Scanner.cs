@@ -18,38 +18,38 @@ namespace EPainter
         /// Diccionario que contiene las palabras clave y su tipo de token correspondiente.
         /// </summary>
         private static readonly Dictionary<string, TokenType> Keywords = new Dictionary<string, TokenType>
-    {
-        // Commands
-        {"Spawn", TokenType.SPAWN},
-        {"Color", TokenType.COLOR},
-        {"Size", TokenType.SIZE},
-        {"DrawLine", TokenType.DRAW_LINE},
-        {"DrawCircle", TokenType.DRAW_CIRCLE},
-        {"DrawRectangle", TokenType.DRAW_RECTANGLE },
-        {"Fill", TokenType.FILL},
+        {
+            // Commands
+            {"Spawn", TokenType.SPAWN},
+            {"Color", TokenType.COLOR},
+            {"Size", TokenType.SIZE},
+            {"DrawLine", TokenType.DRAW_LINE},
+            {"DrawCircle", TokenType.DRAW_CIRCLE},
+            {"DrawRectangle", TokenType.DRAW_RECTANGLE },
+            {"Fill", TokenType.FILL},
 
-        // Function
-        {"GetActualX", TokenType.GET_ACTUAL_X},
-        {"GetActualY", TokenType.GET_ACTUAL_Y},
-        {"GetCanvasSize", TokenType.GET_CANVAS_SIZE},
-        {"GetColorCount", TokenType.GET_COLOR_COUNT},
-        {"IsBrushColor", TokenType.IS_BRUSH_COLOR},
-        {"IsBrushSize", TokenType.IS_BRUSH_SIZE},
-        {"IsCanvasColor", TokenType.IS_CANVAS_COLOR},
+            // Function
+            {"GetActualX", TokenType.GET_ACTUAL_X},
+            {"GetActualY", TokenType.GET_ACTUAL_Y},
+            {"GetCanvasSize", TokenType.GET_CANVAS_SIZE},
+            {"GetColorCount", TokenType.GET_COLOR_COUNT},
+            {"IsBrushColor", TokenType.IS_BRUSH_COLOR},
+            {"IsBrushSize", TokenType.IS_BRUSH_SIZE},
+            {"IsCanvasColor", TokenType.IS_CANVAS_COLOR},
 
-        // Control
-        {"GoTo", TokenType.GOTO},
+            // Control
+            {"GoTo", TokenType.GOTO},
 
-        // Colors
-        {"Red", TokenType.COLOR_LITERAL},
-        {"Blue", TokenType.COLOR_LITERAL},
-        {"Green", TokenType.COLOR_LITERAL},
-        {"Yellow", TokenType.COLOR_LITERAL},
-        {"Orange", TokenType.COLOR_LITERAL},
-        {"Purple", TokenType.COLOR_LITERAL},
-        {"Black", TokenType.COLOR_LITERAL},
-        {"White", TokenType.COLOR_LITERAL},
-        {"Transparent", TokenType.COLOR_LITERAL}
+            // Colors
+            {"Red", TokenType.COLOR_LITERAL},
+            {"Blue", TokenType.COLOR_LITERAL},
+            {"Green", TokenType.COLOR_LITERAL},
+            {"Yellow", TokenType.COLOR_LITERAL},
+            {"Orange", TokenType.COLOR_LITERAL},
+            {"Purple", TokenType.COLOR_LITERAL},
+            {"Black", TokenType.COLOR_LITERAL},
+            {"White", TokenType.COLOR_LITERAL},
+            {"Transparent", TokenType.COLOR_LITERAL}
         };
 
         /// <summary>
@@ -89,9 +89,9 @@ namespace EPainter
                 // Character
                 case '(': AddToken(TokenType.LEFT_PAREN); break;
                 case ')': AddToken(TokenType.RIGHT_PAREN); break;
+                case ',': AddToken(TokenType.COMMA); break;
                 case '[': AddToken(TokenType.LEFT_BRACKET); break;
                 case ']': AddToken(TokenType.RIGHT_BRACKET); break;
-                case ',': AddToken(TokenType.COMMA); break;
 
                 // Operators
                 case '+': AddToken(TokenType.SUM); break;
@@ -103,12 +103,6 @@ namespace EPainter
                     break;
 
                 // Comparison operators
-                case '&':
-                    if (Match('&')) AddToken(TokenType.AND);
-                    break;
-                case '|':
-                    if (Match('|')) AddToken(TokenType.OR);
-                    break;
                 case '<':
                     if (Match('-')) AddToken(TokenType.LEFT_ARROW);
                     else AddToken(Match('=') ? TokenType.LESS_EQUAL : TokenType.LESS);
@@ -119,6 +113,16 @@ namespace EPainter
                 case '>':
                     AddToken(Match('=') ? TokenType.GREATER_EQUAL : TokenType.GREATER);
                     break;
+
+                // Logical operators
+                case '&':
+                    if (Match('&')) AddToken(TokenType.AND);
+                    break;
+                case '|':
+                    if (Match('|')) AddToken(TokenType.OR);
+                    break;
+
+                // Jumpline
                 case '\n':
                     AddToken(TokenType.NEWLINE);
                     line++;
@@ -155,11 +159,18 @@ namespace EPainter
 
             if (Keywords.TryGetValue(text, out TokenType type))
             {
-                AddToken(type);
+                if (type == TokenType.COLOR_LITERAL)
+                {
+                    AddToken(type, text);
+                }
+                else
+                {
+                    AddToken(type);
+                }
             }
             else
             {
-                AddToken(TokenType.IDENTIFIER);
+                AddToken(TokenType.IDENTIFIER, text);
             }
         }
 
@@ -170,8 +181,16 @@ namespace EPainter
         {
             while (char.IsDigit(Peek())) Advance();
 
-            string value = Source.Substring(start, current - start);
-            AddToken(TokenType.NUMBER, Convert.ToInt32(value));
+            string numberText = Source.Substring(start, current - start);
+            if (int.TryParse(numberText, out int intValue))
+            {
+                AddToken(TokenType.NUMBER, intValue);
+            }
+            else
+            {
+                throw new ScannerException(line, "Invalid number format.");
+            }
+            
         }
 
         /// <summary>
@@ -243,20 +262,11 @@ namespace EPainter
         }
 
         /// <summary>
-        /// Agrega un token a la lista de tokens.
-        /// </summary>
-        /// <param name="type">El tipo de token.</param>
-        private void AddToken(TokenType type)
-        {
-            AddToken(type, null);
-        }
-
-        /// <summary>
         /// Agrega un token a la lista de tokens con un valor literal.
         /// </summary>
         /// <param name="type">El tipo de token.</param>
         /// <param name="literal">El valor literal del token.</param>
-        private void AddToken(TokenType type, object literal)
+        private void AddToken(TokenType type, object literal = null)
         {
             string text = Source.Substring(start, current - start);
             tokens.Add(new Token(type, text, literal, line));

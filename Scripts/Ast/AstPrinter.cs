@@ -6,7 +6,7 @@ namespace EPainter
     /// <summary>
     /// Clase que implementa los visitantes para imprimir representaciones en texto de expresiones y declaraciones.
     /// </summary>
-    public class AstPrinter : Expr.IVisitor<string>, Stmt.IStmtVisitor<string>
+    public class AstPrinter : Expr.IVisitor<string>, Stmt.IVisitor<string>
     {
         /// <summary>
         /// Genera una representación en texto de una expresión.
@@ -71,7 +71,7 @@ namespace EPainter
         /// <returns>Una cadena que representa la expresión de agrupación.</returns>
         public string VisitGroupingExpr(Expr.Grouping expr)
         {
-            return Parenthesize("group", expr.Expr);
+            return Parenthesize("group", expr.Expression);
         }
 
         /// <summary>
@@ -104,15 +104,20 @@ namespace EPainter
             return expr.Name.Lexeme;
         }
 
+        public string VisitLogicalExpr(Expr.Logical expr)
+        {
+            return Parenthesize(expr.Op.Lexeme, expr.Left, expr.Right);
+        }
+
         /// <summary>
         /// Visita una llamada a función y genera su representación en texto.
         /// </summary>
         /// <param name="expr">La expresión de llamada a función.</param>
         /// <returns>Una cadena que representa la llamada a función.</returns>
-        public string VisitFunctionCallExpr(Expr.FunctionCall expr)
+        public string VisitCallExpr(Expr.Call expr)
         {
             var builder = new StringBuilder();
-            builder.Append($"{expr.Name}(");
+            builder.Append($"{expr.Callee}(");
 
             for (var i = 0; i < expr.Arguments.Count; i++)
             {
@@ -141,7 +146,7 @@ namespace EPainter
         /// <returns>Una cadena que representa la declaración Color.</returns>
         public string VisitColorStmt(Stmt.Color stmt)
         {
-            return $"Color(color: {stmt.ColorName.Accept(this)})";
+            return $"Color(color: {stmt.ColorName})";
         }
 
         /// <summary>

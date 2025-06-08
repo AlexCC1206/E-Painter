@@ -62,7 +62,7 @@ namespace EPainter
             Consume(TokenType.LEFT_PAREN, "Expect '(' after 'Color'.");
             Token color = Consume(TokenType.COLOR_LITERAL, "Expect color literal.");
             Consume(TokenType.RIGHT_PAREN, "Expect ')' after color.");
-            return new Stmt.Color(new Expr.Literal(color.Lexeme));
+            return new Stmt.Color(color.Lexeme);
         }
 
         private Stmt SizeStatement()
@@ -166,7 +166,7 @@ namespace EPainter
             {
                 Token op = Previous();
                 Expr rigth = Equality();
-                expr = new Expr.Binary(expr, op, rigth);
+                expr = new Expr.Logical(expr, op, rigth);
             }
 
             return expr;
@@ -283,7 +283,7 @@ namespace EPainter
             if (Match(TokenType.LEFT_PAREN))
             {
                 Expr expr = Expression();
-                Consume(TokenType.RIGHT_PAREN, "Expect ')' after Expr");
+                Consume(TokenType.RIGHT_PAREN, "Expect ')' after expression");
                 return new Expr.Grouping(expr);
             }
 
@@ -356,7 +356,7 @@ namespace EPainter
 
         private ParseError Error(Token token, string message)
         {
-            ErrorHandler.Error(token, message);
+            ErrorReporter.Error(token, message);
             return new ParseError();
         }
 
@@ -388,6 +388,4 @@ namespace EPainter
             }
         }
     }
-    
-    public class ParseError : Exception{}
 }

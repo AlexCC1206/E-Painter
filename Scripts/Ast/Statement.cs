@@ -31,6 +31,11 @@ namespace EPainter
             T VisitGotoStmt(Goto stmt);
         }
 
+        internal interface IStmtVisitor<T>
+        {
+        }
+
+
         /// <summary>
         /// Representa una declaración para generar un objeto en una posición.
         /// </summary>
@@ -61,13 +66,13 @@ namespace EPainter
         /// </summary>
         public class Color : Stmt
         {
-            public Expr ColorName { get; }
+            public string ColorName { get; }
 
             /// <summary>
             /// Inicializa una nueva instancia de la clase <see cref="Color"/>.
             /// </summary>
             /// <param name="colorName">El nombre del color.</param>
-            public Color(Expr colorName)
+            public Color(string colorName)
             {
                 ColorName = colorName;
             }

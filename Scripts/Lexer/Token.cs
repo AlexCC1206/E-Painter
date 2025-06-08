@@ -35,40 +35,5 @@ namespace EPainter
             return $"{Type} {Lexeme} {Literal}";
         }
     }
-
-    /// <summary>
-    /// Enum que define los diferentes tipos de tokens.
-    /// </summary>
-    public enum TokenType
-    {
-        // Commands
-        SPAWN, COLOR, SIZE, DRAW_LINE, DRAW_CIRCLE, DRAW_RECTANGLE, FILL,
-
-        // Functions
-        GET_ACTUAL_X, GET_ACTUAL_Y, GET_CANVAS_SIZE, GET_COLOR_COUNT,
-        IS_BRUSH_COLOR, IS_BRUSH_SIZE, IS_CANVAS_COLOR,
-
-        // Control Structures
-        GOTO,
-
-        // Operator
-        LEFT_PAREN, RIGHT_PAREN, LEFT_BRACKET, RIGHT_BRACKET, COMMA,
-        SUM, MIN, MULT, DIV, MOD, POW,
-        EQUAL, EQUAL_EQUAL, GREATER, GREATER_EQUAL, LESS, LESS_EQUAL,
-        AND, OR,
-
-
-        // Assignment
-        LEFT_ARROW,
-
-        // Literal
-        IDENTIFIER, STRING, NUMBER,
-
-        // Colors
-        COLOR_LITERAL,
-
-        // Others
-        EOF, NEWLINE,
-    }
 }
 

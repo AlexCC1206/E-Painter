@@ -8,13 +8,13 @@ namespace EPainter
     {
         public Environment Globals { get; } = new Environment();
         private Environment environment;
-        private Dictionary<Token, int> locals = new Dictionary<Token, int>();
+        private Dictionary<Expr, int> locals = new Dictionary<Expr, int>();
 
         public Point Position { get; private set; }
         public Color CurrentColor { get; private set; } = Color.Transparent;
-        public int BrushSize { get; private set; }
+        public int BrushSize { get; private set; } = 1;
 
-        private Canvas canvas;
+        public Canvas canvas;
 
         private Dictionary<string, int> labels = new Dictionary<string, int>();
 
@@ -31,7 +31,13 @@ namespace EPainter
 
         private void InitalizeNativeFunctions()
         {
-            throw new NotImplementedException();
+            Globals.Define("GetActualX", new GetActualX());
+            Globals.Define("GetActualY", new GetActualY());
+            Globals.Define("GetCanvasSize", new GetCanvasSize());
+            Globals.Define("GetColorCount", new GetColorCount());
+            Globals.Define("IsBrushColor", new IsBrushColor());
+            Globals.Define("IsBrushSize", new IsBrushSize());
+            Globals.Define("IsCanvasColor", new IsCanvasColor());
         }
 
 
@@ -52,7 +58,7 @@ namespace EPainter
             }
             catch (RuntimeError error)
             {
-                ErrorHandler.RuntimeError(error);
+                ErrorReporter.RuntimeError(error);
             }
         }
 
@@ -74,7 +80,16 @@ namespace EPainter
 
         private object Evaluate(Expr expr)
         {
-            return expr.Accept(this);
+            try
+            {
+                return expr.Accept(this);
+            }
+            catch (RuntimeError error)
+            {
+                ErrorReporter.RuntimeError(error);
+                throw;
+            }
+
         }
 
         public object VisitBinaryExpr(Expr.Binary expr)
@@ -147,10 +162,8 @@ namespace EPainter
             switch (expr.Op.Type)
             {
                 case TokenType.MIN:
-                    return -Convert.ToDouble(right);
-                    /*
-                        default:
-                            throw new RuntimeError($"Unknown operator: {expr.Op.Lexeme}");*/
+                    CheckNumberOperand(expr.Op, right);
+                    return -(int)right;
             }
 
             return null;
@@ -233,7 +246,7 @@ namespace EPainter
 
         public object VisitSizeStmt(Stmt.Size stmt)
         {
-            int size = Evaluate(stmt.SizeValue);
+            object size = Evaluate(stmt.SizeValue);
 
             if (!(size is int sizeVal))
             {
@@ -389,7 +402,7 @@ namespace EPainter
             throw new RuntimeError(op, "Operands must be a numbers");
         }
 
-        private Color ParseColor(string colorName)
+        public Color ParseColor(string colorName)
         {
             return colorName switch
             {
@@ -406,25 +419,162 @@ namespace EPainter
             };
         }
 
-        private void DrawCircleOnCanvas(int dirXVal, int dirYVal, int radiusVal)
-        {
-            throw new NotImplementedException();
-        }
-
         private void DrawLineOnCanvas(int dirXVal, int dirYVal, int distanceVal)
         {
-            throw new NotImplementedException();
+            if (Math.Abs(dirXVal) > 1 || Math.Abs(dirYVal) > 1 || (dirXVal == 0 && dirYVal == 0))
+            {
+                throw new RuntimeError("Invalid address for DrawLine.");
+            }
+
+            if (distanceVal <= 0)
+            {
+                throw new RuntimeError("Distance must be positive.");
+            }
+
+            for (var i = 0; i < distanceVal; i++)
+            {
+                int x = Position.X + dirXVal * i;
+                int y = Position.Y + dirYVal * i;
+
+                if (x >= 0 && x < canvas.Size && y >= 0 && y < canvas.Size)
+                {
+                    canvas.SetPixel(x, y, CurrentColor, BrushSize);
+                }
+            }
+
+            Position = new Point(Position.X + dirXVal * distanceVal,
+                                Position.Y + dirYVal * distanceVal);
+        }
+
+        private void DrawCircleOnCanvas(int dirXVal, int dirYVal, int radiusVal)
+        {
+            if (Math.Abs(dirXVal) > 1 || Math.Abs(dirYVal) > 1 || (dirXVal == 0 && dirYVal == 0))
+            {
+                throw new RuntimeError("Invalid address for DrawCircle.");
+            }
+
+            if (radiusVal <= 0)
+            {
+                throw new RuntimeError("Radius must be positive.");
+            }
+
+            int centerX = Position.X + dirXVal * radiusVal;
+            int centerY = Position.Y + dirYVal * radiusVal;
+
+            int x = 0;
+            int y = radiusVal;
+            int p = 1 - radiusVal;
+
+            while (x <= y)
+            {
+                DrawCirclePoints(centerX, centerY, x, y);
+
+                x++;
+
+                if (p < 0)
+                {
+                    p += 2 * x + 1;
+                }
+                else
+                {
+                    y--;
+                    p += 2 * (x - y) + 1;
+                }
+
+                Position = new Point(centerX, centerY);
+            }
+        }
+
+        private void DrawCirclePoints(int centerX, int centerY, int x, int y)
+        {
+            SetPixelIfValid(centerX + x, centerY + y);
+            SetPixelIfValid(centerX - x, centerY + y);
+            SetPixelIfValid(centerX + x, centerY - y);
+            SetPixelIfValid(centerX - x, centerY - y);
+            SetPixelIfValid(centerX + y, centerY + x);
+            SetPixelIfValid(centerX - y, centerY + x);
+            SetPixelIfValid(centerX + y, centerY - x);
+            SetPixelIfValid(centerX - y, centerY - x);
+        }
+
+        private void SetPixelIfValid(int x, int y)
+        {
+            if (x >= 0 && x < canvas.Size && y >= 0 && y < canvas.Size)
+            {
+                canvas.SetPixel(x, y, CurrentColor, BrushSize);
+            }
         }
 
         private void DrawRectangleOnCanvas(int dirXVal, int dirYVal, int distanceVal, int widthVal, int heightVal)
         {
-            throw new NotImplementedException();
+            if (Math.Abs(dirXVal) > 1 || Math.Abs(dirYVal) > 1 || (dirXVal == 0 && dirYVal == 0))
+            {
+                throw new RuntimeError("Invalid address for DrawRectangle.");
+            }
+
+            if (distanceVal <= 0 || widthVal <= 0 || heightVal <= 0)
+            {
+                throw new RuntimeError("Distance, width, and height must be positive.");
+            }
+
+            int centerX = Position.X + dirXVal * distanceVal;
+            int centerY = Position.Y + dirYVal * distanceVal;
+
+            int startX = centerX - widthVal / 2;
+            int endX = centerX + widthVal / 2;
+            int startY = centerY - heightVal / 2;
+            int endY = centerY + heightVal / 2;
+
+            for (var x = startX; x < endX; x++)
+            {
+                for (var y = startY; y < endY; y++)
+                {
+                    if (x >= 0 && x < canvas.Size && y >= 0 && y < canvas.Size)
+                    {
+                        canvas.SetPixel(x, y, CurrentColor, BrushSize);
+                    }
+                }
+            }
+
+            Position = new Point(centerX, centerY);
         }
 
-        private void FloodFill(int x, int y, Color currentColor)
+        private void FloodFill(int x, int y, Color newColor)
         {
-            throw new NotImplementedException();
+            Color targetColor = canvas.GetPixel(x, y);
+
+            if (targetColor == newColor || targetColor == Color.Transparent)
+            {
+                return;
+            }
+
+            Queue<Point> queue = new Queue<Point>();
+            queue.Enqueue(new Point(x, y));
+
+            while (queue.Count > 0)
+            {
+                Point current = queue.Dequeue();
+                int currentX = current.X;
+                int currentY = current.Y;
+
+                if (currentX >= 0 && currentX < canvas.Size && currentY >= 0 && currentY < canvas.Size &&
+                    canvas.GetPixel(currentX, currentY) == targetColor)
+                {
+                    canvas.SetPixel(currentX, currentY, newColor, BrushSize);
+
+                    queue.Enqueue(new Point(currentX + 1, currentY));
+                    queue.Enqueue(new Point(currentX - 1, currentY));
+                    queue.Enqueue(new Point(currentX, currentY + 1));
+                    queue.Enqueue(new Point(currentX, currentY - 1));
+                }
+            }
         }
+
+        internal void Resolve(Expr expr, int depth)
+        {
+            locals[expr] = depth;
+        }
+
     }
 
     internal interface ICallable
@@ -441,7 +591,7 @@ namespace EPainter
         {
             return interpreter.Position.X;
         }
-        
+
     }
 
     public class GetActualY : ICallable
@@ -461,7 +611,7 @@ namespace EPainter
 
         public object Call(Interpreter interpreter, List<object> arguments)
         {
-            throw new NotImplementedException();
+            return interpreter.canvas.Size;
         }
 
     }
@@ -472,7 +622,20 @@ namespace EPainter
 
         public object Call(Interpreter interpreter, List<object> arguments)
         {
-            throw new NotImplementedException();
+            if (arguments[0] is string colorName && arguments[1] is int x1 && arguments[2] is int y1 && arguments[3] is int x2 && arguments[4] is int y2)
+            {
+                Color color = interpreter.ParseColor(colorName);
+
+                if (x1 < 0 || x2 < 0 || y1 < 0 || y2 < 0 ||
+                    x1 >= interpreter.canvas.Size || x2 >= interpreter.canvas.Size ||
+                    y1 >= interpreter.canvas.Size || y2 >= interpreter.canvas.Size)
+                {
+                    return 0;
+                }
+
+                return interpreter.canvas.CountColor(color, x1, y1, x2, y2);
+            }
+            throw new RuntimeError(null, "Expected a color name and four integers as arguments.");
         }
 
     }
@@ -483,7 +646,12 @@ namespace EPainter
 
         public object Call(Interpreter interpreter, List<object> arguments)
         {
-            throw new NotImplementedException();
+            if (arguments[0] is string colorName)
+            {
+                Color color = interpreter.ParseColor(colorName);
+                return interpreter.CurrentColor == color ? 1 : 0;
+            }
+            throw new RuntimeError(null, "Expected a color name as argument.");
         }
 
     }
@@ -494,7 +662,11 @@ namespace EPainter
 
         public object Call(Interpreter interpreter, List<object> arguments)
         {
-            throw new NotImplementedException();
+            if (arguments[0] is int size)
+            {
+                return interpreter.BrushSize == size;
+            }
+            throw new RuntimeError(null, "Expected an integer as argument.");
         }
 
     }
@@ -505,9 +677,22 @@ namespace EPainter
 
         public object Call(Interpreter interpreter, List<object> arguments)
         {
-            throw new NotImplementedException();
+            if (arguments[0] is string colorName && arguments[1] is int vertical && arguments[2] is int horizontal)
+            {
+                Color color = interpreter.ParseColor(colorName);
+
+                int targetX = interpreter.Position.X + horizontal;
+                int targetY = interpreter.Position.Y + vertical;
+
+                if (targetX < 0 || targetX >= interpreter.canvas.Size || targetY < 0 || targetY >= interpreter.canvas.Size)
+                {
+                    return 0;
+                }
+
+                return interpreter.canvas.GetPixel(targetX, targetY) == color ? 1 : 0;
+            }
+            throw new RuntimeError(null, "Expected a color name and two integers as arguments.");
         }
 
     }
-
 }

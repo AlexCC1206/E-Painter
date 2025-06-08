@@ -173,7 +173,8 @@ namespace EPainter
         /// </summary>
         public class Call : Expr
         {
-            public Token Callee { get; }
+            public Expr Callee { get; }
+            public Token Paren { get; }
             public List<Expr> Arguments { get; }
 
             /// <summary>
@@ -181,9 +182,10 @@ namespace EPainter
             /// </summary>
             /// <param name="name">El token del nombre de la función.</param>
             /// <param name="args">La lista de argumentos.</param>
-            public Call(Token callee, List<Expr> args)
+            public Call(Expr callee, Token paren, List<Expr> args)
             {
                 Callee = callee;
+                Paren = paren;
                 Arguments = args;
             }
 
