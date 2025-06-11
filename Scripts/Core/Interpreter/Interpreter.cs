@@ -1,8 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using EPainter.UI;
 
-namespace EPainter
+namespace EPainter.Core
 {
     public class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
     {

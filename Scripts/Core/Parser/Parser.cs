@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace EPainter
+namespace EPainter.Core
 {
     /// <summary>
     /// Clase encargada de analizar una lista de tokens y convertirlos en una lista de declaraciones (statements).

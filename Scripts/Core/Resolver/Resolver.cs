@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace EPainter
+namespace EPainter.Core
 {
     public class Resolver : Expr.IVisitor<Void>, Stmt.IVisitor<Void>
     {

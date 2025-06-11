@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace EPainter
+namespace EPainter.Core
 {
     /// <summary>
     /// Clase base abstracta para todas las expresiones en el AST (Árbol de Sintaxis Abstracta).

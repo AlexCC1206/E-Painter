@@ -1,7 +1,7 @@
 using System;
 using System.Drawing;
 
-namespace EPainter
+namespace EPainter.UI
 {
     public class Canvas
     {

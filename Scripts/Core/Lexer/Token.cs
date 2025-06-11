@@ -1,4 +1,4 @@
-namespace EPainter
+namespace EPainter.Core
 {
     /// <summary>
     /// Representa un token generado por el escáner.

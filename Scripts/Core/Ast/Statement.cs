@@ -1,4 +1,4 @@
-namespace EPainter
+namespace EPainter.Core
 {
     /// <summary>
     /// Representa una declaración abstracta en el lenguaje.

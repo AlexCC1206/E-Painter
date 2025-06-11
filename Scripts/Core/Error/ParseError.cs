@@ -1,6 +1,6 @@
 using System;
 
-namespace EPainter
+namespace EPainter.Core
 {
     public class ParseError : Exception
     {

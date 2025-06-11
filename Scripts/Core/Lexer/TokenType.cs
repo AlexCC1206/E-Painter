@@ -1,4 +1,4 @@
-namespace EPainter
+namespace EPainter.Core
 {
     /// <summary>
     /// Enum que define los diferentes tipos de tokens.

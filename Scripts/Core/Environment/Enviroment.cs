@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace EPainter
+namespace EPainter.Core
 {
     public class Environment
     {

@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace EPainter
+namespace EPainter.Core
 {
     /// <summary>
     /// Clase encargada de escanear el código fuente y generar una lista de tokens.

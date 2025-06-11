@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace EPainter
+namespace EPainter.Core
 {
     public static class ErrorReporter
     {
