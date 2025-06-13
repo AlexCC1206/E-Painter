@@ -1,8 +1,5 @@
 namespace EPainter.Core
 {
-    /// <summary>
-    /// Enum que define los diferentes tipos de tokens.
-    /// </summary>
     public enum TokenType
     {
         // Commands
@@ -17,19 +14,25 @@ namespace EPainter.Core
 
         // Operator
         SUM, MIN, MULT, DIV, MOD, POW,
-        EQUAL, EQUAL_EQUAL, GREATER, GREATER_EQUAL, LESS, LESS_EQUAL,
+        EQUAL_EQUAL, BANG_EQUAL, GREATER, GREATER_EQUAL, LESS, LESS_EQUAL,
         AND, OR,
 
         // Symbols
         LEFT_PAREN, RIGHT_PAREN, LEFT_BRACKET, RIGHT_BRACKET, COMMA,
 
         // Assignment
-        LEFT_ARROW,
+        ARROW,
 
         // Literal
-        IDENTIFIER, STRING, NUMBER, COLOR_LITERAL,
+        IDENTIFIER, NUMBER, COLOR_LITERAL,
 
-        // Others
-        EOF, NEWLINE,
+        // Boolean Literals
+        TRUE, FALSE,
+
+        // End of file
+        EOF,
+
+        // Jumpline
+        NEWLINE,
     }
 }

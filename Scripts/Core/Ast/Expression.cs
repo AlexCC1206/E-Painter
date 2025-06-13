@@ -2,49 +2,57 @@ using System.Collections.Generic;
 
 namespace EPainter.Core
 {
-    /// <summary>
-    /// Clase base abstracta para todas las expresiones en el AST (Árbol de Sintaxis Abstracta).
-    /// </summary>
     public abstract class Expr
     {
-        /// <summary>
-        /// Método abstracto que acepta un visitante para procesar la expresión.
-        /// </summary>
-        /// <typeparam name="T">El tipo de retorno del visitante.</typeparam>
-        /// <param name="visitor">El visitante que procesará la expresión.</param>
-        /// <returns>El resultado del procesamiento del visitante.</returns>
-        public abstract T Accept<T>(IVisitor<T> visitor);
+        public abstract T Accept<T>(IExprVisitor<T> visitor);
 
-        /// <summary>
-        /// Interfaz para implementar el patrón visitante en las expresiones.
-        /// </summary>
-        /// <typeparam name="T">El tipo de retorno del visitante.</typeparam>
-        public interface IVisitor<T>
+
+        public interface IExprVisitor<T>
         {
-            T VisitBinaryExpr(Binary expr);
-            T VisitGroupingExpr(Grouping expr);
-            T VisitLiteralExpr(Literal expr);
-            T VisitUnaryExpr(Unary expr);
-            T VisitVariableExpr(Variable expr);
-            T VisitLogicalExpr(Logical expr);
-            T VisitCallExpr(Call expr);
+            T VisitLiteral(Literal expr);
+            T VisitVariable(Variable expr);
+            T VisitUnary(Unary expr);
+            T VisitBinary(Binary expr);
+            T VisitGrouping(Grouping expr);
+            T VisitCall(Call expr);
         }
 
-        /// <summary>
-        /// Representa una expresión binaria.
-        /// </summary>
+        public class Literal : Expr
+        {
+            public object Value { get; }
+
+            public Literal(object value)
+            {
+                Value = value;
+            }
+
+            public override T Accept<T>(IExprVisitor<T> visitor)
+            {
+                return visitor.VisitLiteral(this);
+            }
+        }
+
+        public class Variable : Expr
+        {
+            public string Name { get; }
+
+            public Variable(string name)
+            {
+                Name = name;
+            }
+
+            public override T Accept<T>(IExprVisitor<T> visitor)
+            {
+                return visitor.VisitVariable(this);
+            }
+        }
+
         public class Binary : Expr
         {
             public Expr Left { get; }
             public Token Op { get; }
             public Expr Right { get; }
 
-            /// <summary>
-            /// Constructor para inicializar una expresión binaria.
-            /// </summary>
-            /// <param name="left">La expresión del lado izquierdo.</param>
-            /// <param name="op">El operador.</param>
-            /// <param name="rigth">La expresión del lado derecho.</param>
             public Binary(Expr left, Token op, Expr right)
             {
                 Left = left;
@@ -52,146 +60,59 @@ namespace EPainter.Core
                 Right = right;
             }
 
-            public override T Accept<T>(IVisitor<T> visitor)
+            public override T Accept<T>(IExprVisitor<T> visitor)
             {
-                return visitor.VisitBinaryExpr(this);
+                return visitor.VisitBinary(this);
             }
         }
 
-        /// <summary>
-        /// Representa una expresión de agrupación (por ejemplo, paréntesis).
-        /// </summary>
-        public class Grouping : Expr
-        {
-            public Expr Expression { get; }
-
-            /// <summary>
-            /// Constructor para inicializar una expresión de agrupación.
-            /// </summary>
-            /// <param name="expression">La expresión agrupada.</param>
-            public Grouping(Expr expression)
-            {
-                Expression = expression;
-            }
-
-            public override T Accept<T>(IVisitor<T> visitor)
-            {
-                return visitor.VisitGroupingExpr(this);
-            }
-        }
-
-        /// <summary>
-        /// Representa una expresión literal (por ejemplo, un número o cadena).
-        /// </summary>
-        public class Literal : Expr
-        {
-            public object Value { get; }
-
-            /// <summary>
-            /// Constructor para inicializar una expresión literal.
-            /// </summary>
-            /// <param name="value">El valor literal.</param>
-            public Literal(object value)
-            {
-                Value = value;
-            }
-
-            public override T Accept<T>(IVisitor<T> visitor)
-            {
-                return visitor.VisitLiteralExpr(this);
-            }
-        }
-
-        /// <summary>
-        /// Representa una expresión unaria.
-        /// </summary>
         public class Unary : Expr
         {
             public Token Op { get; }
             public Expr Right { get; }
 
-            /// <summary>
-            /// Constructor para inicializar una expresión unaria.
-            /// </summary>
-            /// <param name="op">El operador.</param>
-            /// <param name="right">La expresión del lado derecho.</param>
+
             public Unary(Token op, Expr right)
             {
                 Op = op;
                 Right = right;
             }
 
-            public override T Accept<T>(IVisitor<T> visitor)
+            public override T Accept<T>(IExprVisitor<T> visitor)
             {
-                return visitor.VisitUnaryExpr(this);
+                return visitor.VisitUnary(this);
             }
         }
 
-        /// <summary>
-        /// Representa una expresión de variable.
-        /// </summary>
-        public class Variable : Expr
+        public class Grouping : Expr
         {
-            public Token Name { get; }
+            public Expr Expression { get; }
 
-            /// <summary>
-            /// Constructor para inicializar una expresión de variable.
-            /// </summary>
-            /// <param name="name">El token del nombre de la variable.</param>
-            public Variable(Token name)
+            public Grouping(Expr expression)
             {
-                Name = name;
+                Expression = expression;
             }
 
-            public override T Accept<T>(IVisitor<T> visitor)
+            public override T Accept<T>(IExprVisitor<T> visitor)
             {
-                return visitor.VisitVariableExpr(this);
+                return visitor.VisitGrouping(this);
             }
         }
         
-        public class Logical : Expr
-        {
-            public Expr Left { get; }
-            public Token Op { get; }
-            public Expr Right { get; }
-
-            public Logical(Expr left, Token op, Expr right)
-            {
-                Left = left;
-                Op = op;
-                Right = right;
-            }
-
-            public override T Accept<T>(IVisitor<T> visitor)
-            {
-                return visitor.VisitLogicalExpr(this);
-            }
-        }
-
-        /// <summary>
-        /// Representa una expresión de llamada a función.
-        /// </summary>
         public class Call : Expr
         {
-            public Expr Callee { get; }
-            public Token Paren { get; }
+            public string FunctionName { get; }
             public List<Expr> Arguments { get; }
 
-            /// <summary>
-            /// Constructor para inicializar una expresión de llamada a función.
-            /// </summary>
-            /// <param name="name">El token del nombre de la función.</param>
-            /// <param name="args">La lista de argumentos.</param>
-            public Call(Expr callee, Token paren, List<Expr> args)
+            public Call(string functionName, List<Expr> args)
             {
-                Callee = callee;
-                Paren = paren;
+                FunctionName = functionName;
                 Arguments = args;
             }
 
-            public override T Accept<T>(IVisitor<T> visitor)
+            public override T Accept<T>(IExprVisitor<T> visitor)
             {
-                return visitor.VisitCallExpr(this);
+                return visitor.VisitCall(this);
             }
         }
     }

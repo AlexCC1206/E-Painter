@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace EPainter.Core
 {
@@ -40,16 +41,9 @@ namespace EPainter.Core
             // Control
             {"GoTo", TokenType.GOTO},
 
-            // Colors
-            {"Red", TokenType.COLOR_LITERAL},
-            {"Blue", TokenType.COLOR_LITERAL},
-            {"Green", TokenType.COLOR_LITERAL},
-            {"Yellow", TokenType.COLOR_LITERAL},
-            {"Orange", TokenType.COLOR_LITERAL},
-            {"Purple", TokenType.COLOR_LITERAL},
-            {"Black", TokenType.COLOR_LITERAL},
-            {"White", TokenType.COLOR_LITERAL},
-            {"Transparent", TokenType.COLOR_LITERAL}
+            // Booleans
+            {"True", TokenType.TRUE},
+            {"False", TokenType.FALSE}
         };
 
         /// <summary>
@@ -89,29 +83,36 @@ namespace EPainter.Core
                 // Character
                 case '(': AddToken(TokenType.LEFT_PAREN); break;
                 case ')': AddToken(TokenType.RIGHT_PAREN); break;
-                case ',': AddToken(TokenType.COMMA); break;
                 case '[': AddToken(TokenType.LEFT_BRACKET); break;
                 case ']': AddToken(TokenType.RIGHT_BRACKET); break;
+                case ',': AddToken(TokenType.COMMA); break;
 
                 // Operators
                 case '+': AddToken(TokenType.SUM); break;
                 case '-': AddToken(TokenType.MIN); break;
+                case '*':
+                    if (Match('*')) AddToken(TokenType.POW);
+                    else AddToken(TokenType.MULT);
+                    break;
                 case '/': AddToken(TokenType.DIV); break;
                 case '%': AddToken(TokenType.MOD); break;
-                case '*':
-                    AddToken(Match('*') ? TokenType.POW : TokenType.MULT);
-                    break;
+
 
                 // Comparison operators
-                case '<':
-                    if (Match('-')) AddToken(TokenType.LEFT_ARROW);
-                    else AddToken(Match('=') ? TokenType.LESS_EQUAL : TokenType.LESS);
-                    break;
                 case '=':
-                    AddToken(Match('=') ? TokenType.EQUAL_EQUAL : TokenType.EQUAL);
+                    if (Match('=')) AddToken(TokenType.EQUAL_EQUAL);
+                    break;
+                case '!':
+                    if (Match('=')) AddToken(TokenType.BANG_EQUAL);
+                    break;
+                case '<':
+                    if (Match('-')) AddToken(TokenType.ARROW);
+                    else if (Match('=')) AddToken(TokenType.LESS_EQUAL);
+                    else AddToken(TokenType.LESS);
                     break;
                 case '>':
-                    AddToken(Match('=') ? TokenType.GREATER_EQUAL : TokenType.GREATER);
+                    if (Match('=')) AddToken(TokenType.GREATER_EQUAL);
+                    else AddToken(TokenType.GREATER);
                     break;
 
                 // Logical operators
@@ -122,81 +123,64 @@ namespace EPainter.Core
                     if (Match('|')) AddToken(TokenType.OR);
                     break;
 
+                // Color
+                case '"': ColorLiteral(); break;
+
                 // Jumpline
                 case '\n':
-                    AddToken(TokenType.NEWLINE);
                     line++;
+                    AddToken(TokenType.NEWLINE);
                     break;
 
-                // Strings
-                case '"': String(); break;
+                case ' ':
+                case '\r':
+                case '\t':
+                    break;
 
                 default:
-                    if (char.IsDigit(c))
+                    if (IsDigit(c))
                     {
                         Number();
                     }
-                    else if (char.IsLetter(c) || c == '_')
+                    else if (IsAlpha(c))
                     {
                         Identifier();
                     }
-                    else if (!char.IsWhiteSpace(c))
+                    else
                     {
-                        throw new ScannerException(line, "Unexpected character: " + c);
+                        throw new ScannerException(line, $"Unexpected character: '{c}'");
                     }
                     break;
             }
         }
 
-        /// <summary>
-        /// Identifica un identificador o palabra clave.
-        /// </summary>
+
         private void Identifier()
         {
-            while (char.IsLetterOrDigit(Peek()) || Peek() == '_') Advance();
+            while (IsAlphaNumeric(Peek())) Advance();
 
             string text = Source.Substring(start, current - start);
 
             if (Keywords.TryGetValue(text, out TokenType type))
             {
-                if (type == TokenType.COLOR_LITERAL)
-                {
-                    AddToken(type, text);
-                }
-                else
-                {
-                    AddToken(type);
-                }
+                AddToken(type);
             }
             else
             {
-                AddToken(TokenType.IDENTIFIER, text);
+                AddToken(TokenType.IDENTIFIER);
             }
         }
 
-        /// <summary>
-        /// Escanea un número y lo convierte en un token.
-        /// </summary>
         private void Number()
         {
-            while (char.IsDigit(Peek())) Advance();
+            while (IsDigit(Peek())) Advance();
 
-            string numberText = Source.Substring(start, current - start);
-            if (int.TryParse(numberText, out int intValue))
-            {
-                AddToken(TokenType.NUMBER, intValue);
-            }
-            else
-            {
-                throw new ScannerException(line, "Invalid number format.");
-            }
-            
+            AddToken(TokenType.NUMBER, double.Parse(Source.Substring(start, current - start)));
+
         }
 
-        /// <summary>
-        /// Escanea una cadena de texto y la convierte en un token.
-        /// </summary>
-        private void String()
+
+        private void ColorLiteral()
         {
             while (Peek() != '"' && !IsAtEnd())
             {
@@ -214,15 +198,23 @@ namespace EPainter.Core
 
             Advance();
 
-            string value = Source.Substring(start + 1, current - start - 2);
-            AddToken(TokenType.STRING, value);
+            string color = Source.Substring(start + 1, current - start - 2);
+            if (!ValidColors.Contains(color))
+            {
+                throw new ScannerException(line, $"Color no válido: '{color}'");
+            }
+
+            AddToken(TokenType.COLOR_LITERAL, color);
         }
 
-        /// <summary>
-        /// Verifica si el siguiente carácter coincide con el esperado.
-        /// </summary>
-        /// <param name="expected">El carácter esperado.</param>
-        /// <returns>True si coincide, de lo contrario False.</returns>
+        private static readonly HashSet<string> ValidColors = new()
+        {
+            "Red", "Blue", "Green", "Yellow", "Orange",
+            "Purple", "Black", "White", "Transparent"
+        };
+
+
+
         private bool Match(char expected)
         {
             if (IsAtEnd()) return false;
@@ -232,40 +224,44 @@ namespace EPainter.Core
             return true;
         }
 
-        /// <summary>
-        /// Obtiene el carácter actual sin avanzar el puntero.
-        /// </summary>
-        /// <returns>El carácter actual.</returns>
         public char Peek()
         {
             if (IsAtEnd()) return '\0';
             return Source[current];
         }
 
-        /// <summary>
-        /// Verifica si se ha alcanzado el final del código fuente.
-        /// </summary>
-        /// <returns>True si se ha alcanzado el final, de lo contrario False.</returns>
+
         private bool IsAtEnd()
         {
             return current >= Source.Length;
         }
 
-        /// <summary>
-        /// Avanza el puntero al siguiente carácter y lo devuelve.
-        /// </summary>
-        /// <returns>El carácter actual antes de avanzar.</returns>
+
         private char Advance()
         {
             current++;
             return Source[current - 1];
         }
 
-        /// <summary>
-        /// Agrega un token a la lista de tokens con un valor literal.
-        /// </summary>
-        /// <param name="type">El tipo de token.</param>
-        /// <param name="literal">El valor literal del token.</param>
+        private bool IsDigit(char c)
+        {
+            return c >= '0' && c <= '9';
+        }
+
+        private bool IsAlpha(char c)
+        {
+            return (c >= 'a' && c <= 'z') ||
+                    (c >= 'A' && c <= 'Z') ||
+                    c == '_';
+        }
+
+
+        private bool IsAlphaNumeric(char c)
+        {
+            return IsAlpha(c) || IsDigit(c);
+
+        }
+
         private void AddToken(TokenType type, object literal = null)
         {
             string text = Source.Substring(start, current - start);
