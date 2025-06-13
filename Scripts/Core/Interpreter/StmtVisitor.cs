@@ -1,10 +1,11 @@
+using System;
 using static EPainter.Core.Stmt;
 
 namespace EPainter.Core
 {
     public class StmtVisitor : IStmtVisitor<object>
     {
-        public Interpreter interpreter;
+        private Interpreter interpreter;
 
         public StmtVisitor(Interpreter interpreter)
         {
@@ -20,8 +21,8 @@ namespace EPainter.Core
 
         public object VisitSpawn(Spawn stmt)
         {
-            int x = (int)interpreter.Evaluate(stmt.X);
-            int y = (int)interpreter.Evaluate(stmt.Y);
+            int x = Convert.ToInt32(interpreter.Evaluate(stmt.X));
+            int y = Convert.ToInt32(interpreter.Evaluate(stmt.Y));
             interpreter.Spawn(x, y);
             return null;
         }

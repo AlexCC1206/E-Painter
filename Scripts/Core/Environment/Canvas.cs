@@ -5,7 +5,7 @@ namespace EPainter.Core
     public class Canvas
     {
         public int Size;
-        private string[,] Pixels;
+        public string[,] Pixels;
 
 
         public Canvas(int size)

@@ -9,8 +9,8 @@ namespace EPainter.Core
 
         public EPainterState(int x, int y)
         {
-            X = X;
-            Y = Y;
+            X = x;
+            Y = y;
         }
     }
 }

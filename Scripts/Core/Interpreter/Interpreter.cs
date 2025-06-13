@@ -15,10 +15,11 @@ namespace EPainter.Core
 
         private List<Stmt> statements;
 
-        public void Interpret(Canvas canvas, List<Stmt> stmts)
+        public Interpreter(Canvas canvas, List<Stmt> stmts)
         {
             this.canvas = canvas;
             statements = stmts;
+            state = new EPainterState(0,0);
             InitializeLabels();
             ExecuteAll();
         }
@@ -28,7 +29,7 @@ namespace EPainter.Core
             for (int i = 0; i < statements.Count; i++)
             {
                 var stmt = statements[i];
-                if (stmt is Stmt.Label labelStmt)
+                if (stmt is Label labelStmt)
                 {
                     Labels[labelStmt.Name] = i;
                 }
@@ -42,13 +43,13 @@ namespace EPainter.Core
             {
                 var stmt = statements[currentStatement];
 
-                if (stmt is Stmt.Label)
+                if (stmt is Label)
                 {
                     currentStatement++;
                     continue;
                 }
 
-                if (stmt is Stmt.Goto gotoStmt)
+                if (stmt is Goto gotoStmt)
                 {
                     var condition = Evaluate(gotoStmt.Condition);
                     if ((bool)condition)
@@ -77,7 +78,7 @@ namespace EPainter.Core
 
         public object Evaluate(Expr expr)
         {
-            return expr.Accept(new ExprVisitor());
+            return expr.Accept(new ExprVisitor(this));
         }
 
         public object GetVariable(string name)
@@ -154,7 +155,7 @@ namespace EPainter.Core
 
         public void Spawn(int x, int y)
         {
-            if (canvas.IsValidPosition(x, y))
+            if (!canvas.IsValidPosition(x, y))
             {
                 throw new RuntimeError($"Spawn position ({x}, {y}) out of bounds.");
             }

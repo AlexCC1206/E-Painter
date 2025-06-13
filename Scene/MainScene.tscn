@@ -1,13 +1,16 @@
-[gd_scene load_steps=7 format=3 uid="uid://b7ejf85dch6ca"]
+[gd_scene load_steps=9 format=3 uid="uid://b7ejf85dch6ca"]
 
-[ext_resource type="Script" uid="uid://k3iqt7s34xki" path="res://Scripts/Main.cs" id="1_wd0a3"]
+[ext_resource type="Script" uid="uid://k3iqt7s34xki" path="res://Scripts/UI/Main.cs" id="1_wd0a3"]
 [ext_resource type="Texture2D" uid="uid://c5wpnxu86o5xb" path="res://Assets/Sprites/upload-box.svg" id="3_tcius"]
 [ext_resource type="Texture2D" uid="uid://dtppnewjl66p5" path="res://Assets/Sprites/content-save-all.svg" id="4_1kkme"]
 [ext_resource type="Texture2D" uid="uid://1dak3kh5lwow" path="res://Assets/Sprites/play.svg" id="5_yp2nk"]
 [ext_resource type="Texture2D" uid="uid://bxl2bf8gpnhvl" path="res://Assets/Sprites/resize.svg" id="6_nscx6"]
+[ext_resource type="Script" uid="uid://bi4xctfadpilt" path="res://Scene/Rayitas.cs" id="7_nr04c"]
 [ext_resource type="FontFile" uid="uid://rfw3rqoliwjx" path="res://Assets/Fonts/FiraCode-Regular.ttf" id="7_ofvyg"]
 
-[node name="Control" type="Control"]
+[sub_resource type="CanvasTexture" id="CanvasTexture_i8335"]
+
+[node name="Control" type="Control" node_paths=PackedStringArray("codeEdit", "rayitas")]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -15,8 +18,11 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_wd0a3")
+codeEdit = NodePath("CodeEdit")
+rayitas = NodePath("TextureRect")
 
 [node name="VBoxContainer" type="VBoxContainer" parent="."]
+layout_mode = 0
 offset_right = 1920.0
 offset_bottom = 1080.0
 
@@ -50,9 +56,15 @@ layout_mode = 2
 theme_override_icons/icon = ExtResource("4_1kkme")
 text = "Save"
 
-[node name="CodeEdit" type="CodeEdit" parent="VBoxContainer"]
+[node name="ErrorLabel" type="Label" parent="VBoxContainer"]
+layout_mode = 2
+
+[node name="CodeEdit" type="CodeEdit" parent="."]
 custom_minimum_size = Vector2(0, 1000)
 layout_mode = 2
+offset_top = 63.0
+offset_right = 896.0
+offset_bottom = 1063.0
 theme_override_fonts/font = ExtResource("7_ofvyg")
 theme_override_font_sizes/font_size = 16
 scroll_smooth = true
@@ -60,9 +72,13 @@ gutters_draw_breakpoints_gutter = true
 gutters_draw_line_numbers = true
 code_completion_enabled = true
 
-[node name="ErrorLabel" type="Label" parent="VBoxContainer"]
+[node name="TextureRect" type="TextureRect" parent="."]
 layout_mode = 2
-
-[node name="CanvasNode" type="Node2D" parent="."]
+offset_left = 920.0
+offset_top = 64.0
+offset_right = 1920.0
+offset_bottom = 1064.0
+texture = SubResource("CanvasTexture_i8335")
+script = ExtResource("7_nr04c")
 
 [connection signal="pressed" from="VBoxContainer/HBoxContainer/Run" to="." method="Run"]

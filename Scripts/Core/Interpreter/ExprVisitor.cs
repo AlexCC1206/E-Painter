@@ -7,6 +7,11 @@ namespace EPainter.Core
     {
         private readonly Interpreter interpreter;
 
+        public ExprVisitor(Interpreter interpreter)
+        {
+            this.interpreter = interpreter;
+        }
+
         public object VisitLiteral(Literal expr)
         {
             return expr.Value;
