@@ -7,6 +7,16 @@ namespace EPainter.Core
     {
         private readonly Interpreter interpreter;
 
+        public object VisitLiteral(Literal expr)
+        {
+            return expr.Value;
+        }
+
+        public object VisitVariable(Variable expr)
+        {
+            return interpreter.GetVariable(expr.Name);
+        }
+
         public object VisitBinary(Binary expr)
         {
             object left = Visit(expr.Left);
@@ -22,7 +32,7 @@ namespace EPainter.Core
                     return (int)left * (int)right;
                 case TokenType.DIV:
                     if ((int)right == 0) throw new RuntimeError("División por cero.");
-                    return (int)left / (int)right;
+                    return (int)((int)left / (int)right);
                 case TokenType.POW:
                     return Math.Pow((int)left, (int)right);
                 case TokenType.MOD:
@@ -50,6 +60,24 @@ namespace EPainter.Core
                     throw new RuntimeError("Unknown operator: " + expr.Op.Lexeme);
             }
         }
+        
+        public object VisitUnary(Unary expr)
+        {
+            object right = Visit(expr.Right);
+
+            switch (expr.Op.Type)
+            {
+                case TokenType.MIN:
+                    return -(double)right;
+                default:
+                    throw new RuntimeError("Unknown unary operator: " + expr.Op.Lexeme);
+            }
+        }
+
+        public object VisitGrouping(Grouping expr)
+        {
+            return Visit(expr.Expression);
+        }
 
         public object VisitCall(Call expr)
         {
@@ -72,44 +100,16 @@ namespace EPainter.Core
                         (int)Visit(expr.Arguments[2])
                     );
                 case "GetColorCount":
-                return interpreter.GetColorCount(
-                    (string)Visit(expr.Arguments[0]),
-                    (int)Visit(expr.Arguments[1]),
-                    (int)Visit(expr.Arguments[2]),
-                    (int)Visit(expr.Arguments[3]),
-                    (int)Visit(expr.Arguments[4])
-                );
-            default:
-                throw new RuntimeError($"Function '{expr.FunctionName}' not found.");
-            }
-        }
-
-        public object VisitGrouping(Grouping expr)
-        {
-            return Visit(expr.Expression);
-        }
-
-        public object VisitLiteral(Literal expr)
-        {
-            return expr.Value;
-        }
-
-        public object VisitUnary(Unary expr)
-        {
-            object right = Visit(expr.Right);
-
-            switch (expr.Op.Type)
-            {
-                case TokenType.MIN:
-                    return -(double)right;
+                    return interpreter.GetColorCount(
+                        (string)Visit(expr.Arguments[0]),
+                        (int)Visit(expr.Arguments[1]),
+                        (int)Visit(expr.Arguments[2]),
+                        (int)Visit(expr.Arguments[3]),
+                        (int)Visit(expr.Arguments[4])
+                    );
                 default:
-                    throw new RuntimeError("Unknown unary operator: " + expr.Op.Lexeme);
+                    throw new RuntimeError($"Function '{expr.FunctionName}' not found.");
             }
-        }
-
-        public object VisitVariable(Variable expr)
-        {
-            return interpreter.GetVariable(expr.Name);
         }
 
         private object Visit(Expr expr)

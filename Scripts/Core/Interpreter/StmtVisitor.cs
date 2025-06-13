@@ -13,21 +13,30 @@ namespace EPainter.Core
 
         public object VisitAssignment(Assignment stmt)
         {
-            var value = interpreter.Execute(stmt.Name);
+            var value = interpreter.Evaluate(stmt.Value);
+            interpreter.SetVariable(stmt.Name, value);
+            return null;
+        }
+
+        public object VisitSpawn(Spawn stmt)
+        {
+            int x = (int)interpreter.Evaluate(stmt.X);
+            int y = (int)interpreter.Evaluate(stmt.Y);
+            interpreter.Spawn(x, y);
+            return null;
         }
 
         public object VisitColor(Color stmt)
         {
-            CurrentColor = ParseColor(stmt.ColorName);
+            string color = (string)interpreter.Evaluate(stmt.ColorName);
+            interpreter.SetBrushColor(color);
             return null;
         }
 
-        public object VisitDrawCircle(DrawCircle stmt)
+        public object VisitSize(Size stmt)
         {
-            int dx = (int)interpreter.Evaluate(stmt.DirX);
-            int dy = (int)interpreter.Evaluate(stmt.DirY);
-            int radius = (int)interpreter.Evaluate(stmt.Radius);
-            interpreter.DrawCircle(dx, dy, radius);
+            int size = (int)interpreter.Evaluate(stmt.SizeValue);
+            interpreter.SetBrushSize(size);
             return null;
         }
 
@@ -37,6 +46,15 @@ namespace EPainter.Core
             int dy = (int)interpreter.Evaluate(stmt.DirY);
             int dist = (int)interpreter.Evaluate(stmt.Distance);
             interpreter.DrawLine(dx, dy, dist);
+            return null;
+        }
+
+        public object VisitDrawCircle(DrawCircle stmt)
+        {
+            int dx = (int)interpreter.Evaluate(stmt.DirX);
+            int dy = (int)interpreter.Evaluate(stmt.DirY);
+            int radius = (int)interpreter.Evaluate(stmt.Radius);
+            interpreter.DrawCircle(dx, dy, radius);
             return null;
         }
 
@@ -64,43 +82,6 @@ namespace EPainter.Core
 
         public object VisitLabel(Label stmt)
         {
-            return null;
-        }
-
-        public object VisitSize(Size stmt)
-        {
-            object size = Evaluate(stmt.SizeValue);
-
-            if (!(size is int sizeVal))
-            {
-                throw new RuntimeError(null, "Brush size must be an integer.");
-            }
-
-            if (sizeVal <= 0)
-            {
-                throw new RuntimeError(null, "Brush size must be positive.");
-            }
-
-            BrushSize = sizeVal % 2 == 0 ? sizeVal - 1 : sizeVal;
-            return null;
-        }
-
-        public object VisitSpawn(Spawn stmt)
-        {
-            var x = Evaluate(stmt.X);
-            var y = Evaluate(stmt.Y);
-
-            if (!(x is int xVal) || !(y is int yVal))
-            {
-                throw new RuntimeError(null, "Spawn coordinates must be integers.");
-            }
-
-            if (xVal < 0 || xVal >= canvas.Size || yVal < 0 || yVal >= canvas.Size)
-            {
-                throw new RuntimeError(null, "Spawn coordinates are out of canvas bounds.");
-            }
-
-            Position = new Point(xVal, yVal);
             return null;
         }
     }
