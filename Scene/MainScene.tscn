@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3 uid="uid://b7ejf85dch6ca"]
+[gd_scene load_steps=8 format=3 uid="uid://b7ejf85dch6ca"]
 
 [ext_resource type="Script" uid="uid://k3iqt7s34xki" path="res://Scripts/UI/Main.cs" id="1_wd0a3"]
 [ext_resource type="Texture2D" uid="uid://c5wpnxu86o5xb" path="res://Assets/Sprites/upload-box.svg" id="3_tcius"]
@@ -6,11 +6,10 @@
 [ext_resource type="Texture2D" uid="uid://1dak3kh5lwow" path="res://Assets/Sprites/play.svg" id="5_yp2nk"]
 [ext_resource type="Texture2D" uid="uid://bxl2bf8gpnhvl" path="res://Assets/Sprites/resize.svg" id="6_nscx6"]
 [ext_resource type="Script" uid="uid://bi4xctfadpilt" path="res://Scene/Rayitas.cs" id="7_nr04c"]
-[ext_resource type="FontFile" uid="uid://rfw3rqoliwjx" path="res://Assets/Fonts/FiraCode-Regular.ttf" id="7_ofvyg"]
 
-[sub_resource type="CanvasTexture" id="CanvasTexture_i8335"]
+[sub_resource type="CanvasTexture" id="CanvasTexture_nr04c"]
 
-[node name="Control" type="Control" node_paths=PackedStringArray("codeEdit", "rayitas")]
+[node name="Control" type="Control" node_paths=PackedStringArray("codeEdit", "rayitas", "sizeInput", "outputText", "saveFileDialog", "loadFileDialog")]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -18,67 +17,104 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_wd0a3")
-codeEdit = NodePath("CodeEdit")
-rayitas = NodePath("TextureRect")
+codeEdit = NodePath("Panel/HSplitContainer/LeftPanel/VSplitContainer/CodeEditor")
+rayitas = NodePath("Panel/HSplitContainer/PixelCanvas")
+sizeInput = NodePath("Panel/TopBar/CanvasSizeInput")
+outputText = NodePath("Panel/HSplitContainer/LeftPanel/VSplitContainer/ConsoleOutput")
+saveFileDialog = NodePath("Panel/SaveFileDialog")
+loadFileDialog = NodePath("")
 
-[node name="VBoxContainer" type="VBoxContainer" parent="."]
+[node name="Panel" type="Panel" parent="."]
 layout_mode = 0
 offset_right = 1920.0
 offset_bottom = 1080.0
 
-[node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer"]
-layout_mode = 2
+[node name="TopBar" type="HBoxContainer" parent="Panel"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 64.0
+grow_horizontal = 2
+theme_override_constants/separation = 10
 
-[node name="Resize" type="Button" parent="VBoxContainer/HBoxContainer"]
+[node name="CanvasSize" type="Label" parent="Panel/TopBar"]
 layout_mode = 2
-theme_override_icons/icon = ExtResource("6_nscx6")
+text = "Canvas Size:"
+
+[node name="CanvasSizeInput" type="SpinBox" parent="Panel/TopBar"]
+layout_mode = 2
+min_value = 1.0
+max_value = 512.0
+value = 32.0
+
+[node name="Resize" type="Button" parent="Panel/TopBar"]
+layout_mode = 2
 text = "Resize"
+icon = ExtResource("6_nscx6")
 
-[node name="SpinBox" type="SpinBox" parent="VBoxContainer/HBoxContainer"]
-layout_mode = 2
-
-[node name="Run" type="Button" parent="VBoxContainer/HBoxContainer"]
-layout_mode = 2
-theme_override_icons/icon = ExtResource("5_yp2nk")
-text = "Run"
-
-[node name="Clear" type="Button" parent="VBoxContainer/HBoxContainer"]
-layout_mode = 2
-text = "Clear"
-
-[node name="Load" type="Button" parent="VBoxContainer/HBoxContainer"]
+[node name="Load" type="Button" parent="Panel/TopBar"]
 layout_mode = 2
 theme_override_icons/icon = ExtResource("3_tcius")
 text = "Load"
 
-[node name="Save" type="Button" parent="VBoxContainer/HBoxContainer"]
+[node name="Save" type="Button" parent="Panel/TopBar"]
 layout_mode = 2
 theme_override_icons/icon = ExtResource("4_1kkme")
 text = "Save"
 
-[node name="ErrorLabel" type="Label" parent="VBoxContainer"]
+[node name="Run" type="Button" parent="Panel/TopBar"]
 layout_mode = 2
+theme_override_icons/icon = ExtResource("5_yp2nk")
+text = "Run"
 
-[node name="CodeEdit" type="CodeEdit" parent="."]
-custom_minimum_size = Vector2(0, 1000)
-layout_mode = 2
-offset_top = 63.0
-offset_right = 896.0
-offset_bottom = 1063.0
-theme_override_fonts/font = ExtResource("7_ofvyg")
-theme_override_font_sizes/font_size = 16
-scroll_smooth = true
-gutters_draw_breakpoints_gutter = true
-gutters_draw_line_numbers = true
-code_completion_enabled = true
-
-[node name="TextureRect" type="TextureRect" parent="."]
-layout_mode = 2
-offset_left = 920.0
+[node name="HSplitContainer" type="HSplitContainer" parent="Panel"]
+layout_mode = 1
 offset_top = 64.0
 offset_right = 1920.0
-offset_bottom = 1064.0
-texture = SubResource("CanvasTexture_i8335")
+offset_bottom = 1025.0
+split_offset = 948
+
+[node name="LeftPanel" type="VBoxContainer" parent="Panel/HSplitContainer"]
+layout_mode = 2
+
+[node name="VSplitContainer" type="VSplitContainer" parent="Panel/HSplitContainer/LeftPanel"]
+custom_minimum_size = Vector2(948, 961)
+layout_mode = 2
+split_offset = -255
+
+[node name="CodeEditor" type="CodeEdit" parent="Panel/HSplitContainer/LeftPanel/VSplitContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+scroll_smooth = true
+gutters_draw_line_numbers = true
+
+[node name="ConsoleOutput" type="TextEdit" parent="Panel/HSplitContainer/LeftPanel/VSplitContainer"]
+layout_mode = 2
+placeholder_text = "E-Painter listo para usar. Escriba código y presione 'Run' para ejecutar."
+scroll_smooth = true
+
+[node name="PixelCanvas" type="TextureRect" parent="Panel/HSplitContainer"]
+layout_mode = 2
+texture = SubResource("CanvasTexture_nr04c")
 script = ExtResource("7_nr04c")
 
-[connection signal="pressed" from="VBoxContainer/HBoxContainer/Run" to="." method="Run"]
+[node name="SaveFileDialog" type="FileDialog" parent="Panel"]
+auto_translate_mode = 1
+title = "Open a Directory"
+ok_button_text = "Select Current Folder"
+file_mode = 2
+filters = PackedStringArray("*.gw ; GW Files", "*.txt ; Text Files")
+
+[node name="LoadFileDialog" type="FileDialog" parent="Panel"]
+auto_translate_mode = 1
+title = "Open a File"
+ok_button_text = "Open"
+file_mode = 0
+filters = PackedStringArray("*.gw ; GW Files")
+
+[connection signal="pressed" from="Panel/TopBar/Resize" to="." method="Resize"]
+[connection signal="pressed" from="Panel/TopBar/Load" to="." method="Load"]
+[connection signal="pressed" from="Panel/TopBar/Save" to="." method="Save"]
+[connection signal="pressed" from="Panel/TopBar/Run" to="." method="Run"]
+[connection signal="file_selected" from="Panel/SaveFileDialog" to="." method="OnSaveFileSelected"]
+[connection signal="file_selected" from="Panel/LoadFileDialog" to="." method="OnLoadFileSelected"]

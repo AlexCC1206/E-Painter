@@ -4,8 +4,8 @@ using System;
 
 public partial class Rayitas : TextureRect
 {
-	[Export] int gridsize = 64;
-	Godot.Color Color = new Godot.Color(0, 0, 0, 0.1f);
+	[Export] int gridsize = 32;
+	Color Color = new Color(0, 0, 0, 0.1f);
 	float space = 0;
 	public Canvas Canvas;
 	// Called when the node enters the scene tree for the first time.
@@ -18,6 +18,14 @@ public partial class Rayitas : TextureRect
 	public override void _Process(double delta)
 	{
 	}
+	
+	public void ResizeCanvas(int newSize)
+	{
+		gridsize = newSize;
+		Canvas = new Canvas(gridsize);
+		QueueRedraw();
+	}
+	
 	public override void _Draw()
 	{
 		DrawCanvas(Canvas);
