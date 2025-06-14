@@ -1,0 +1,12 @@
+Spawn(5, 5)
+Color("Black")
+Size(1)
+
+// Variable no definida
+x <- y + 1
+
+// División por cero
+z <- 5 / 0
+
+// Fuera de los límites del canvas
+Spawn(100, 100)

@@ -29,7 +29,7 @@ namespace EPainter.UI
 			Parser parser = new Parser(tokens);
 			var statements = parser.Parse();
 
-			Interpreter interpreter = new Interpreter(rayitas.Canvas, statements);
+			//Interpreter interpreter = new Interpreter(rayitas.Canvas, statements);
 
 			rayitas.QueueRedraw();
 

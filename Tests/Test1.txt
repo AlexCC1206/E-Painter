@@ -1,0 +1,5 @@
+Spawn(10, 10)
+Color("Black")
+DrawLine(1, 0, 10)
+Color("Blue")
+DrawCircle(0, 1, 3)

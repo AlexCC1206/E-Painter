@@ -1,0 +1,122 @@
+using System;
+using System.IO;
+using EPainter.Core;
+
+namespace EPainter
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            // Ejecutar el ejemplo básico
+            PruebaBasica();
+            
+            // Ejecutar pruebas desde un archivo
+            if (args.Length > 0)
+            {
+                string filePath = args[0];
+                if (File.Exists(filePath))
+                {
+                    Console.WriteLine($"\n====== PRUEBA DESDE ARCHIVO: {filePath} ======");
+                    string codigo = File.ReadAllText(filePath);
+                    RunTest(codigo);
+                }
+            }
+            else
+            {
+                // Ejecutar pruebas adicionales
+                PruebasAvanzadas();
+            }
+        }
+
+        static void PruebaBasica()
+        {            Console.WriteLine("====== PRUEBA BÁSICA ======");
+            // Código del ejemplo simplificado y corregido
+            string sourceCode = @"Spawn(0, 0)
+Color(""Black"")
+n <- 5
+k <- 3 + 3 * 10
+n <- k * 2
+DrawLine(1, 0, 10)
+Color(""Blue"")
+DrawCircle(0, 0, 5)
+";
+
+            RunTest(sourceCode);
+        }
+
+        static void PruebasAvanzadas()
+        {
+            Console.WriteLine("\n====== PRUEBAS AVANZADAS ======");
+            
+            // Prueba 1: Dibujar un cuadrado
+            string sourceCode1 = @"Spawn(5, 5)
+Color(""Black"")
+Size(1)
+DrawLine(1, 0, 5)
+DrawLine(0, 1, 5)
+DrawLine(-1, 0, 5)
+DrawLine(0, -1, 5)";
+            
+            Console.WriteLine("\n--- Prueba 1: Dibujar un cuadrado ---");
+            RunTest(sourceCode1);
+            
+            // Prueba 2: Uso de etiquetas y GoTo
+            string sourceCode2 = @"Spawn(10, 10)
+Color(""Black"")
+i <- 0
+loop1
+DrawCircle(0, 0, i)
+i <- i + 1
+GoTo[loop_end](i > 3)
+GoTo[loop1](i <= 3)
+loop_end
+Color(""Blue"")";
+            
+            Console.WriteLine("\n--- Prueba 2: Uso de etiquetas y GoTo ---");
+            RunTest(sourceCode2);
+            
+            // Prueba 3: Usar rectángulos y fill
+            string sourceCode3 = @"Spawn(5, 5)
+Color(""Black"")
+DrawRectangle(0, 0, 0, 5, 5)
+Spawn(7, 7)
+Color(""Blue"")
+Fill()";
+            
+            Console.WriteLine("\n--- Prueba 3: Usar rectángulos y fill ---");
+            RunTest(sourceCode3);
+        }
+
+        static void RunTest(string sourceCode)
+        {
+            // Crear canvas inicial
+            var canvas = new Canvas(20); // Tamaño 20x20
+            Console.WriteLine("Canvas inicial:");
+            canvas.Print();
+
+            // Scanner
+            var scanner = new Scanner(sourceCode);
+            var tokens = scanner.scanTokens();
+
+            // Parser
+            var parser = new Parser(tokens);
+            var statements = parser.Parse();
+
+            // Intérprete
+            var interpreter = new Interpreter();
+            try
+            {
+                interpreter.Interpret(canvas, statements);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error durante la ejecución: {ex.Message}");
+            }
+
+            // Mostrar resultado
+            Console.WriteLine("\nCanvas final:");
+            canvas.Print();
+        }
+    }
+}

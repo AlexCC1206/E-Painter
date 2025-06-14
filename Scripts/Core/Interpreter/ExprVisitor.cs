@@ -30,31 +30,30 @@ namespace EPainter.Core
             switch (expr.Op.Type)
             {
                 case TokenType.SUM:
-                    return (int)left + (int)right;
+                    return Convert.ToInt32(left) + Convert.ToInt32(right);
                 case TokenType.MIN:
-                    return (int)left - (int)right;
+                    return Convert.ToInt32(left) - Convert.ToInt32(right);
                 case TokenType.MULT:
-                    return (int)left * (int)right;
+                    return Convert.ToInt32(left) * Convert.ToInt32(right);
                 case TokenType.DIV:
-                    if ((int)right == 0) throw new RuntimeError("División por cero.");
-                    return (int)((int)left / (int)right);
+                    if (Convert.ToInt32(right) == 0) throw new RuntimeError("División por cero.");
+                    return Convert.ToInt32(left) / Convert.ToInt32(right);
                 case TokenType.POW:
-                    return Math.Pow((int)left, (int)right);
+                    return Math.Pow(Convert.ToInt32(left), Convert.ToInt32(right));
                 case TokenType.MOD:
-                    return (int)left % (int)right;
-
+                    return Convert.ToInt32(left) % Convert.ToInt32(right);
                 case TokenType.EQUAL_EQUAL:
                     return Equals(left, right);
                 case TokenType.BANG_EQUAL:
                     return !Equals(left, right);
                 case TokenType.LESS:
-                    return (int)left < (int)right;
+                    return Convert.ToInt32(left) < Convert.ToInt32(right);
                 case TokenType.LESS_EQUAL:
-                    return (int)left <= (int)right;
+                    return Convert.ToInt32(left) <= Convert.ToInt32(right);
                 case TokenType.GREATER:
-                    return (int)left > (int)right;
+                    return Convert.ToInt32(left) > Convert.ToInt32(right);
                 case TokenType.GREATER_EQUAL:
-                    return (int)left >= (int)right;
+                    return Convert.ToInt32(left) >= Convert.ToInt32(right);
 
                 case TokenType.AND:
                     return (bool)left && (bool)right;
@@ -65,15 +64,14 @@ namespace EPainter.Core
                     throw new RuntimeError("Unknown operator: " + expr.Op.Lexeme);
             }
         }
-        
-        public object VisitUnary(Unary expr)
+          public object VisitUnary(Unary expr)
         {
             object right = Visit(expr.Right);
 
             switch (expr.Op.Type)
             {
                 case TokenType.MIN:
-                    return -(double)right;
+                    return -Convert.ToInt32(right);
                 default:
                     throw new RuntimeError("Unknown unary operator: " + expr.Op.Lexeme);
             }

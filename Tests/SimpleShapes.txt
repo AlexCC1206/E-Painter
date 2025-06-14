@@ -1,0 +1,8 @@
+Spawn(10, 10)
+Color("Red")
+Size(3)
+DrawCircle(0, 0, 5)
+Color("Blue")
+DrawLine(1, 1, 3)
+Color("Green")
+DrawRectangle(1, 0, 5, 4, 2)

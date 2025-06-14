@@ -1,0 +1,5 @@
+Spawn(5, 5)
+Color("Black")
+Size(1)
+DrawLine(1, 0, 3)
+DrawCircle(0, 1, 2)

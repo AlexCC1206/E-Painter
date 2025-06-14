@@ -94,7 +94,18 @@ namespace EPainter.Core
                     if (Match('*')) AddToken(TokenType.POW);
                     else AddToken(TokenType.MULT);
                     break;
-                case '/': AddToken(TokenType.DIV); break;
+                case '/':
+                    if (Match('/'))
+                    {
+                        // Comentario de una línea
+                        while (Peek() != '\n' && !IsAtEnd())
+                            Advance();
+                    }
+                    else
+                    {
+                        AddToken(TokenType.DIV);
+                    }
+                    break;
                 case '%': AddToken(TokenType.MOD); break;
 
 

@@ -15,7 +15,7 @@ namespace EPainter.Core
 
         private List<Stmt> statements;
 
-        public Interpreter(Canvas canvas, List<Stmt> stmts)
+        public void Interpret(Canvas canvas, List<Stmt> stmts)
         {
             this.canvas = canvas;
             statements = stmts;
@@ -49,24 +49,21 @@ namespace EPainter.Core
                     continue;
                 }
 
-                if (stmt is Goto gotoStmt)
+                try 
                 {
-                    var condition = Evaluate(gotoStmt.Condition);
-                    if ((bool)condition)
-                    {
-                        if (!Labels.TryGetValue(gotoStmt.LabelName, out int targetLine))
-                        {
-                            throw new RuntimeError($"Label '{gotoStmt.LabelName}' not found.");
-                        }
-
-                        currentStatement = targetLine;
-                        continue;
-                    }
+                    Execute(stmt);
+                    currentStatement++;
                 }
+                catch (GotoException gotoEx)
+                {
+                    if (!Labels.TryGetValue(gotoEx.Label, out int targetLine))
+                    {
+                        throw new RuntimeError($"Label '{gotoEx.Label}' not found.");
+                    }
 
-                Execute(stmt);
-
-                currentStatement++;
+                    currentStatement = targetLine;
+                    continue;
+                }
             }
 
         }
@@ -194,9 +191,10 @@ namespace EPainter.Core
                     }
                 }
             }
-
-            state.X += dirX * distance;
-            state.Y += dirY * distance;
+            
+            // Actualizar la posición actual
+            state.X = centerX + dirX * distance;
+            state.Y = centerY + dirY * distance;
         }
 
         public void DrawCircle(int dirX, int dirY, int radius)
@@ -206,10 +204,30 @@ namespace EPainter.Core
 
             int circleCenterX = centerX + dirX * radius;
             int circleCenterY = centerY + dirY * radius;
-
+            
+            // Comprobar si el círculo está dentro de los límites del canvas
             if (!canvas.IsValidPosition(circleCenterX, circleCenterY))
             {
-                throw new RuntimeError("Circle center out of bounds");
+                throw new RuntimeError($"Circle center out of bounds at ({circleCenterX}, {circleCenterY})");
+            }
+            
+            // También verificar que el radio no hace que el círculo se salga del canvas
+            if (!canvas.IsValidPosition(circleCenterX + radius, circleCenterY) ||
+                !canvas.IsValidPosition(circleCenterX - radius, circleCenterY) ||
+                !canvas.IsValidPosition(circleCenterX, circleCenterY + radius) ||
+                !canvas.IsValidPosition(circleCenterX, circleCenterY - radius))
+            {
+                // No lanzar error, solo ajustar el radio para que quepa en el canvas
+                int maxRadius = Math.Min(
+                    Math.Min(canvas.Size - 1 - circleCenterX, circleCenterX),
+                    Math.Min(canvas.Size - 1 - circleCenterY, circleCenterY));
+                
+                if (maxRadius <= 0)
+                {
+                    throw new RuntimeError($"Cannot draw circle, radius too large for canvas");
+                }
+                
+                radius = Math.Min(radius, maxRadius);
             }
 
             int brushSize = state.BrushSize / 2;

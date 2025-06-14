@@ -17,9 +17,7 @@ namespace EPainter.Core
             var value = interpreter.Evaluate(stmt.Value);
             interpreter.SetVariable(stmt.Name, value);
             return null;
-        }
-
-        public object VisitSpawn(Spawn stmt)
+        }        public object VisitSpawn(Spawn stmt)
         {
             int x = Convert.ToInt32(interpreter.Evaluate(stmt.X));
             int y = Convert.ToInt32(interpreter.Evaluate(stmt.Y));
@@ -32,40 +30,34 @@ namespace EPainter.Core
             string color = (string)interpreter.Evaluate(stmt.ColorName);
             interpreter.SetBrushColor(color);
             return null;
-        }
-
-        public object VisitSize(Size stmt)
+        }        public object VisitSize(Size stmt)
         {
-            int size = (int)interpreter.Evaluate(stmt.SizeValue);
+            int size = Convert.ToInt32(interpreter.Evaluate(stmt.SizeValue));
             interpreter.SetBrushSize(size);
             return null;
-        }
-
-        public object VisitDrawLine(DrawLine stmt)
+        }public object VisitDrawLine(DrawLine stmt)
         {
-            int dx = (int)interpreter.Evaluate(stmt.DirX);
-            int dy = (int)interpreter.Evaluate(stmt.DirY);
-            int dist = (int)interpreter.Evaluate(stmt.Distance);
+            int dx = Convert.ToInt32(interpreter.Evaluate(stmt.DirX));
+            int dy = Convert.ToInt32(interpreter.Evaluate(stmt.DirY));
+            int dist = Convert.ToInt32(interpreter.Evaluate(stmt.Distance));
             interpreter.DrawLine(dx, dy, dist);
             return null;
         }
 
         public object VisitDrawCircle(DrawCircle stmt)
         {
-            int dx = (int)interpreter.Evaluate(stmt.DirX);
-            int dy = (int)interpreter.Evaluate(stmt.DirY);
-            int radius = (int)interpreter.Evaluate(stmt.Radius);
+            int dx = Convert.ToInt32(interpreter.Evaluate(stmt.DirX));
+            int dy = Convert.ToInt32(interpreter.Evaluate(stmt.DirY));
+            int radius = Convert.ToInt32(interpreter.Evaluate(stmt.Radius));
             interpreter.DrawCircle(dx, dy, radius);
             return null;
-        }
-
-        public object VisitDrawRectangle(DrawRectangle stmt)
+        }        public object VisitDrawRectangle(DrawRectangle stmt)
         {
-            int dx = (int)interpreter.Evaluate(stmt.DirX);
-            int dy = (int)interpreter.Evaluate(stmt.DirY);
-            int dist = (int)interpreter.Evaluate(stmt.Distance);
-            int width = (int)interpreter.Evaluate(stmt.Width);
-            int height = (int)interpreter.Evaluate(stmt.Height);
+            int dx = Convert.ToInt32(interpreter.Evaluate(stmt.DirX));
+            int dy = Convert.ToInt32(interpreter.Evaluate(stmt.DirY));
+            int dist = Convert.ToInt32(interpreter.Evaluate(stmt.Distance));
+            int width = Convert.ToInt32(interpreter.Evaluate(stmt.Width));
+            int height = Convert.ToInt32(interpreter.Evaluate(stmt.Height));
             interpreter.DrawRectangle(dx, dy, dist, width, height);
             return null;
         }
@@ -74,10 +66,13 @@ namespace EPainter.Core
         {
             interpreter.Fill();
             return null;
-        }
-
-        public object VisitGoto(Goto stmt)
+        }        public object VisitGoto(Goto stmt)
         {
+            bool condition = (bool)interpreter.Evaluate(stmt.Condition);
+            if (condition)
+            {
+                throw new GotoException(stmt.LabelName);
+            }
             return null;
         }
 

@@ -20,7 +20,11 @@ namespace EPainter.Core
 
             while (!IsAtEnd())
             {
-                statements.Add(Declaration());
+                var stmt = Declaration();
+                if (stmt != null)
+                {
+                    statements.Add(stmt);
+                }
             }
 
             return statements;
@@ -31,6 +35,11 @@ namespace EPainter.Core
         {
             try
             {
+                // Ignorar saltos de línea
+                while (Match(TokenType.NEWLINE));
+                
+                if (IsAtEnd()) return null;
+                
                 if (Match(TokenType.SPAWN)) return SpawnStatement();
                 if (Match(TokenType.COLOR)) return ColorStatement();
                 if (Match(TokenType.SIZE)) return SizeStatement();
@@ -42,7 +51,8 @@ namespace EPainter.Core
 
                 if (Check(TokenType.IDENTIFIER))
                 {
-                    return MaybeLabelOtAssignment();
+                    Advance(); // Consume el identificador
+                    return MaybeLabelOrAssignment();
                 }
 
                 throw Error(Peek(), "Unexpected token.");
@@ -150,7 +160,7 @@ namespace EPainter.Core
             return new Stmt.Goto(label.Lexeme, condition);
         }
         
-        private Stmt MaybeLabelOtAssignment()
+        private Stmt MaybeLabelOrAssignment()
         {
             var identifierToken = Previous();
 
@@ -163,7 +173,16 @@ namespace EPainter.Core
             if (Match(TokenType.ARROW))
             {
                 var value = Expression();
-                Consume(TokenType.NEWLINE, "Expected newline after assignment.");
+                
+                // Si ya estamos al final del archivo o hay un salto de línea, avanzar
+                if (Peek().Type == TokenType.NEWLINE) 
+                {
+                    Advance();
+                }
+                else if (Peek().Type != TokenType.EOF)
+                {
+                    Consume(TokenType.NEWLINE, "Expected newline after assignment.");
+                }
                 return new Stmt.Assignment(identifierToken.Lexeme, value);
             }
 
@@ -320,7 +339,7 @@ namespace EPainter.Core
 
         private Expr FunctionCall(string name)
         {
-            Consume(TokenType.RIGHT_PAREN, $"Expected '(' after {name}.");
+            Consume(TokenType.LEFT_PAREN, $"Expected '(' after {name}.");
 
             var arguments = new List<Expr>();
             if (!Check(TokenType.RIGHT_PAREN))
