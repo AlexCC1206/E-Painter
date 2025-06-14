@@ -6,13 +6,11 @@ namespace EPainter.Core
     public static class ErrorReporter
     {
         public static List<string> errors = new List<string>();
-        public static List<string> runtimeErrors = new List<string>();
-
-        public static bool HasErrors => errors.Count > 0;
-        public static bool HasRuntimeErrors => errors.Count > 0;
+        public static List<string> runtimeErrors = new List<string>();        public static bool HasErrors => errors.Count > 0;
+        public static bool HasRuntimeErrors => runtimeErrors.Count > 0;
 
         public static IReadOnlyList<string> Errors => errors.AsReadOnly();
-        public static IReadOnlyList<string> RuntimeErrors => errors.AsReadOnly();
+        public static IReadOnlyList<string> RuntimeErrors => runtimeErrors.AsReadOnly();
 
         public static void Reset()
         {

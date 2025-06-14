@@ -86,32 +86,61 @@ Fill()";
             
             Console.WriteLine("\n--- Prueba 3: Usar rectángulos y fill ---");
             RunTest(sourceCode3);
-        }
-
-        static void RunTest(string sourceCode)
+        }        static void RunTest(string sourceCode)
         {
             // Crear canvas inicial
             var canvas = new Canvas(20); // Tamaño 20x20
             Console.WriteLine("Canvas inicial:");
             canvas.Print();
 
+            // Reiniciar el sistema de reporte de errores
+            ErrorReporter.Reset();
+
             // Scanner
             var scanner = new Scanner(sourceCode);
             var tokens = scanner.scanTokens();
 
+            // Si hay errores de escaneo, mostrarlos y salir
+            if (ErrorReporter.HasErrors)
+            {
+                Console.WriteLine("\nErrores sintácticos detectados:");
+                ErrorReporter.PrintAllErrors();
+                return;
+            }
+
             // Parser
             var parser = new Parser(tokens);
             var statements = parser.Parse();
+
+            // Si hay errores de parseo, mostrarlos y salir
+            if (ErrorReporter.HasErrors)
+            {
+                Console.WriteLine("\nErrores sintácticos/semánticos detectados:");
+                ErrorReporter.PrintAllErrors();
+                return;
+            }
 
             // Intérprete
             var interpreter = new Interpreter();
             try
             {
                 interpreter.Interpret(canvas, statements);
+                
+                // Si hay errores de tiempo de ejecución, mostrarlos
+                if (ErrorReporter.HasRuntimeErrors)
+                {
+                    Console.WriteLine("\nErrores en tiempo de ejecución:");
+                    ErrorReporter.PrintAllErrors();
+                    Console.WriteLine("\nResultado parcial (hasta el error):");
+                }
+                else
+                {
+                    Console.WriteLine("\nEjecución completada sin errores.");
+                }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error durante la ejecución: {ex.Message}");
+                Console.WriteLine($"\nError durante la ejecución: {ex.Message}");
             }
 
             // Mostrar resultado

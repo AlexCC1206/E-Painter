@@ -23,16 +23,27 @@ namespace EPainter.UI
 		{
 			string code = codeEdit.Text;
 
+			// Scanner
 			Scanner scanner = new Scanner(code);
 			var tokens = scanner.scanTokens();
 
+			// Parser
 			Parser parser = new Parser(tokens);
 			var statements = parser.Parse();
 
-			//Interpreter interpreter = new Interpreter(rayitas.Canvas, statements);
+			// Intérprete
+			var interpreter = new Interpreter();
+			try
+			{
+				interpreter.Interpret(rayitas.Canvas, statements);
+			}
+			catch (Exception ex)
+			{
+				GD.Print($"Error durante la ejecución: {ex.Message}");
+			}
 
+			// Actualizar la vista
 			rayitas.QueueRedraw();
-
 		}
 	}
 
