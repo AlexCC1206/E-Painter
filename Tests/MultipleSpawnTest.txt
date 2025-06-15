@@ -1,0 +1,6 @@
+// Este archivo de prueba NO debería ejecutarse porque tiene múltiples comandos Spawn
+Spawn(5, 5)
+Color("Black")
+Size(3)
+DrawLine(1, 0, 5)
+Spawn(10, 10) // Este segundo Spawn debería generar un error

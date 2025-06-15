@@ -1,0 +1,6 @@
+// Prueba para verificar que se rechacen variables que comienzan con guión bajo
+Spawn(10, 10)
+Color("Black")
+_invalidVar <- 5  // Debería generar un error
+Size(3)
+DrawLine(1, 0, 5)

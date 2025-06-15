@@ -168,6 +168,10 @@ namespace EPainter.Core
 
         private void Identifier()
         {
+            if (Source[start] == '_')
+            {
+                throw new ScannerException(line, "Los identificadores no pueden comenzar con guión bajo (_)");
+            }
             while (IsAlphaNumeric(Peek())) Advance();
 
             string text = Source.Substring(start, current - start);
@@ -189,7 +193,6 @@ namespace EPainter.Core
             AddToken(TokenType.NUMBER, double.Parse(Source.Substring(start, current - start)));
 
         }
-
 
         private void ColorLiteral()
         {
@@ -224,8 +227,6 @@ namespace EPainter.Core
             "Purple", "Black", "White", "Transparent"
         };
 
-
-
         private bool Match(char expected)
         {
             if (IsAtEnd()) return false;
@@ -241,12 +242,10 @@ namespace EPainter.Core
             return Source[current];
         }
 
-
         private bool IsAtEnd()
         {
             return current >= Source.Length;
         }
-
 
         private char Advance()
         {
@@ -262,14 +261,14 @@ namespace EPainter.Core
         private bool IsAlpha(char c)
         {
             return (c >= 'a' && c <= 'z') ||
-                    (c >= 'A' && c <= 'Z') ||
-                    c == '_';
+                    (c >= 'A' && c <= 'Z')
+                    ;
         }
 
 
         private bool IsAlphaNumeric(char c)
         {
-            return IsAlpha(c) || IsDigit(c);
+            return IsAlpha(c) || IsDigit(c) || c == '_';
 
         }
 

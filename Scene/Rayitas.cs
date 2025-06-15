@@ -11,7 +11,22 @@ public partial class Rayitas : TextureRect
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
 	{
+		// Crear el canvas inicial
 		Canvas = new Canvas(gridsize);
+		
+		// Establecer un tamaño mínimo para el TextureRect
+		CustomMinimumSize = new Vector2(400, 400);
+		
+		// Crear una textura inicial
+		var newTexture = new ImageTexture();
+		var image = Image.CreateEmpty(gridsize, gridsize, false, Image.Format.Rgba8);
+		newTexture.SetImage(image);
+		Texture = newTexture;
+		
+		// Calcular el espaciado inicial
+		space = CustomMinimumSize.X / gridsize;
+		
+		GD.Print($"Canvas initialized with size {gridsize}x{gridsize}, space = {space}");
 	}
 
 	// Called every frame. 'delta' is the elapsed time since the previous frame.
@@ -23,18 +38,48 @@ public partial class Rayitas : TextureRect
 	{
 		gridsize = newSize;
 		Canvas = new Canvas(gridsize);
+		
+		// Crear una textura nueva con el tamaño adecuado
+		var newTexture = new ImageTexture();
+		var image = Image.CreateEmpty(gridsize, gridsize, false, Image.Format.Rgba8);
+		
+		// Establecer la textura
+		newTexture.SetImage(image);
+		Texture = newTexture;
+		
+		// Forzar un tamaño mínimo para el TextureRect
+		CustomMinimumSize = new Vector2(400, 400);
+		
+		// Actualizar el cálculo de espaciado
+		space = CustomMinimumSize.X / gridsize;
+		
+		// Actualizar el dibujo
 		QueueRedraw();
+		
+		GD.Print($"Canvas resized to {gridsize}x{gridsize}, with space = {space}");
 	}
 	
 	public override void _Draw()
 	{
+		// Calcular el espacio antes de dibujar
+		float effectiveWidth = Mathf.Max(Size.X, CustomMinimumSize.X);
+		space = effectiveWidth / gridsize;
+		
+		// Dibujar el canvas y las líneas
 		DrawCanvas(Canvas);
 		DrawLines();
 	}
 	void DrawCanvas(Canvas canvas)
 	{
 		string[,] Rosalia = canvas.Pixels;
+		
+		// Asegurar que el espacio está calculado correctamente
+		if (space <= 0)
+		{
+			space = Mathf.Max(Size.X, CustomMinimumSize.X) / gridsize;
+		}
 
+		// Dibujar cada celda del canvas
 		for (var i = 0; i < Rosalia.GetLength(0); i++)
 		{
 			for (var j = 0; j < Rosalia.GetLength(1); j++)
@@ -45,15 +90,20 @@ public partial class Rayitas : TextureRect
 			}
 		}
 	}
+	
 	void DrawLines()
 	{
-		space = Size.X / gridsize;
+		// Calcular el espacio basado en el tamaño actual o mínimo
+		float effectiveWidth = Mathf.Max(Size.X, CustomMinimumSize.X);
+		float effectiveHeight = Mathf.Max(Size.Y, CustomMinimumSize.Y);
+		space = effectiveWidth / gridsize;
 
-		for (var i = 0; i < gridsize; i++)
+		// Dibujar líneas horizontales y verticales
+		for (var i = 0; i <= gridsize; i++)
 		{
 			float c = i * space;
-			DrawLine(new Vector2(0, c), new Vector2(Size.X, c), Color, 1f);
-			DrawLine(new Vector2(c, 0), new Vector2(c, Size.Y), Color, 1f);
+			DrawLine(new Vector2(0, c), new Vector2(effectiveWidth, c), Color, 1f);
+			DrawLine(new Vector2(c, 0), new Vector2(c, effectiveHeight), Color, 1f);
 		}
 	}
 	Godot.Color CheckColor(string color)

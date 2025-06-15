@@ -5,9 +5,31 @@ using EPainter.Core;
 namespace EPainter
 {
     class Program
-    {
-        static void Main(string[] args)
+    {        static void Main(string[] args)
         {
+            // Revisar si se solicita la prueba del validador de Spawn
+            if (args.Length > 0 && args[0] == "/test-spawn-validation")
+            {
+                Console.WriteLine("Ejecutando pruebas de validación de Spawn...");
+                SpawnValidationTest.RunTests();
+                return;
+            }
+              // Revisar si se solicita la prueba del validador general
+            if (args.Length > 0 && args[0] == "/test-validator")
+            {
+                Console.WriteLine("Ejecutando pruebas de validación generales...");
+                TestValidator.RunTests();
+                return;
+            }
+            
+            // Revisar si se solicita la prueba de las nuevas validaciones semánticas
+            if (args.Length > 0 && args[0] == "/test-semantic")
+            {
+                Console.WriteLine("Ejecutando pruebas de validación semántica...");
+                NewValidationsTest.RunTests();
+                return;
+            }
+            
             // Ejecutar el ejemplo básico
             PruebaBasica();
             

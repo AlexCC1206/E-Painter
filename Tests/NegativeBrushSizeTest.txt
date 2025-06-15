@@ -1,0 +1,5 @@
+// Prueba para verificar que se rechacen tamaños de pincel negativos
+Spawn(10, 10)
+Color("Black")
+Size(-1)  // Debería generar un error
+DrawLine(1, 0, 5)

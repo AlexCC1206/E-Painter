@@ -1,0 +1,8 @@
+// Prueba para detectar ciclos infinitos con saltos GoTo
+Spawn(10, 10)
+Color("Black")
+Size(3)
+
+inicio
+DrawLine(1, 0, 5)
+GoTo[inicio](True)  // Esto generará un ciclo infinito

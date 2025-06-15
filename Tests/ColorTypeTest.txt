@@ -1,0 +1,4 @@
+
+Spawn(10, 10)
+Color(5)  // Debería generar error al usar un número en lugar de un string
+DrawLine(1, 0, 5)

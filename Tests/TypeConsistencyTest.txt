@@ -1,0 +1,12 @@
+// Prueba para validar que no se usen tipos inconsistentes en operaciones
+Spawn(10, 10)
+Color("Black")
+Size(3)
+
+// Definimos una variable booleana
+varBool <- True
+
+// Intentamos usarla en una operación aritmética (debería fallar)
+varNum <- varBool + 5
+
+DrawLine(1, 0, 5)

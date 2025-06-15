@@ -22,7 +22,7 @@ rayitas = NodePath("Panel/HSplitContainer/PixelCanvas")
 sizeInput = NodePath("Panel/TopBar/CanvasSizeInput")
 outputText = NodePath("Panel/HSplitContainer/LeftPanel/VSplitContainer/ConsoleOutput")
 saveFileDialog = NodePath("Panel/SaveFileDialog")
-loadFileDialog = NodePath("")
+loadFileDialog = NodePath("Panel/LoadFileDialog")
 
 [node name="Panel" type="Panel" parent="."]
 layout_mode = 0
@@ -100,17 +100,17 @@ script = ExtResource("7_nr04c")
 
 [node name="SaveFileDialog" type="FileDialog" parent="Panel"]
 auto_translate_mode = 1
-title = "Open a Directory"
-ok_button_text = "Select Current Folder"
-file_mode = 2
-filters = PackedStringArray("*.gw ; GW Files", "*.txt ; Text Files")
+title = "Guardar archivo"
+access = 2
+filters = PackedStringArray("*.pw ; PW Files")
 
 [node name="LoadFileDialog" type="FileDialog" parent="Panel"]
 auto_translate_mode = 1
 title = "Open a File"
 ok_button_text = "Open"
 file_mode = 0
-filters = PackedStringArray("*.gw ; GW Files")
+access = 2
+filters = PackedStringArray("*.pw ; PW Files")
 
 [connection signal="pressed" from="Panel/TopBar/Resize" to="." method="Resize"]
 [connection signal="pressed" from="Panel/TopBar/Load" to="." method="Load"]

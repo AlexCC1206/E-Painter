@@ -19,9 +19,52 @@ namespace EPainter.Core
         {
             this.canvas = canvas;
             statements = stmts;
+            
+            // Validar que Spawn sea el primer comando y único en el código
+            ValidateSpawnIsFirstAndUnique();
+            
             state = new EPainterState(0,0);
             InitializeLabels();
             ExecuteAll();
+        }
+        
+        private void ValidateSpawnIsFirstAndUnique()
+        {
+            bool foundSpawn = false;
+            int firstSpawnIndex = -1;
+            
+            // Buscar los comandos Spawn en el código
+            for (int i = 0; i < statements.Count; i++)
+            {
+                if (statements[i] is Stmt.Spawn)
+                {
+                    if (!foundSpawn)
+                    {
+                        foundSpawn = true;
+                        firstSpawnIndex = i;
+                    }
+                    else
+                    {
+                        // Ya se encontró un Spawn antes, lanzar error
+                        throw new RuntimeError($"Múltiples comandos Spawn encontrados. Solo debe haber un comando Spawn al inicio del programa.");
+                    }
+                }
+            }
+            
+            // Verificar si hay un comando Spawn
+            if (!foundSpawn)
+            {
+                throw new RuntimeError("El programa debe comenzar con un comando Spawn.");
+            }
+            
+            // Verificar que Spawn sea el primer comando (ignorando etiquetas)
+            for (int i = 0; i < firstSpawnIndex; i++)
+            {
+                if (!(statements[i] is Stmt.Label))
+                {
+                    throw new RuntimeError("El comando Spawn debe ser el primer comando del programa (las etiquetas pueden aparecer antes).");
+                }
+            }
         }
 
         private void InitializeLabels()
@@ -39,6 +82,11 @@ namespace EPainter.Core
         private void ExecuteAll()
         {
             int currentStatement = 0;
+            // Diccionario para contar la cantidad de veces que se salta a cada etiqueta
+            Dictionary<string, int> labelJumpCounts = new Dictionary<string, int>();
+            // Límite máximo de saltos a la misma etiqueta para detectar ciclos infinitos
+            const int MAX_JUMPS_TO_SAME_LABEL = 1000;
+            
             while (currentStatement < statements.Count)
             {
                 var stmt = statements[currentStatement];
@@ -60,12 +108,27 @@ namespace EPainter.Core
                     {
                         throw new RuntimeError($"Label '{gotoEx.Label}' not found.");
                     }
+                    
+                    // Incrementar el contador de saltos para esta etiqueta
+                    if (!labelJumpCounts.ContainsKey(gotoEx.Label))
+                    {
+                        labelJumpCounts[gotoEx.Label] = 1;
+                    }
+                    else
+                    {
+                        labelJumpCounts[gotoEx.Label]++;
+                        
+                        // Verificar si se excedió el límite de saltos
+                        if (labelJumpCounts[gotoEx.Label] > MAX_JUMPS_TO_SAME_LABEL)
+                        {
+                            throw new RuntimeError($"Posible ciclo infinito detectado: se ha saltado a la etiqueta '{gotoEx.Label}' más de {MAX_JUMPS_TO_SAME_LABEL} veces.");
+                        }
+                    }
 
                     currentStatement = targetLine;
                     continue;
                 }
             }
-
         }
 
         public void Execute(Stmt stmt)
@@ -166,6 +229,9 @@ namespace EPainter.Core
 
         public void SetBrushSize(int size)
         {
+            if (size <= 0)
+                throw new RuntimeError($"El tamaño del pincel debe ser positivo. Valor proporcionado: {size}");
+                
             state.BrushSize = size % 2 == 0 ? size - 1 : size;
         }
 

@@ -1,0 +1,6 @@
+// Este archivo de prueba debería ejecutarse porque solo tiene etiquetas antes de Spawn
+inicio:
+Spawn(5, 5)
+Color("Black")
+Size(3)
+DrawLine(1, 0, 5)
