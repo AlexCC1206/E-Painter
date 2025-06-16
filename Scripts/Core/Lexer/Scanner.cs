@@ -4,9 +4,7 @@ using System.Linq;
 
 namespace EPainter.Core
 {
-    /// <summary>
-    /// Clase encargada de escanear el código fuente y generar una lista de tokens.
-    /// </summary>
+
     public class Scanner
     {
         private string Source;
@@ -15,12 +13,9 @@ namespace EPainter.Core
         private int current = 0;
         private int line = 1;
 
-        /// <summary>
-        /// Diccionario que contiene las palabras clave y su tipo de token correspondiente.
-        /// </summary>
+
         private static readonly Dictionary<string, TokenType> Keywords = new Dictionary<string, TokenType>
         {
-            // Commands
             {"Spawn", TokenType.SPAWN},
             {"Color", TokenType.COLOR},
             {"Size", TokenType.SIZE},
@@ -28,8 +23,7 @@ namespace EPainter.Core
             {"DrawCircle", TokenType.DRAW_CIRCLE},
             {"DrawRectangle", TokenType.DRAW_RECTANGLE },
             {"Fill", TokenType.FILL},
-
-            // Function
+            
             {"GetActualX", TokenType.GET_ACTUAL_X},
             {"GetActualY", TokenType.GET_ACTUAL_Y},
             {"GetCanvasSize", TokenType.GET_CANVAS_SIZE},
@@ -37,29 +31,20 @@ namespace EPainter.Core
             {"IsBrushColor", TokenType.IS_BRUSH_COLOR},
             {"IsBrushSize", TokenType.IS_BRUSH_SIZE},
             {"IsCanvasColor", TokenType.IS_CANVAS_COLOR},
-
-            // Control
+            
             {"GoTo", TokenType.GOTO},
-
-            // Booleans
+            
             {"True", TokenType.TRUE},
             {"False", TokenType.FALSE}
         };
 
-        /// <summary>
-        /// Constructor de la clase Scanner.
-        /// </summary>
-        /// <param name="source">El código fuente a escanear.</param>
+
         public Scanner(string source)
         {
             Source = source;
         }
 
-        /// <summary>
-        /// Escanea el código fuente y genera una lista de tokens.
-        /// </summary>
-        /// <returns>Lista de tokens reconocidos</returns>
-        /// <exception cref="PixelWallEException">Cuando se encuentra un error léxico</exception>
+
         public List<Token> scanTokens()
         {
             while (!IsAtEnd())
@@ -72,22 +57,20 @@ namespace EPainter.Core
             return tokens;
         }
 
-        /// <summary>
-        /// Escanea un carácter y lo convierte en un token.
-        /// </summary>
+
         private void ScanTokens()
         {
             char c = Advance();
             switch (c)
             {
-                // Character
+
                 case '(': AddToken(TokenType.LEFT_PAREN); break;
                 case ')': AddToken(TokenType.RIGHT_PAREN); break;
                 case '[': AddToken(TokenType.LEFT_BRACKET); break;
                 case ']': AddToken(TokenType.RIGHT_BRACKET); break;
                 case ',': AddToken(TokenType.COMMA); break;
 
-                // Operators
+
                 case '+': AddToken(TokenType.SUM); break;
                 case '-': AddToken(TokenType.MIN); break;
                 case '*':
@@ -97,7 +80,6 @@ namespace EPainter.Core
                 case '/':
                     if (Match('/'))
                     {
-                        // Comentario de una línea
                         while (Peek() != '\n' && !IsAtEnd())
                             Advance();
                     }
@@ -109,7 +91,7 @@ namespace EPainter.Core
                 case '%': AddToken(TokenType.MOD); break;
 
 
-                // Comparison operators
+
                 case '=':
                     if (Match('=')) AddToken(TokenType.EQUAL_EQUAL);
                     break;
@@ -126,7 +108,7 @@ namespace EPainter.Core
                     else AddToken(TokenType.GREATER);
                     break;
 
-                // Logical operators
+
                 case '&':
                     if (Match('&')) AddToken(TokenType.AND);
                     break;
@@ -134,10 +116,10 @@ namespace EPainter.Core
                     if (Match('|')) AddToken(TokenType.OR);
                     break;
 
-                // Color
+
                 case '"': ColorLiteral(); break;
 
-                // Jumpline
+
                 case '\n':
                     line++;
                     AddToken(TokenType.NEWLINE);

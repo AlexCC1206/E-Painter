@@ -40,7 +40,11 @@ namespace EPainter.Core
                     return Convert.ToInt32(left) * Convert.ToInt32(right);
                 case TokenType.DIV:
                     CheckNumberOperand(expr.Op, left, right);
-                    if (Convert.ToInt32(right) == 0) throw new RuntimeError("División por cero.");
+                    if (Convert.ToInt32(right) == 0) {
+                        RuntimeError divError = new RuntimeError(expr.Op, "División por cero.");
+                        ErrorReporter.RuntimeError(divError);
+                        throw divError;
+                    }
                     return Convert.ToInt32(left) / Convert.ToInt32(right);
                 case TokenType.POW:
                     CheckNumberOperand(expr.Op, left, right);
@@ -70,7 +74,9 @@ namespace EPainter.Core
                     return IsTruthy(left) || IsTruthy(right);
 
                 default:
-                    throw new RuntimeError("Unknown operator: " + expr.Op.Lexeme);
+                    RuntimeError binOpError = new RuntimeError(expr.Op, "Operador desconocido: " + expr.Op.Lexeme);
+                    ErrorReporter.RuntimeError(binOpError);
+                    throw binOpError;
             }
         }
         public object VisitUnary(Unary expr)
@@ -80,9 +86,12 @@ namespace EPainter.Core
             switch (expr.Op.Type)
             {
                 case TokenType.MIN:
+                    CheckNumberOperand(expr.Op, right);
                     return -Convert.ToInt32(right);
                 default:
-                    throw new RuntimeError("Unknown unary operator: " + expr.Op.Lexeme);
+                    RuntimeError unaryOpError = new RuntimeError(expr.Op, "Operador unario desconocido: " + expr.Op.Lexeme);
+                    ErrorReporter.RuntimeError(unaryOpError);
+                    throw unaryOpError;
             }
         }
 
@@ -120,20 +129,26 @@ namespace EPainter.Core
                         (int)Visit(expr.Arguments[4])
                     );
                 default:
-                    throw new RuntimeError($"Function '{expr.FunctionName}' not found.");
+                    RuntimeError funcError = new RuntimeError($"Función '{expr.FunctionName}' no encontrada.");
+                    ErrorReporter.RuntimeError(funcError);
+                    throw funcError;
             }
         }
 
         private void CheckNumberOperand(Token op, object operand)
         {
             if (operand is int) return;
-            throw new RuntimeError(op, "Operand must be a number");
+            RuntimeError typeError = new RuntimeError(op, "El operando debe ser un número");
+            ErrorReporter.RuntimeError(typeError);
+            throw typeError;
         }
 
         private void CheckNumberOperand(Token op, object left, object right)
         {
             if (left is int && right is int) return;
-            throw new RuntimeError(op, "Operands must be a numbers");
+            RuntimeError typeError = new RuntimeError(op, "Los operandos deben ser números");
+            ErrorReporter.RuntimeError(typeError);
+            throw typeError;
         }
 
         private bool IsTruthy(object obj)

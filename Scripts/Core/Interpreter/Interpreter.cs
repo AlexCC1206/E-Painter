@@ -45,24 +45,27 @@ namespace EPainter.Core
                     }
                     else
                     {
-                        // Ya se encontró un Spawn antes, lanzar error
-                        throw new RuntimeError($"Múltiples comandos Spawn encontrados. Solo debe haber un comando Spawn al inicio del programa.");
+                        var error = new RuntimeError($"Múltiples comandos Spawn encontrados. Solo debe haber un comando Spawn al inicio del programa.");
+                        ErrorReporter.RuntimeError(error);
+                        throw error;
                     }
                 }
             }
             
-            // Verificar si hay un comando Spawn
             if (!foundSpawn)
             {
-                throw new RuntimeError("El programa debe comenzar con un comando Spawn.");
+                var error = new RuntimeError("El programa debe comenzar con un comando Spawn.");
+                ErrorReporter.RuntimeError(error);
+                throw error;
             }
             
-            // Verificar que Spawn sea el primer comando (ignorando etiquetas)
             for (int i = 0; i < firstSpawnIndex; i++)
             {
                 if (!(statements[i] is Stmt.Label))
                 {
-                    throw new RuntimeError("El comando Spawn debe ser el primer comando del programa (las etiquetas pueden aparecer antes).");
+                    var error = new RuntimeError("El comando Spawn debe ser el primer comando del programa (las etiquetas pueden aparecer antes).");
+                    ErrorReporter.RuntimeError(error);
+                    throw error;
                 }
             }
         }
@@ -106,7 +109,9 @@ namespace EPainter.Core
                 {
                     if (!Labels.TryGetValue(gotoEx.Label, out int targetLine))
                     {
-                        throw new RuntimeError($"Label '{gotoEx.Label}' not found.");
+                        var error = new RuntimeError($"Label '{gotoEx.Label}' not found.");
+                        ErrorReporter.RuntimeError(error);
+                        throw error;
                     }
                     
                     // Incrementar el contador de saltos para esta etiqueta
@@ -121,7 +126,9 @@ namespace EPainter.Core
                         // Verificar si se excedió el límite de saltos
                         if (labelJumpCounts[gotoEx.Label] > MAX_JUMPS_TO_SAME_LABEL)
                         {
-                            throw new RuntimeError($"Posible ciclo infinito detectado: se ha saltado a la etiqueta '{gotoEx.Label}' más de {MAX_JUMPS_TO_SAME_LABEL} veces.");
+                            var infiniteLoopError = new RuntimeError($"Posible ciclo infinito detectado: se ha saltado a la etiqueta '{gotoEx.Label}' más de {MAX_JUMPS_TO_SAME_LABEL} veces.");
+                            ErrorReporter.RuntimeError(infiniteLoopError);
+                            throw infiniteLoopError;
                         }
                     }
 
@@ -147,7 +154,9 @@ namespace EPainter.Core
             {
                 return value;
             }
-            throw new RuntimeError($"Undefined variable '{name}'.");
+            var varError = new RuntimeError($"Undefined variable '{name}'.");
+            ErrorReporter.RuntimeError(varError);
+            throw varError;
         }
 
         public void SetVariable(string name, object value)
@@ -217,7 +226,9 @@ namespace EPainter.Core
         {
             if (!canvas.IsValidPosition(x, y))
             {
-                throw new RuntimeError($"Spawn position ({x}, {y}) out of bounds.");
+                var spawnError = new RuntimeError($"Spawn position ({x}, {y}) out of bounds.");
+                ErrorReporter.RuntimeError(spawnError);
+                throw spawnError;
             }
             state = new EPainterState(x, y);
         }
@@ -230,7 +241,11 @@ namespace EPainter.Core
         public void SetBrushSize(int size)
         {
             if (size <= 0)
-                throw new RuntimeError($"El tamaño del pincel debe ser positivo. Valor proporcionado: {size}");
+            {
+                var sizeError = new RuntimeError($"El tamaño del pincel debe ser positivo. Valor proporcionado: {size}");
+                ErrorReporter.RuntimeError(sizeError);
+                throw sizeError;
+            }
                 
             state.BrushSize = size % 2 == 0 ? size - 1 : size;
         }
@@ -242,7 +257,11 @@ namespace EPainter.Core
             int brushSize = state.BrushSize / 2;
 
             if ((dirX == 0 && dirY == 0) || (Math.Abs(dirX) > 1 || Math.Abs(dirY) > 1))
-                throw new RuntimeError("Invalid direction for DrawLine");
+            {
+                var dirError = new RuntimeError("Invalid direction for DrawLine");
+                ErrorReporter.RuntimeError(dirError);
+                throw dirError;
+            }
 
             for (var i = 0; i <= distance; i++)
             {
@@ -274,7 +293,9 @@ namespace EPainter.Core
             // Comprobar si el círculo está dentro de los límites del canvas
             if (!canvas.IsValidPosition(circleCenterX, circleCenterY))
             {
-                throw new RuntimeError($"Circle center out of bounds at ({circleCenterX}, {circleCenterY})");
+                var circleError = new RuntimeError($"Circle center out of bounds at ({circleCenterX}, {circleCenterY})");
+                ErrorReporter.RuntimeError(circleError);
+                throw circleError;
             }
             
             // También verificar que el radio no hace que el círculo se salga del canvas
@@ -290,7 +311,9 @@ namespace EPainter.Core
                 
                 if (maxRadius <= 0)
                 {
-                    throw new RuntimeError($"Cannot draw circle, radius too large for canvas");
+                    var radiusError = new RuntimeError($"Cannot draw circle, radius too large for canvas");
+                    ErrorReporter.RuntimeError(radiusError);
+                    throw radiusError;
                 }
                 
                 radius = Math.Min(radius, maxRadius);
@@ -365,7 +388,9 @@ namespace EPainter.Core
 
             if (!canvas.IsValidPosition(rectCenterX, rectCenterY))
             {
-                throw new RuntimeError("Rectangle center out of bounds");
+                var rectError = new RuntimeError("Rectangle center out of bounds");
+                ErrorReporter.RuntimeError(rectError);
+                throw rectError;
             }
 
             int halfWidth = width / 2;

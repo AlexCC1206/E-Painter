@@ -1,9 +1,0 @@
-// Prueba de variables
-Spawn(5, 5)
-Color("Black")
-
-// Asignar valor a x
-x <- 10
-
-// Dibujar una línea usando x
-DrawLine(1, 0, x)

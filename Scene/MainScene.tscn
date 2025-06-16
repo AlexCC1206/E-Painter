@@ -4,8 +4,8 @@
 [ext_resource type="Texture2D" uid="uid://c5wpnxu86o5xb" path="res://Assets/Sprites/upload-box.svg" id="3_tcius"]
 [ext_resource type="Texture2D" uid="uid://dtppnewjl66p5" path="res://Assets/Sprites/content-save-all.svg" id="4_1kkme"]
 [ext_resource type="Texture2D" uid="uid://1dak3kh5lwow" path="res://Assets/Sprites/play.svg" id="5_yp2nk"]
+[ext_resource type="Script" uid="uid://btian4xb0rp8y" path="res://Scripts/UI/Rayitas.cs" id="6_ly247"]
 [ext_resource type="Texture2D" uid="uid://bxl2bf8gpnhvl" path="res://Assets/Sprites/resize.svg" id="6_nscx6"]
-[ext_resource type="Script" uid="uid://bi4xctfadpilt" path="res://Scene/Rayitas.cs" id="7_nr04c"]
 
 [sub_resource type="CodeHighlighter" id="CodeHighlighter_ly247"]
 number_color = Color(0.819608, 0.603922, 0.4, 1)
@@ -98,12 +98,13 @@ gutters_draw_line_numbers = true
 [node name="ConsoleOutput" type="TextEdit" parent="Panel/HSplitContainer/LeftPanel/VSplitContainer"]
 layout_mode = 2
 placeholder_text = "E-Painter listo para usar. Escriba código y presione 'Run' para ejecutar."
+editable = false
 scroll_smooth = true
 
 [node name="PixelCanvas" type="TextureRect" parent="Panel/HSplitContainer"]
 layout_mode = 2
 texture = SubResource("CanvasTexture_nr04c")
-script = ExtResource("7_nr04c")
+script = ExtResource("6_ly247")
 
 [node name="SaveFileDialog" type="FileDialog" parent="Panel"]
 auto_translate_mode = 1

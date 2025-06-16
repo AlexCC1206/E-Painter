@@ -1,6 +1,0 @@
-// Este es un archivo de prueba para validar la regla de Spawn
-// Este archivo debería ejecutarse correctamente ya que Spawn es el primer comando
-Spawn(5, 5)
-Color("Black")
-Size(3)
-DrawLine(1, 0, 5)

@@ -8,28 +8,23 @@ public partial class Rayitas : TextureRect
 	Color Color = new Color(0, 0, 0, 0.1f);
 	float space = 0;
 	public Canvas Canvas;
-	// Called when the node enters the scene tree for the first time.
+	
 	public override void _Ready()
 	{
-		// Crear el canvas inicial
 		Canvas = new Canvas(gridsize);
 		
-		// Establecer un tamaño mínimo para el TextureRect
 		CustomMinimumSize = new Vector2(400, 400);
 		
-		// Crear una textura inicial
 		var newTexture = new ImageTexture();
 		var image = Image.CreateEmpty(gridsize, gridsize, false, Image.Format.Rgba8);
 		newTexture.SetImage(image);
 		Texture = newTexture;
 		
-		// Calcular el espaciado inicial
 		space = CustomMinimumSize.X / gridsize;
 		
 		GD.Print($"Canvas initialized with size {gridsize}x{gridsize}, space = {space}");
 	}
 
-	// Called every frame. 'delta' is the elapsed time since the previous frame.
 	public override void _Process(double delta)
 	{
 	}

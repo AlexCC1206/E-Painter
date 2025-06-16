@@ -1,5 +1,0 @@
-// Este archivo de prueba NO debería ejecutarse porque hay un comando antes de Spawn
-Size(3)
-Spawn(5, 5)
-Color("Black")
-DrawLine(1, 0, 5)

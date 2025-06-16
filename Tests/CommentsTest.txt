@@ -1,8 +1,0 @@
-// Prueba de comentarios
-Spawn(5, 5)
-// Configurar color
-Color("Black")
-// Configurar tamaño
-Size(1)
-// Dibujar una línea
-DrawLine(1, 0, 3)

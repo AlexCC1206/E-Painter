@@ -13,20 +13,17 @@ namespace EPainter.UI
 		[Export] TextEdit outputText;
 		[Export] FileDialog saveFileDialog;
 		[Export] FileDialog loadFileDialog;
-		// Called when the node enters the scene tree for the first time.
+		
 		public override void _Ready()
 		{
-
 		}
 
-		// Called every frame. 'delta' is the elapsed time since the previous frame.
 		public override void _Process(double delta)
 		{
 		}
 
 		void Run()
 		{
-			// Limpiar mensajes de error anteriores
 			ErrorReporter.Reset();
 			outputText.Text = "Ejecutando código...";
 
@@ -34,27 +31,24 @@ namespace EPainter.UI
 
 			try
 			{
-				// Scanner
 				Scanner scanner = new Scanner(code);
 				var tokens = scanner.scanTokens();
 
 				if (ErrorReporter.HasErrors)
 				{
-					outputText.Text = "Errores de análisis léxico:\n" + String.Join("\n", ErrorReporter.Errors);
+					outputText.Text = "Errores de análisis léxico:\n" + String.Join("\n", ErrorReporter.errors);
 					return;
 				}
 
-				// Parser
 				Parser parser = new Parser(tokens);
 				var statements = parser.Parse();
 
 				if (ErrorReporter.HasErrors)
 				{
-					outputText.Text = "Errores de análisis sintáctico:\n" + String.Join("\n", ErrorReporter.Errors);
+					outputText.Text = "Errores de análisis sintáctico:\n" + String.Join("\n", ErrorReporter.errors);
 					return;
 				}
 
-				// Intérprete
 				var interpreter = new Interpreter();
 				try
 				{
@@ -62,7 +56,7 @@ namespace EPainter.UI
 
 					if (ErrorReporter.HasRuntimeErrors)
 					{
-						outputText.Text = "Errores durante la ejecución:\n" + String.Join("\n", ErrorReporter.RuntimeErrors);
+						outputText.Text = "Errores durante la ejecución:\n" + String.Join("\n", ErrorReporter.runtimeErrors);
 					}
 					else
 					{
@@ -71,11 +65,20 @@ namespace EPainter.UI
 				}
 				catch (Exception ex)
 				{
-					outputText.Text = $"Error durante la ejecución: {ex.Message}";
-					GD.PrintErr($"Error durante la ejecución: {ex.Message}");
+					if (ex is RuntimeError runtimeError)
+					{
+						ErrorReporter.RuntimeError(runtimeError);
+						outputText.Text = $"Error durante la ejecución: {runtimeError.Message}";
+						GD.PrintErr($"Error durante la ejecución: {runtimeError.Message}");
+					}
+					else
+					{
+						outputText.Text = $"Error durante la ejecución: {ex.Message}";
+						GD.PrintErr($"Error durante la ejecución: {ex.Message}");
+						GD.PrintErr($"Stack trace: {ex.StackTrace}");
+					}
 				}
 
-				// Actualizar la vista
 				rayitas.QueueRedraw();
 			}
 			catch (Exception ex)
