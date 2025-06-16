@@ -1,0 +1,35 @@
+// Prueba de manejo de errores y casos límite
+// Este archivo contiene casos que deberían ser detectados correctamente como errores
+// Descomenta cada sección para probar diferentes escenarios de error
+
+// Caso 1: Spawn no es el primer comando (error)
+// Color("Red")  // Error: Spawn debe ser el primer comando
+// Spawn(10, 10)
+
+Spawn(10, 10)
+Color("Black")
+Size(2)
+
+// Caso 2: Límites del canvas
+bordeX <- GetCanvasSize()
+bordeY <- GetCanvasSize()
+// DrawLine(bordeX + 5, bordeY + 5, 1)  // Esto debería ser manejado sin error o con advertencia
+
+// Caso 3: Tamaño de pincel inválido
+// Size(-1)  // Error: tamaño de pincel negativo
+// Size(0)   // Error: tamaño de pincel cero
+
+// Caso 4: Operaciones aritméticas con tipos incompatibles
+// division_por_cero <- 5 / 0  // Error: división por cero
+
+// Caso 5: Variables no definidas
+// x <- a + 5  // Error: variable 'a' no definida
+
+// Caso 6: Color inválido
+// Color("InvalidColor")  // Error: color no reconocido
+
+// Caso 7: Salto a etiqueta inexistente
+// GOTO etiquetaInexistente  // Error: etiqueta no definida
+
+// Caso exitoso después de comentar todos los errores
+DrawCircle(5, 5, 3)  // Si llegamos aquí, los errores están bien comentados

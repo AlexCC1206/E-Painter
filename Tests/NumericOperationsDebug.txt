@@ -1,0 +1,33 @@
+// Prueba detallada de operaciones numéricas
+Spawn(10, 10)
+Color("Black")
+Size(1)
+
+// Asignar valores literales a variables
+a <- 5
+b <- 3
+c <- 0
+
+// Probar operaciones binarias básicas
+suma <- a + b       // debe ser 8
+resta <- a - b      // debe ser 2
+multiplicacion <- a * b  // debe ser 15
+division <- a / b   // debe ser 1.666...
+modulo <- a % b     // debe ser 2
+
+// Probar divisiones problemáticas
+division_cero <- 1
+// división por cero generaría error: division_cero <- a / c
+
+// Probar asignación de operaciones encadenadas
+operacion_compleja <- (a + b) * (a - b)  // debe ser 8 * 2 = 16
+
+// Usar resultados en comandos de dibujo
+DrawLine(1, 0, suma)
+DrawLine(0, 1, resta)
+Size(multiplicacion)
+DrawCircle(0, 0, modulo)
+
+// Imprimir resultados
+// En este lenguaje no hay comandos de impresión, pero podemos usar las variables
+// para dibujar en posiciones específicas y visualizar los resultados

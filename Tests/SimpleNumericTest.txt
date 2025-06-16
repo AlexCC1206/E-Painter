@@ -1,0 +1,12 @@
+// Prueba muy simple de operaciones numéricas
+Spawn(10, 10)
+Color("Black")
+Size(1)
+
+// Solo una operación básica
+a <- 5
+b <- 3
+c <- a + b
+
+// Usar la variable c en un comando
+DrawLine(1, 0, c)

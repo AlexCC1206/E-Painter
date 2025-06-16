@@ -1,0 +1,7 @@
+// Prueba con un solo número literal
+Spawn(10, 10)
+Color("Black")
+Size(1)
+
+// Usar un valor literal directo
+DrawLine(1, 0, 5)

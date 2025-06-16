@@ -1,0 +1,33 @@
+// Prueba de comandos básicos según la especificación
+Spawn(10, 10)
+
+// Verificar Color con todos los colores válidos
+Color("Red")
+Size(2)
+DrawLine(1, 0, 3)
+
+Color("Blue")
+Size(3)
+DrawLine(0, 1, 3)
+
+Color("Green")
+Size(1)
+DrawLine(1, 1, 3)
+
+Color("Yellow")
+DrawCircle(0, 0, 2)
+
+Color("Orange")
+DrawRectangle(2, 2, 3, 4, 3)
+
+Color("Purple")
+DrawCircle(4, 4, 1)
+
+Color("Black")
+DrawLine(-1, -1, 2)
+
+Color("White")
+DrawLine(1, -1, 2)
+
+Color("Transparent")
+DrawLine(-1, 1, 2)

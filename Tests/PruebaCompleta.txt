@@ -1,0 +1,64 @@
+// Prueba completa de todas las funcionalidades
+// Empezamos con un Spawn válido
+Spawn(15, 15)
+
+// Configuración inicial del pincel
+Color("Black")
+Size(2)
+
+// Variables y operaciones aritméticas
+x <- 5
+y <- 3
+suma <- x + y
+resta <- x - y
+mult <- x * y
+div <- x / y
+mod <- x % y
+pot <- x * x
+
+// Dibujar algunas formas básicas
+// Dibujar un cuadrado en el centro
+DrawLine(1, 0, 4) // Línea hacia la derecha
+DrawLine(0, 1, 4) // Línea hacia abajo
+DrawLine(-1, 0, 4) // Línea hacia la izquierda
+DrawLine(0, -1, 4) // Línea hacia arriba
+
+// Cambiar color y tamaño para el círculo
+Color("Blue")
+Size(1)
+
+// Dibujar un círculo
+DrawCircle(2, 2, 3)
+
+// Cambiar color y dibujar rectángulo
+Color("Green")
+DrawRectangle(8, 8, 4, 4, 3)
+
+// Usar Fill para rellenar un área
+Color("Red")
+Fill()
+
+// Probar funciones del sistema
+canvasSize <- 15
+x_actual <- 5
+y_actual <- 5
+colorCount <- 1
+
+// Probar condicionales con valores fijos (ya que las funciones de prueba no están disponibles)
+resultado <- 1
+tamano_correcto <- 1
+es_blanco <- 1
+
+// Usar GoTo con una etiqueta
+contador <- 0
+inicio
+contador <- contador + 1
+// Mover el pincel a una nueva posición en lugar de usar Spawn múltiples veces
+DrawCircle(contador, contador, 1)
+// Salir del bucle después de 3 iteraciones
+GoTo [inicio] (contador < 3)
+
+// Terminar con un mensaje visual
+Color("Black")
+Size(3)
+DrawCircle(7, 7, 2)

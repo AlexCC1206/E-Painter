@@ -1,0 +1,67 @@
+// Prueba de operaciones booleanas y comparaciones simples
+Spawn(10, 10)
+Color("Black")
+Size(2)
+
+// Variables para pruebas
+a <- 5
+b <- 3
+c <- 5
+
+// Pruebas de igualdad - usar operadores con sus nombres correctos
+igual <- a == c       // true (5 == 5)
+noIgual <- a != b     // true (5 != 3)
+
+// Pruebas de comparación
+mayor <- a > b        // true (5 > 3)
+menor <- b < a        // true (3 < 5)
+mayorIgual <- a >= c  // true (5 >= 5)
+menorIgual <- b <= a  // true (3 <= 5)
+
+// Operaciones lógicas
+and1 <- (a > b) && (a == c)  // true AND true = true
+and2 <- (a < b) && (a == c)  // false AND true = false
+
+or1 <- (a < b) || (a == c)    // false OR true = true
+or2 <- (a < b) || (b > c)     // false OR false = false
+
+// Visualizar resultados con círculos de diferentes tamaños
+Size(2)
+CirculoTrue <- 2
+CirculoFalse <- 1
+
+// Dibujar resultados de igualdad
+// Círculo para igual (debe ser true -> tamaño 2)
+Size(igual * CirculoTrue + (1-igual) * CirculoFalse)
+DrawCircle(0, 0, 1)
+
+// Círculo para noIgual (debe ser true -> tamaño 2)
+Size(noIgual * CirculoTrue + (1-noIgual) * CirculoFalse)
+DrawCircle(3, 0, 1)
+
+// Dibujar resultados de comparación
+// Círculo para mayor (debe ser true -> tamaño 2)
+Size(mayor * CirculoTrue + (1-mayor) * CirculoFalse)
+DrawCircle(0, 3, 1)
+
+// Círculo para menor (debe ser true -> tamaño 2)
+Size(menor * CirculoTrue + (1-menor) * CirculoFalse)
+DrawCircle(3, 3, 1)
+
+// Dibujar resultados de operaciones lógicas
+Color("Red")
+// Círculo para and1 (debe ser true -> tamaño 2)
+Size(and1 * CirculoTrue + (1-and1) * CirculoFalse)
+DrawCircle(6, 0, 1)
+
+// Círculo para or1 (debe ser true -> tamaño 2)
+Size(or1 * CirculoTrue + (1-or1) * CirculoFalse)
+DrawCircle(6, 3, 1)
+
+// Círculo para and2 (debe ser false -> tamaño 1)
+Size(and2 * CirculoTrue + (1-and2) * CirculoFalse)
+DrawCircle(9, 0, 1)
+
+// Círculo para or2 (debe ser false -> tamaño 1)
+Size(or2 * CirculoTrue + (1-or2) * CirculoFalse)
+DrawCircle(9, 3, 1)

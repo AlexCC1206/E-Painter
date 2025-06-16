@@ -1,0 +1,59 @@
+// Prueba de operaciones booleanas y comparaciones
+Spawn(10, 10)
+Color("Black")
+Size(2)
+
+// Variables para pruebas
+a <- 5
+b <- 3
+c <- 5
+
+// Pruebas de igualdad
+igual <- a == c       // true (5 == 5)
+noIgual <- a != b     // true (5 != 3)
+
+// Pruebas de comparación
+mayor <- a > b        // true (5 > 3)
+menor <- b < a        // true (3 < 5)
+mayorIgual <- a >= c  // true (5 >= 5)
+menorIgual <- b <= a  // true (3 <= 5)
+
+// Operaciones lógicas
+and1 <- (a > b) AND (a == c)  // true AND true = true
+and2 <- (a < b) AND (a == c)  // false AND true = false
+
+or1 <- (a < b) OR (a == c)    // false OR true = true
+or2 <- (a < b) OR (b > c)     // false OR false = false
+
+// Combinación de operaciones
+complejo <- ((a > b) OR (b == c)) AND (a == c)  // (true OR false) AND true = true
+
+// Visualización de resultados utilizando condicionales
+visualizar
+GoTo [dibujarIgual] (igual)
+GoTo [dibujarMayor] (mayor)
+GoTo [fin]
+
+dibujarIgual
+DrawCircle(1, 1, 2)
+GoTo [dibujarOr] (or1)
+GoTo [fin]
+
+dibujarMayor
+DrawLine(0, 0, 5)
+GoTo [dibujarAnd] (and1)
+GoTo [fin]
+
+dibujarOr
+Color("Blue")
+DrawCircle(3, 3, 1)
+GoTo [fin]
+
+dibujarAnd
+Color("Green")
+DrawLine(5, 5, 3)
+GoTo [fin]
+
+fin
+Color("Red")
+DrawCircle(0, 0, 1)  // Confirmación final

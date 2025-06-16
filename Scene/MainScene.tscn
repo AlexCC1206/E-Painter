@@ -1,4 +1,4 @@
-[gd_scene load_steps=8 format=3 uid="uid://b7ejf85dch6ca"]
+[gd_scene load_steps=9 format=3 uid="uid://b7ejf85dch6ca"]
 
 [ext_resource type="Script" uid="uid://k3iqt7s34xki" path="res://Scripts/UI/Main.cs" id="1_wd0a3"]
 [ext_resource type="Texture2D" uid="uid://c5wpnxu86o5xb" path="res://Assets/Sprites/upload-box.svg" id="3_tcius"]
@@ -6,6 +6,12 @@
 [ext_resource type="Texture2D" uid="uid://1dak3kh5lwow" path="res://Assets/Sprites/play.svg" id="5_yp2nk"]
 [ext_resource type="Texture2D" uid="uid://bxl2bf8gpnhvl" path="res://Assets/Sprites/resize.svg" id="6_nscx6"]
 [ext_resource type="Script" uid="uid://bi4xctfadpilt" path="res://Scene/Rayitas.cs" id="7_nr04c"]
+
+[sub_resource type="CodeHighlighter" id="CodeHighlighter_ly247"]
+number_color = Color(0.819608, 0.603922, 0.4, 1)
+symbol_color = Color(0.337255, 0.713726, 0.760784, 1)
+function_color = Color(0.380392, 0.686275, 0.937255, 1)
+member_variable_color = Color(0.878431, 0.423529, 0.458824, 1)
 
 [sub_resource type="CanvasTexture" id="CanvasTexture_nr04c"]
 
@@ -86,6 +92,7 @@ split_offset = -255
 layout_mode = 2
 size_flags_vertical = 3
 scroll_smooth = true
+syntax_highlighter = SubResource("CodeHighlighter_ly247")
 gutters_draw_line_numbers = true
 
 [node name="ConsoleOutput" type="TextEdit" parent="Panel/HSplitContainer/LeftPanel/VSplitContainer"]

@@ -190,7 +190,7 @@ namespace EPainter.Core
         {
             while (IsDigit(Peek())) Advance();
 
-            AddToken(TokenType.NUMBER, double.Parse(Source.Substring(start, current - start)));
+            AddToken(TokenType.NUMBER, int.Parse(Source.Substring(start, current - start)));
 
         }
 

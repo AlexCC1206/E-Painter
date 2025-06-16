@@ -1,0 +1,12 @@
+// Prueba realmente mínima para finalizar
+Spawn(10, 10)
+Color("Black")
+Size(2)
+
+// Dibujar una línea simple
+DrawLine(1, 1, 3)
+
+// Cambiar de color
+Color("Red") 
+Size(3)
+DrawCircle(2, 2, 1)

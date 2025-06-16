@@ -1,0 +1,53 @@
+// Prueba de funciones integradas del lenguaje
+Spawn(10, 10)
+Color("Black")
+Size(3)
+
+// GetActualX y GetActualY - Posición inicial después de Spawn
+posX <- GetActualX
+posY <- GetActualY
+DrawCircle(posX, posY, 1)  // Debería dibujar un círculo en la posición (10, 10)
+
+// GetCanvasSize - Obtener el tamaño del canvas
+tamCanvas <- GetCanvasSize
+DrawLine(0, 0, tamCanvas)  // Dibuja una línea diagonal hasta el límite del canvas
+
+// Mover a otra posición
+DrawLine(5, 5, 3)  // Nos movemos a (5, 5)
+
+// Verificar nueva posición
+nuevaX <- GetActualX
+nuevaY <- GetActualY
+Color("Blue")
+DrawCircle(nuevaX, nuevaY, 1)  // Círculo en nueva posición
+
+// GetColorCount - Contar colores usados
+contColores <- GetColorCount
+Size(contColores)  // Cambiar el tamaño del pincel según los colores usados (debería ser 2: Negro y Azul)
+
+// IsBrushColor - Verificar si el color actual es el especificado
+Color("Red")
+esRojo <- IsBrushColor "Red"    // Debe ser true
+esAzul <- IsBrushColor "Blue"   // Debe ser false
+
+// Condicional con IsBrushColor
+loop
+GoTo [dibujarRojo] (IsBrushColor "Red")
+GoTo [dibujarAzul] (IsBrushColor "Blue")
+GoTo [fin]
+
+dibujarRojo
+DrawLine(1, 1, 3)  // Dibuja línea roja
+GoTo [fin]
+
+dibujarAzul
+DrawLine(-1, -1, 3)  // No debería ejecutarse
+
+fin
+// IsBrushSize - Verificar tamaño del pincel
+Size(5)
+esTamanio5 <- IsBrushSize 5  // Debe ser true
+esTamanio3 <- IsBrushSize 3  // Debe ser false
+
+// IsCanvasColor - Verificar color en una posición del canvas
+esColorCanvas <- IsCanvasColor 10 10 "Black"  // Debe ser true donde dibujamos el primer círculo

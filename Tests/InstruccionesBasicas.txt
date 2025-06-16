@@ -1,0 +1,11 @@
+// Prueba de instrucciones básicas
+// Verificamos: Spawn, Color, Size y operaciones básicas
+
+Spawn(10, 10)
+Color("Black")
+Size(2)
+
+// Dibujar formas básicas
+DrawLine(1, 0, 5)    // Línea horizontal
+DrawLine(0, 1, 3)    // Línea vertical
+DrawCircle(2, 2, 2)  // Círculo
