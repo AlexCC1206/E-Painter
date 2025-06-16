@@ -124,10 +124,8 @@ namespace EPainter.UI
 		{
 			try
 			{
-				// Convertir la ruta si es necesario
 				string fsPath = ConvertGodotPathToFilesystemPath(path);
 				
-				// Asegurarse de que el archivo termine con .pw
 				if (!fsPath.EndsWith(".pw", StringComparison.OrdinalIgnoreCase))
 				{
 					fsPath += ".pw";
@@ -150,7 +148,6 @@ namespace EPainter.UI
 		{
 			try
 			{
-				// Convertir la ruta si es necesario
 				string fsPath = ConvertGodotPathToFilesystemPath(path);
 				GD.Print($"Intentando cargar archivo desde: {fsPath}");
 				
@@ -172,15 +169,13 @@ namespace EPainter.UI
 				GD.PrintErr($"Error al cargar el archivo: {ex.Message}");
 			}
 		}
-	
-		// Método de utilidad para convertir una ruta de Godot a una ruta del sistema de archivos
+
 		private string ConvertGodotPathToFilesystemPath(string path)
 		{
 			if (path.StartsWith("res://"))
 			{
-				// Convertir la ruta "res://" a una ruta del sistema de archivos
 				string projectDir = System.IO.Directory.GetCurrentDirectory();
-				string relativePath = path.Substring(6); // Quitar "res://"
+				string relativePath = path.Substring(6); 
 				return System.IO.Path.Combine(projectDir, relativePath);
 			}
 			return path;
