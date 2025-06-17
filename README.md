@@ -45,20 +45,26 @@ git clone https://github.com/AlexCC1206/E-Painter.git
 El lenguaje de E-Painter es sencillo y está orientado al dibujo pixel por pixel. Algunos ejemplos básicos:
 
 ```
-// Dibujar un punto rojo en la posición (5, 5)
-dibujar(5, 5, "Red");
+// Iniciar el pincel en la posición (5, 5)
+Spawn(5, 5)
+// Establecer color rojo
+Color("Red")
+// Establecer tamaño de pincel a 1
+Size(1)
+// Dibujar un punto en la posición actual
+Fill()
 
 // Dibujar un cuadrado azul de 3x3 en la posición (10, 10)
-para x = 10 hasta 12 hacer
-    para y = 10 hasta 12 hacer
-        dibujar(x, y, "Blue");
-    fin
-fin
+Spawn(10, 10)
+Color("Blue")
+Size(3)
+Fill()
 
 // Dibujar una línea amarilla horizontal en la posición y=15
-para x = 0 hasta 31 hacer
-    dibujar(x, 15, "Yellow");
-fin
+Spawn(0, 15)
+Color("Yellow")
+Size(1)
+DrawLine(1, 0, 31)  // Dirección horizontal (1,0) por 31 unidades
 ```
 
 ## Estructura del Proyecto
@@ -79,7 +85,7 @@ Este proyecto fue desarrollado como parte del curso de programación del 2do Sem
 
 ## Autor
 
-[Alexander] - [gutyalex217@gmail.com]
+[Alexander Gutiérrez Ricardo] - [gutyalex217@gmail.com]
 
 ---
 
