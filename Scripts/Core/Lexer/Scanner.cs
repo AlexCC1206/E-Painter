@@ -4,16 +4,39 @@ using System.Linq;
 
 namespace EPainter.Core
 {
-
+    /// <summary>
+    /// Analizador léxico que convierte código fuente en una lista de tokens.
+    /// </summary>
     public class Scanner
     {
+        /// <summary>
+        /// El código fuente a analizar.
+        /// </summary>
         private string Source;
+        
+        /// <summary>
+        /// Lista de tokens encontrados durante el análisis.
+        /// </summary>
         private List<Token> tokens = new List<Token>();
+        
+        /// <summary>
+        /// Índice de inicio del token actual.
+        /// </summary>
         private int start = 0;
+        
+        /// <summary>
+        /// Índice actual en el código fuente.
+        /// </summary>
         private int current = 0;
+        
+        /// <summary>
+        /// Número de línea actual en el código fuente.
+        /// </summary>
         private int line = 1;
 
-
+        /// <summary>
+        /// Diccionario que mapea palabras clave a sus tipos de tokens correspondientes.
+        /// </summary>
         private static readonly Dictionary<string, TokenType> Keywords = new Dictionary<string, TokenType>
         {
             {"Spawn", TokenType.SPAWN},
@@ -38,13 +61,19 @@ namespace EPainter.Core
             {"False", TokenType.FALSE}
         };
 
-
+        /// <summary>
+        /// Inicializa una nueva instancia de la clase Scanner.
+        /// </summary>
+        /// <param name="source">El código fuente a analizar.</param>
         public Scanner(string source)
         {
             Source = source;
         }
 
-
+        /// <summary>
+        /// Escanea todos los tokens del código fuente.
+        /// </summary>
+        /// <returns>Lista de tokens encontrados.</returns>
         public List<Token> scanTokens()
         {
             while (!IsAtEnd())
@@ -57,20 +86,22 @@ namespace EPainter.Core
             return tokens;
         }
 
-
+        /// <summary>
+        /// Analiza y añade el siguiente token del código fuente.
+        /// </summary>
         private void ScanTokens()
         {
             char c = Advance();
             switch (c)
             {
-
+                // Caracteres de un solo token
                 case '(': AddToken(TokenType.LEFT_PAREN); break;
                 case ')': AddToken(TokenType.RIGHT_PAREN); break;
                 case '[': AddToken(TokenType.LEFT_BRACKET); break;
                 case ']': AddToken(TokenType.RIGHT_BRACKET); break;
                 case ',': AddToken(TokenType.COMMA); break;
 
-
+                // Operadores aritméticos
                 case '+': AddToken(TokenType.SUM); break;
                 case '-': AddToken(TokenType.MIN); break;
                 case '*':
@@ -80,6 +111,7 @@ namespace EPainter.Core
                 case '/':
                     if (Match('/'))
                     {
+                        // Comentario de línea
                         while (Peek() != '\n' && !IsAtEnd())
                             Advance();
                     }
@@ -90,8 +122,7 @@ namespace EPainter.Core
                     break;
                 case '%': AddToken(TokenType.MOD); break;
 
-
-
+                // Operadores de comparación
                 case '=':
                     if (Match('=')) AddToken(TokenType.EQUAL_EQUAL);
                     break;

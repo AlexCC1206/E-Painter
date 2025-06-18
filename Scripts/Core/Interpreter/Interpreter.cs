@@ -5,22 +5,46 @@ using static EPainter.Core.Stmt;
 
 namespace EPainter.Core
 {
+    /// <summary>
+    /// Clase principal que interpreta y ejecuta el código del lenguaje E-Painter.
+    /// </summary>
     public class Interpreter
     {
+        /// <summary>
+        /// Diccionario que almacena las variables definidas durante la ejecución.
+        /// </summary>
         private Dictionary<string, object> Variables = new Dictionary<string, object>();
+        
+        /// <summary>
+        /// Diccionario que mapea nombres de etiquetas a índices en la lista de sentencias.
+        /// </summary>
         private Dictionary<string, int> Labels = new Dictionary<string, int>();
 
+        /// <summary>
+        /// Estado actual del intérprete que incluye posición, color y tamaño del pincel.
+        /// </summary>
         private EPainterState state;
+        
+        /// <summary>
+        /// El lienzo donde se realizan las operaciones de dibujo.
+        /// </summary>
         public Canvas canvas;
 
+        /// <summary>
+        /// La lista de sentencias a ejecutar.
+        /// </summary>
         private List<Stmt> statements;
 
+        /// <summary>
+        /// Inicia la interpretación de un programa E-Painter.
+        /// </summary>
+        /// <param name="canvas">El lienzo donde se realizarán los dibujos.</param>
+        /// <param name="stmts">La lista de sentencias a interpretar.</param>
         public void Interpret(Canvas canvas, List<Stmt> stmts)
         {
             this.canvas = canvas;
             statements = stmts;
             
-            // Validar que Spawn sea el primer comando y único en el código
             ValidateSpawnIsFirstAndUnique();
             
             state = new EPainterState(0,0);
@@ -28,12 +52,16 @@ namespace EPainter.Core
             ExecuteAll();
         }
         
+        /// <summary>
+        /// Valida que haya exactamente un comando Spawn al inicio del programa.
+        /// Las etiquetas pueden aparecer antes del Spawn, pero no otras instrucciones.
+        /// </summary>
+        /// <exception cref="RuntimeError">Se lanza si no se cumple la validación.</exception>
         private void ValidateSpawnIsFirstAndUnique()
         {
             bool foundSpawn = false;
             int firstSpawnIndex = -1;
             
-            // Buscar los comandos Spawn en el código
             for (int i = 0; i < statements.Count; i++)
             {
                 if (statements[i] is Stmt.Spawn)
@@ -70,6 +98,9 @@ namespace EPainter.Core
             }
         }
 
+        /// <summary>
+        /// Inicializa el diccionario de etiquetas, escaneando todas las sentencias Label.
+        /// </summary>
         private void InitializeLabels()
         {
             for (int i = 0; i < statements.Count; i++)
@@ -82,12 +113,16 @@ namespace EPainter.Core
             }
         }
 
+        /// <summary>
+        /// Ejecuta todas las sentencias en secuencia, manejando los saltos entre etiquetas.
+        /// </summary>
+        /// <exception cref="RuntimeError">Se lanza si se detecta un bucle infinito o una etiqueta no encontrada.</exception>
         private void ExecuteAll()
         {
             int currentStatement = 0;
-            // Diccionario para contar la cantidad de veces que se salta a cada etiqueta
+            
             Dictionary<string, int> labelJumpCounts = new Dictionary<string, int>();
-            // Límite máximo de saltos a la misma etiqueta para detectar ciclos infinitos
+            
             const int MAX_JUMPS_TO_SAME_LABEL = 1000;
             
             while (currentStatement < statements.Count)
@@ -114,7 +149,6 @@ namespace EPainter.Core
                         throw error;
                     }
                     
-                    // Incrementar el contador de saltos para esta etiqueta
                     if (!labelJumpCounts.ContainsKey(gotoEx.Label))
                     {
                         labelJumpCounts[gotoEx.Label] = 1;
@@ -123,7 +157,6 @@ namespace EPainter.Core
                     {
                         labelJumpCounts[gotoEx.Label]++;
                         
-                        // Verificar si se excedió el límite de saltos
                         if (labelJumpCounts[gotoEx.Label] > MAX_JUMPS_TO_SAME_LABEL)
                         {
                             var infiniteLoopError = new RuntimeError($"Posible ciclo infinito detectado: se ha saltado a la etiqueta '{gotoEx.Label}' más de {MAX_JUMPS_TO_SAME_LABEL} veces.");
@@ -138,16 +171,31 @@ namespace EPainter.Core
             }
         }
 
+        /// <summary>
+        /// Ejecuta una sentencia individual.
+        /// </summary>
+        /// <param name="stmt">La sentencia a ejecutar.</param>
         public void Execute(Stmt stmt)
         {
             stmt.Accept(new StmtVisitor(this));
         }
 
+        /// <summary>
+        /// Evalúa una expresión y devuelve su valor.
+        /// </summary>
+        /// <param name="expr">La expresión a evaluar.</param>
+        /// <returns>El valor resultante de la expresión.</returns>
         public object Evaluate(Expr expr)
         {
             return expr.Accept(new ExprVisitor(this));
         }
 
+        /// <summary>
+        /// Obtiene el valor de una variable del entorno.
+        /// </summary>
+        /// <param name="name">El nombre de la variable a obtener.</param>
+        /// <returns>El valor de la variable.</returns>
+        /// <exception cref="RuntimeError">Se lanza si la variable no está definida.</exception>
         public object GetVariable(string name)
         {
             if (Variables.TryGetValue(name, out var value))
@@ -159,36 +207,70 @@ namespace EPainter.Core
             throw varError;
         }
 
+        /// <summary>
+        /// Establece el valor de una variable en el entorno.
+        /// </summary>
+        /// <param name="name">El nombre de la variable a establecer.</param>
+        /// <param name="value">El valor a asignar a la variable.</param>
         public void SetVariable(string name, object value)
         {
             Variables[name] = value;
         }
 
+        /// <summary>
+        /// Obtiene el tamaño del lienzo.
+        /// </summary>
+        /// <returns>El tamaño del lienzo.</returns>
         public int GetCanvasSize()
         {
             return canvas.Size;
         }
 
+        /// <summary>
+        /// Obtiene la posición actual en X del "pincel".
+        /// </summary>
+        /// <returns>La coordenada X actual.</returns>
         public int GetActualX()
         {
             return state.X;
         }
 
+        /// <summary>
+        /// Obtiene la posición actual en Y del "pincel".
+        /// </summary>
+        /// <returns>La coordenada Y actual.</returns>
         public int GetActualY()
         {
             return state.Y;
         }
 
+        /// <summary>
+        /// Verifica si el color del pincel es igual al color dado.
+        /// </summary>
+        /// <param name="color">El color a comparar.</param>
+        /// <returns>1 si el color del pincel es igual, 0 en caso contrario.</returns>
         public int IsBrushColor(string color)
         {
             return state.BrushColor == color ? 1 : 0;
         }
 
+        /// <summary>
+        /// Verifica si el tamaño del pincel es igual al tamaño dado.
+        /// </summary>
+        /// <param name="size">El tamaño a comparar.</param>
+        /// <returns>1 si el tamaño del pincel es igual, 0 en caso contrario.</returns>
         public int IsBrushSize(int size)
         {
             return state.BrushSize == size ? 1 : 0;
         }
 
+        /// <summary>
+        /// Verifica si el color en la posición dada (con offset) es igual al color dado.
+        /// </summary>
+        /// <param name="color">El color a comparar.</param>
+        /// <param name="dx">Desplazamiento en X.</param>
+        /// <param name="dy">Desplazamiento en Y.</param>
+        /// <returns>1 si el color es igual, 0 en caso contrario.</returns>
         public int IsCanvasColor(string color, int dx, int dy)
         {
             int x = state.X + dx;
@@ -202,6 +284,15 @@ namespace EPainter.Core
             return canvas.GetPixel(x, y) == color ? 1 : 0;
         }
 
+        /// <summary>
+        /// Cuenta la cantidad de píxeles de un color específico en un área rectangular.
+        /// </summary>
+        /// <param name="color">El color a contar.</param>
+        /// <param name="x1">Esquina superior izquierda X.</param>
+        /// <param name="y1">Esquina superior izquierda Y.</param>
+        /// <param name="x2">Esquina inferior derecha X.</param>
+        /// <param name="y2">Esquina inferior derecha Y.</param>
+        /// <returns>La cantidad de píxeles del color en el área especificada.</returns>
         public int GetColorCount(string color, int x1, int y1, int x2, int y2)
         {
             int count = 0;
@@ -222,6 +313,11 @@ namespace EPainter.Core
             return count;
         }
 
+        /// <summary>
+        /// Crea una nueva "instancia" del lápiz en la posición dada.
+        /// </summary>
+        /// <param name="x">Coordenada X de la nueva posición.</param>
+        /// <param name="y">Coordenada Y de la nueva posición.</param>
         public void Spawn(int x, int y)
         {
             if (!canvas.IsValidPosition(x, y))
@@ -233,11 +329,19 @@ namespace EPainter.Core
             state = new EPainterState(x, y);
         }
 
+        /// <summary>
+        /// Establece el color del pincel.
+        /// </summary>
+        /// <param name="color">El color a establecer.</param>
         public void SetBrushColor(string color)
         {
             state.BrushColor = color;
         }
 
+        /// <summary>
+        /// Establece el tamaño del pincel.
+        /// </summary>
+        /// <param name="size">El tamaño a establecer. Se ajusta a un valor impar si es necesario.</param>
         public void SetBrushSize(int size)
         {
             if (size <= 0)
@@ -250,6 +354,12 @@ namespace EPainter.Core
             state.BrushSize = size % 2 == 0 ? size - 1 : size;
         }
 
+        /// <summary>
+        /// Dibuja una línea en la dirección y distancia especificadas.
+        /// </summary>
+        /// <param name="dirX">Dirección en X.</param>
+        /// <param name="dirY">Dirección en Y.</param>
+        /// <param name="distance">Distancia a dibujar.</param>
         public void DrawLine(int dirX, int dirY, int distance)
         {
             int centerX = state.X;
@@ -277,11 +387,16 @@ namespace EPainter.Core
                 }
             }
             
-            // Actualizar la posición actual
             state.X = centerX + dirX * distance;
             state.Y = centerY + dirY * distance;
         }
 
+        /// <summary>
+        /// Dibuja un círculo en la dirección y radio especificados.
+        /// </summary>
+        /// <param name="dirX">Dirección en X para el centro del círculo.</param>
+        /// <param name="dirY">Dirección en Y para el centro del círculo.</param>
+        /// <param name="radius">Radio del círculo.</param>
         public void DrawCircle(int dirX, int dirY, int radius)
         {
             int centerX = state.X;
@@ -290,7 +405,6 @@ namespace EPainter.Core
             int circleCenterX = centerX + dirX * radius;
             int circleCenterY = centerY + dirY * radius;
             
-            // Comprobar si el círculo está dentro de los límites del canvas
             if (!canvas.IsValidPosition(circleCenterX, circleCenterY))
             {
                 var circleError = new RuntimeError($"Circle center out of bounds at ({circleCenterX}, {circleCenterY})");
@@ -298,13 +412,12 @@ namespace EPainter.Core
                 throw circleError;
             }
             
-            // También verificar que el radio no hace que el círculo se salga del canvas
             if (!canvas.IsValidPosition(circleCenterX + radius, circleCenterY) ||
                 !canvas.IsValidPosition(circleCenterX - radius, circleCenterY) ||
                 !canvas.IsValidPosition(circleCenterX, circleCenterY + radius) ||
                 !canvas.IsValidPosition(circleCenterX, circleCenterY - radius))
             {
-                // No lanzar error, solo ajustar el radio para que quepa en el canvas
+
                 int maxRadius = Math.Min(
                     Math.Min(canvas.Size - 1 - circleCenterX, circleCenterX),
                     Math.Min(canvas.Size - 1 - circleCenterY, circleCenterY));
@@ -345,8 +458,6 @@ namespace EPainter.Core
             state.Y = circleCenterY;
         }
 
-
-
         private void DrawCirclePoints(int circleCenterX, int circleCenterY, int x, int y, int brushSize)
         {
             Plot8Points(circleCenterX, circleCenterY, x, y, brushSize);
@@ -364,7 +475,6 @@ namespace EPainter.Core
             DrawPixelArea(circleCenterX - y, circleCenterY - x);
         }
 
-
         private void DrawPixelArea(int x, int y)
         {
             int halfBrush = state.BrushSize / 2;
@@ -378,6 +488,14 @@ namespace EPainter.Core
             }
         }
 
+        /// <summary>
+        /// Dibuja un rectángulo en la dirección, distancia y dimensiones especificadas.
+        /// </summary>
+        /// <param name="dirX">Dirección en X.</param>
+        /// <param name="dirY">Dirección en Y.</param>
+        /// <param name="distance">Distancia a dibujar.</param>
+        /// <param name="width">Ancho del rectángulo.</param>
+        /// <param name="height">Altura del rectángulo.</param>
         public void DrawRectangle(int dirX, int dirY, int distance, int width, int height)
         {
             int centerX = state.X;
@@ -420,6 +538,9 @@ namespace EPainter.Core
             state.Y = rectCenterY;
         }
 
+        /// <summary>
+        /// Rellena el área conectada al píxel actual con el color del pincel.
+        /// </summary>
         public void Fill()
         {
             string targetColor = canvas.GetPixel(state.X, state.Y);

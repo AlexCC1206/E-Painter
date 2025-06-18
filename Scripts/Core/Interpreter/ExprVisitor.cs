@@ -3,25 +3,51 @@ using static EPainter.Core.Expr;
 
 namespace EPainter.Core
 {
+    /// <summary>
+    /// Implementa el patrón Visitor para evaluar expresiones del lenguaje E-Painter.
+    /// </summary>
     public class ExprVisitor : IExprVisitor<object>
     {
+        /// <summary>
+        /// La instancia del intérprete que utiliza este visitante.
+        /// </summary>
         private readonly Interpreter interpreter;
 
+        /// <summary>
+        /// Inicializa una nueva instancia de la clase ExprVisitor.
+        /// </summary>
+        /// <param name="interpreter">La instancia del intérprete a utilizar.</param>
         public ExprVisitor(Interpreter interpreter)
         {
             this.interpreter = interpreter;
         }
 
+        /// <summary>
+        /// Evalúa una expresión literal.
+        /// </summary>
+        /// <param name="expr">La expresión literal a evaluar.</param>
+        /// <returns>El valor literal almacenado.</returns>
         public object VisitLiteral(Literal expr)
         {
             return expr.Value;
         }
 
+        /// <summary>
+        /// Evalúa una expresión de variable.
+        /// </summary>
+        /// <param name="expr">La expresión de variable a evaluar.</param>
+        /// <returns>El valor almacenado en la variable.</returns>
         public object VisitVariable(Variable expr)
         {
             return interpreter.GetVariable(expr.Name);
         }
 
+        /// <summary>
+        /// Evalúa una expresión binaria.
+        /// </summary>
+        /// <param name="expr">La expresión binaria a evaluar.</param>
+        /// <returns>El resultado de la operación binaria.</returns>
+        /// <exception cref="RuntimeError">Se lanza si hay un error en la operación, como división por cero.</exception>
         public object VisitBinary(Binary expr)
         {
             object left = Visit(expr.Left);
@@ -79,6 +105,13 @@ namespace EPainter.Core
                     throw binOpError;
             }
         }
+
+        /// <summary>
+        /// Evalúa una expresión unaria.
+        /// </summary>
+        /// <param name="expr">La expresión unaria a evaluar.</param>
+        /// <returns>El resultado de la operación unaria.</returns>
+        /// <exception cref="RuntimeError">Se lanza si hay un operador unario desconocido.</exception>
         public object VisitUnary(Unary expr)
         {
             object right = Visit(expr.Right);
@@ -95,11 +128,22 @@ namespace EPainter.Core
             }
         }
 
+        /// <summary>
+        /// Evalúa una expresión agrupada.
+        /// </summary>
+        /// <param name="expr">La expresión agrupada a evaluar.</param>
+        /// <returns>El resultado de evaluar la expresión dentro del grupo.</returns>
         public object VisitGrouping(Grouping expr)
         {
             return Visit(expr.Expression);
         }
 
+        /// <summary>
+        /// Evalúa una llamada a función.
+        /// </summary>
+        /// <param name="expr">La expresión de llamada a función a evaluar.</param>
+        /// <returns>El resultado de la llamada a función.</returns>
+        /// <exception cref="RuntimeError">Se lanza si la función no se encuentra.</exception>
         public object VisitCall(Call expr)
         {
             switch (expr.FunctionName)
@@ -135,6 +179,12 @@ namespace EPainter.Core
             }
         }
 
+        /// <summary>
+        /// Verifica que el operando sea un número.
+        /// </summary>
+        /// <param name="op">El token del operador.</param>
+        /// <param name="operand">El operando a verificar.</param>
+        /// <exception cref="RuntimeError">Se lanza si el operando no es un número.</exception>
         private void CheckNumberOperand(Token op, object operand)
         {
             if (operand is int) return;
@@ -143,6 +193,13 @@ namespace EPainter.Core
             throw typeError;
         }
 
+        /// <summary>
+        /// Verifica que ambos operandos de una operación sean números.
+        /// </summary>
+        /// <param name="op">El token del operador.</param>
+        /// <param name="left">El operando izquierdo.</param>
+        /// <param name="right">El operando derecho.</param>
+        /// <exception cref="RuntimeError">Se lanza si alguno de los operandos no es un número.</exception>
         private void CheckNumberOperand(Token op, object left, object right)
         {
             if (left is int && right is int) return;
@@ -151,6 +208,11 @@ namespace EPainter.Core
             throw typeError;
         }
 
+        /// <summary>
+        /// Determina si un objeto es "verdadero" en el contexto de E-Painter.
+        /// </summary>
+        /// <param name="obj">El objeto a evaluar.</param>
+        /// <returns>True si el objeto es "verdadero", de lo contrario, false.</returns>
         private bool IsTruthy(object obj)
         {
             if (obj == null) return false;
@@ -159,6 +221,11 @@ namespace EPainter.Core
             return true;
         }
 
+        /// <summary>
+        /// Visita una expresión y llama al método de aceptación correspondiente.
+        /// </summary>
+        /// <param name="expr">La expresión a visitar.</param>
+        /// <returns>El resultado de la visita.</returns>
         private object Visit(Expr expr)
         {
             return expr.Accept(this);

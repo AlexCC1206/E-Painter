@@ -34,21 +34,16 @@ public partial class Rayitas : TextureRect
 		gridsize = newSize;
 		Canvas = new Canvas(gridsize);
 		
-		// Crear una textura nueva con el tamaño adecuado
 		var newTexture = new ImageTexture();
 		var image = Image.CreateEmpty(gridsize, gridsize, false, Image.Format.Rgba8);
 		
-		// Establecer la textura
 		newTexture.SetImage(image);
 		Texture = newTexture;
 		
-		// Forzar un tamaño mínimo para el TextureRect
 		CustomMinimumSize = new Vector2(400, 400);
 		
-		// Actualizar el cálculo de espaciado
 		space = CustomMinimumSize.X / gridsize;
 		
-		// Actualizar el dibujo
 		QueueRedraw();
 		
 		GD.Print($"Canvas resized to {gridsize}x{gridsize}, with space = {space}");
@@ -56,11 +51,9 @@ public partial class Rayitas : TextureRect
 	
 	public override void _Draw()
 	{
-		// Calcular el espacio antes de dibujar
 		float effectiveWidth = Mathf.Max(Size.X, CustomMinimumSize.X);
 		space = effectiveWidth / gridsize;
 		
-		// Dibujar el canvas y las líneas
 		DrawCanvas(Canvas);
 		DrawLines();
 	}
@@ -68,13 +61,11 @@ public partial class Rayitas : TextureRect
 	{
 		string[,] Rosalia = canvas.Pixels;
 		
-		// Asegurar que el espacio está calculado correctamente
 		if (space <= 0)
 		{
 			space = Mathf.Max(Size.X, CustomMinimumSize.X) / gridsize;
 		}
 
-		// Dibujar cada celda del canvas
 		for (var i = 0; i < Rosalia.GetLength(0); i++)
 		{
 			for (var j = 0; j < Rosalia.GetLength(1); j++)
@@ -88,12 +79,10 @@ public partial class Rayitas : TextureRect
 	
 	void DrawLines()
 	{
-		// Calcular el espacio basado en el tamaño actual o mínimo
 		float effectiveWidth = Mathf.Max(Size.X, CustomMinimumSize.X);
 		float effectiveHeight = Mathf.Max(Size.Y, CustomMinimumSize.Y);
 		space = effectiveWidth / gridsize;
 
-		// Dibujar líneas horizontales y verticales
 		for (var i = 0; i <= gridsize; i++)
 		{
 			float c = i * space;
@@ -101,7 +90,8 @@ public partial class Rayitas : TextureRect
 			DrawLine(new Vector2(c, 0), new Vector2(c, effectiveHeight), Color, 1f);
 		}
 	}
-	Godot.Color CheckColor(string color)
+	
+	Color CheckColor(string color)
 	{
 		switch (color)
 		{

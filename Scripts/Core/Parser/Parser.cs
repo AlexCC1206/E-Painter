@@ -4,16 +4,34 @@ using System.Reflection.Emit;
 
 namespace EPainter.Core
 {
+    /// <summary>
+    /// Analizador sintáctico que convierte tokens en un árbol de sintaxis abstracta (AST).
+    /// </summary>
     public class Parser
     {
+        /// <summary>
+        /// Lista de tokens a analizar.
+        /// </summary>
         private List<Token> Tokens;
+        
+        /// <summary>
+        /// Índice del token actual.
+        /// </summary>
         private int current = 0;
 
+        /// <summary>
+        /// Inicializa una nueva instancia de la clase Parser.
+        /// </summary>
+        /// <param name="tokens">La lista de tokens a analizar.</param>
         public Parser(List<Token> tokens)
         {
             Tokens = tokens;
         }
 
+        /// <summary>
+        /// Analiza los tokens y produce una lista de sentencias.
+        /// </summary>
+        /// <returns>Lista de sentencias que conforman el programa.</returns>
         public List<Stmt> Parse()
         {
             var statements = new List<Stmt>();
@@ -31,11 +49,14 @@ namespace EPainter.Core
         }
 
         #region Stmt 
+        /// <summary>
+        /// Analiza y devuelve la siguiente sentencia de declaración.
+        /// </summary>
+        /// <returns>Una nueva sentencia o null si ocurre un error.</returns>
         private Stmt Declaration()
         {
             try
             {
-                // Ignorar saltos de línea
                 while (Match(TokenType.NEWLINE));
                 
                 if (IsAtEnd()) return null;
@@ -51,7 +72,7 @@ namespace EPainter.Core
 
                 if (Check(TokenType.IDENTIFIER))
                 {
-                    Advance(); // Consume el identificador
+                    Advance(); 
                     return MaybeLabelOrAssignment();
                 }
 
@@ -59,11 +80,16 @@ namespace EPainter.Core
             }
             catch (ParseError)
             {
-                Syncronize();
+                Synchronize();
                 return null;
             }
         }
 
+        /// <summary>
+        /// Analiza una sentencia Spawn.
+        /// </summary>
+        /// <returns>Una nueva sentencia Spawn.</returns>
+        /// <exception cref="ParseError">Se lanza si la sintaxis es incorrecta.</exception>
         private Stmt SpawnStatement()
         {
             Consume(TokenType.LEFT_PAREN, "Expect '(' after 'Spawn'.");
@@ -75,6 +101,11 @@ namespace EPainter.Core
             return new Stmt.Spawn(x, y);
         }
 
+        /// <summary>
+        /// Analiza una sentencia Color.
+        /// </summary>
+        /// <returns>Una nueva sentencia Color.</returns>
+        /// <exception cref="ParseError">Se lanza si la sintaxis es incorrecta.</exception>
         private Stmt ColorStatement()
         {
             Consume(TokenType.LEFT_PAREN, "Expect '(' after 'Color'.");
@@ -84,7 +115,11 @@ namespace EPainter.Core
             return new Stmt.Color(color);
         }
 
-
+        /// <summary>
+        /// Analiza una sentencia Size.
+        /// </summary>
+        /// <returns>Una nueva sentencia Size.</returns>
+        /// <exception cref="ParseError">Se lanza si la sintaxis es incorrecta.</exception>
         private Stmt SizeStatement()
         {
             Consume(TokenType.LEFT_PAREN, "Expect '(' after 'Size'");
@@ -94,7 +129,11 @@ namespace EPainter.Core
             return new Stmt.Size(size);
         }
 
-
+        /// <summary>
+        /// Analiza una sentencia DrawLine.
+        /// </summary>
+        /// <returns>Una nueva sentencia DrawLine.</returns>
+        /// <exception cref="ParseError">Se lanza si la sintaxis es incorrecta.</exception>
         private Stmt DrawLineStatement()
         {
             Consume(TokenType.LEFT_PAREN, "Expect '(' after 'DrawLine'.");
@@ -174,7 +213,6 @@ namespace EPainter.Core
             {
                 var value = Expression();
                 
-                // Si ya estamos al final del archivo o hay un salto de línea, avanzar
                 if (Peek().Type == TokenType.NEWLINE) 
                 {
                     Advance();
@@ -203,8 +241,8 @@ namespace EPainter.Core
             while (Match(TokenType.AND))
             {
                 Token op = Previous();
-                Expr rigth = LogicalOr();
-                expr = new Expr.Binary(expr, op, rigth);
+                Expr right = LogicalOr();
+                expr = new Expr.Binary(expr, op, right);
             }
 
             return expr;
@@ -217,8 +255,8 @@ namespace EPainter.Core
             while (Match(TokenType.OR))
             {
                 Token op = Previous();
-                Expr rigth = Equality();
-                expr = new Expr.Binary(expr, op, rigth);
+                Expr right = Equality();
+                expr = new Expr.Binary(expr, op, right);
             }
 
             return expr;
@@ -408,7 +446,7 @@ namespace EPainter.Core
             return new ParseError();
         }
 
-        private void Syncronize()
+        private void Synchronize()
         {
             Advance();
 
