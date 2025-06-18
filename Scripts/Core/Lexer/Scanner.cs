@@ -89,6 +89,7 @@ namespace EPainter.Core
         /// <summary>
         /// Analiza y añade el siguiente token del código fuente.
         /// </summary>
+        /// <exception cref="ScannerException">Se lanza si se encuentra un caracter inesperado.</exception>
         private void ScanTokens()
         {
             char c = Advance();
@@ -111,7 +112,7 @@ namespace EPainter.Core
                 case '/':
                     if (Match('/'))
                     {
-                        // Comentario de línea
+                        // Comentario de línea 
                         while (Peek() != '\n' && !IsAtEnd())
                             Advance();
                     }
@@ -179,11 +180,15 @@ namespace EPainter.Core
         }
 
 
+        /// <summary>
+        /// Analiza un identificador en el código fuente.
+        /// </summary>
+        /// <exception cref="ScannerException">Se lanza si el identificador comienza con guión bajo.</exception>
         private void Identifier()
         {
             if (Source[start] == '_')
             {
-                throw new ScannerException(line, "Los identificadores no pueden comenzar con guión bajo (_)");
+                throw new ScannerException(line, "Identifiers cannot start with underscore (_)");
             }
             while (IsAlphaNumeric(Peek())) Advance();
 
@@ -199,14 +204,20 @@ namespace EPainter.Core
             }
         }
 
+        /// <summary>
+        /// Analiza un literal numérico en el código fuente.
+        /// </summary>
         private void Number()
         {
             while (IsDigit(Peek())) Advance();
 
             AddToken(TokenType.NUMBER, int.Parse(Source.Substring(start, current - start)));
-
         }
 
+        /// <summary>
+        /// Analiza un literal de color entre comillas dobles en el código fuente.
+        /// </summary>
+        /// <exception cref="ScannerException">Se lanza si el string no está terminado o si el color no es válido.</exception>
         private void ColorLiteral()
         {
             while (Peek() != '"' && !IsAtEnd())
@@ -228,18 +239,26 @@ namespace EPainter.Core
             string color = Source.Substring(start + 1, current - start - 2);
             if (!ValidColors.Contains(color))
             {
-                throw new ScannerException(line, $"Color no válido: '{color}'");
+                throw new ScannerException(line, $"Invalid color: '{color}'");
             }
 
             AddToken(TokenType.COLOR_LITERAL, color);
         }
 
+        /// <summary>
+        /// Conjunto de colores válidos permitidos en el lenguaje.
+        /// </summary>
         private static readonly HashSet<string> ValidColors = new()
         {
             "Red", "Blue", "Green", "Yellow", "Orange",
             "Purple", "Black", "White", "Transparent"
         };
 
+        /// <summary>
+        /// Verifica si el caracter actual coincide con el esperado y avanza si es así.
+        /// </summary>
+        /// <param name="expected">El caracter esperado.</param>
+        /// <returns>True si hay coincidencia, false en caso contrario.</returns>
         private bool Match(char expected)
         {
             if (IsAtEnd()) return false;
@@ -249,42 +268,71 @@ namespace EPainter.Core
             return true;
         }
 
+        /// <summary>
+        /// Observa el caracter actual sin avanzar.
+        /// </summary>
+        /// <returns>El caracter actual o '\0' si se llegó al final del código fuente.</returns>
         public char Peek()
         {
             if (IsAtEnd()) return '\0';
             return Source[current];
         }
 
+        /// <summary>
+        /// Verifica si se ha llegado al final del código fuente.
+        /// </summary>
+        /// <returns>True si se ha llegado al final del código fuente, false en caso contrario.</returns>
         private bool IsAtEnd()
         {
             return current >= Source.Length;
         }
 
+        /// <summary>
+        /// Avanza al siguiente caracter y devuelve el actual.
+        /// </summary>
+        /// <returns>El caracter actual antes de avanzar.</returns>
         private char Advance()
         {
             current++;
             return Source[current - 1];
         }
 
+        /// <summary>
+        /// Verifica si un caracter es un dígito.
+        /// </summary>
+        /// <param name="c">El caracter a verificar.</param>
+        /// <returns>True si es un dígito, false en caso contrario.</returns>
         private bool IsDigit(char c)
         {
             return c >= '0' && c <= '9';
         }
 
+        /// <summary>
+        /// Verifica si un caracter es una letra.
+        /// </summary>
+        /// <param name="c">El caracter a verificar.</param>
+        /// <returns>True si es una letra, false en caso contrario.</returns>
         private bool IsAlpha(char c)
         {
             return (c >= 'a' && c <= 'z') ||
-                    (c >= 'A' && c <= 'Z')
-                    ;
+                    (c >= 'A' && c <= 'Z');
         }
 
-
+        /// <summary>
+        /// Verifica si un caracter es alfanumérico o un guión bajo.
+        /// </summary>
+        /// <param name="c">El caracter a verificar.</param>
+        /// <returns>True si es alfanumérico o guión bajo, false en caso contrario.</returns>
         private bool IsAlphaNumeric(char c)
         {
             return IsAlpha(c) || IsDigit(c) || c == '_';
-
         }
 
+        /// <summary>
+        /// Añade un token a la lista de tokens.
+        /// </summary>
+        /// <param name="type">El tipo de token.</param>
+        /// <param name="literal">El valor literal del token, opcional.</param>
         private void AddToken(TokenType type, object literal = null)
         {
             string text = Source.Substring(start, current - start);

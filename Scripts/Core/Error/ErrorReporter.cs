@@ -83,7 +83,7 @@ namespace EPainter.Core
         /// <param name="error">El objeto de error en tiempo de ejecución.</param>
         public static void RuntimeError(RuntimeError error)
         {
-            string errorMsg = $"[Línea {error.Token?.Line ?? 0}] Error en tiempo de ejecución: {error.Message}";
+            string errorMsg = $"[Line {error.Token?.Line ?? 0}] Runtime error: {error.Message}";
             runtimeErrors.Add(errorMsg);
             Console.Error.WriteLine(errorMsg);
         }

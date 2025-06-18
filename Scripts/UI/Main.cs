@@ -5,27 +5,66 @@ using EPainter.Core;
 
 namespace EPainter.UI
 {
+	/// <summary>
+	/// Clase principal que controla la interfaz de usuario de E-Painter.
+	/// Maneja las interacciones con el editor de código, el lienzo y las operaciones de archivo.
+	/// </summary>
 	public partial class Main : Control
 	{
+		/// <summary>
+		/// Editor de código para escribir programas E-Painter.
+		/// </summary>
 		[Export] CodeEdit codeEdit;
+		
+		/// <summary>
+		/// Componente que maneja la visualización del lienzo donde se dibujan los gráficos.
+		/// </summary>
 		[Export] Rayitas rayitas;
+		
+		/// <summary>
+		/// Control para ajustar el tamaño del lienzo.
+		/// </summary>
 		[Export] SpinBox sizeInput;
+		
+		/// <summary>
+		/// Área de texto para mostrar mensajes de salida y errores.
+		/// </summary>
 		[Export] TextEdit outputText;
+		
+		/// <summary>
+		/// Diálogo para guardar archivos de código E-Painter.
+		/// </summary>
 		[Export] FileDialog saveFileDialog;
+		
+		/// <summary>
+		/// Diálogo para cargar archivos de código E-Painter.
+		/// </summary>
 		[Export] FileDialog loadFileDialog;
 		
+		/// <summary>
+		/// Inicializa el nodo cuando entra en el árbol de escena.
+		/// </summary>
 		public override void _Ready()
 		{
 		}
 
+		/// <summary>
+		/// Llamado en cada frame para procesar la lógica del nodo.
+		/// </summary>
+		/// <param name="delta">Tiempo transcurrido desde el último frame en segundos.</param>
 		public override void _Process(double delta)
 		{
 		}
 
+		/// <summary>
+		/// Ejecuta el código E-Painter escrito en el editor.
+		/// Realiza el análisis léxico, sintáctico y la interpretación del código.
+		/// Muestra los resultados o errores en el área de salida.
+		/// </summary>
 		void Run()
 		{
 			ErrorReporter.Reset();
-			outputText.Text = "Ejecutando código...";
+			outputText.Text = "Executing code...";
 
 			string code = codeEdit.Text;
 
@@ -36,7 +75,7 @@ namespace EPainter.UI
 
 				if (ErrorReporter.HasErrors)
 				{
-					outputText.Text = "Errores de análisis léxico:\n" + String.Join("\n", ErrorReporter.errors);
+					outputText.Text = "Lexical analysis errors:\n" + String.Join("\n", ErrorReporter.errors);
 					return;
 				}
 
@@ -45,7 +84,7 @@ namespace EPainter.UI
 
 				if (ErrorReporter.HasErrors)
 				{
-					outputText.Text = "Errores de análisis sintáctico:\n" + String.Join("\n", ErrorReporter.errors);
+					outputText.Text = "Parsing errors:\n" + String.Join("\n", ErrorReporter.errors);
 					return;
 				}
 
@@ -56,11 +95,11 @@ namespace EPainter.UI
 
 					if (ErrorReporter.HasRuntimeErrors)
 					{
-						outputText.Text = "Errores durante la ejecución:\n" + String.Join("\n", ErrorReporter.runtimeErrors);
+						outputText.Text = "Runtime errors:\n" + String.Join("\n", ErrorReporter.runtimeErrors);
 					}
 					else
 					{
-						outputText.Text = "Código ejecutado correctamente.";
+						outputText.Text = "Code executed successfully.";
 					}
 				}
 				catch (Exception ex)
@@ -68,13 +107,13 @@ namespace EPainter.UI
 					if (ex is RuntimeError runtimeError)
 					{
 						ErrorReporter.RuntimeError(runtimeError);
-						outputText.Text = $"Error durante la ejecución: {runtimeError.Message}";
-						GD.PrintErr($"Error durante la ejecución: {runtimeError.Message}");
+						outputText.Text = $"Runtime error: {runtimeError.Message}";
+						GD.PrintErr($"Runtime error: {runtimeError.Message}");
 					}
 					else
 					{
-						outputText.Text = $"Error durante la ejecución: {ex.Message}";
-						GD.PrintErr($"Error durante la ejecución: {ex.Message}");
+						outputText.Text = $"Runtime error: {ex.Message}";
+						GD.PrintErr($"Runtime error: {ex.Message}");
 						GD.PrintErr($"Stack trace: {ex.StackTrace}");
 					}
 				}
@@ -83,11 +122,15 @@ namespace EPainter.UI
 			}
 			catch (Exception ex)
 			{
-				outputText.Text = $"Error inesperado: {ex.Message}";
-				GD.PrintErr($"Error inesperado: {ex.Message}");
+				outputText.Text = $"Unexpected error: {ex.Message}";
+				GD.PrintErr($"Unexpected error: {ex.Message}");
 			}
 		}
 
+		/// <summary>
+		/// Cambia el tamaño del lienzo según el valor establecido en el control sizeInput.
+		/// Actualiza la visualización y muestra un mensaje de confirmación.
+		/// </summary>
 		void Resize()
 		{
 			int newSize = (int)sizeInput.Value;
@@ -96,30 +139,41 @@ namespace EPainter.UI
 			outputText.Text = $"Canvas resized to {newSize}x{newSize}";
 		}
 
+		/// <summary>
+		/// Muestra el diálogo para guardar el código actual en un archivo.
+		/// </summary>
 		void Save()
 		{
 			if (saveFileDialog != null)
 			{
-				GD.Print("Mostrando diálogo de guardado...");
-				saveFileDialog.CurrentDir = System.IO.Directory.GetCurrentDirectory();
-				saveFileDialog.CurrentFile = "codigo.pw";
+				GD.Print("Showing save dialog...");
+				saveFileDialog.CurrentDir = Directory.GetCurrentDirectory();
+				saveFileDialog.CurrentFile = "code.pw";
 				saveFileDialog.Visible = true;
 			}
 			else
 			{
-				outputText.Text = "Error: No se pudo encontrar el diálogo de guardado";
-				GD.PrintErr("Error: saveFileDialog es null");
+				outputText.Text = "Error: Could not find save dialog";
+				GD.PrintErr("Error: saveFileDialog is null");
 			}
 		}
 
+		/// <summary>
+		/// Muestra el diálogo para cargar un archivo de código E-Painter.
+		/// </summary>
 		void Load()
 		{
 			if (loadFileDialog != null)
 				loadFileDialog.Visible = true;
 			else
-				outputText.Text = "Error: No se pudo encontrar el diálogo de carga";
+				outputText.Text = "Error: Could not find load dialog";
 		}
 		
+		/// <summary>
+		/// Maneja el evento cuando se selecciona un archivo en el diálogo de guardado.
+		/// Guarda el contenido del editor de código en el archivo seleccionado.
+		/// </summary>
+		/// <param name="path">La ruta del archivo seleccionado.</param>
 		void OnSaveFileSelected(string path)
 		{
 			try
@@ -131,52 +185,62 @@ namespace EPainter.UI
 					fsPath += ".pw";
 				}
 				
-				GD.Print($"Guardando archivo en: {fsPath}");
+				GD.Print($"Saving file to: {fsPath}");
 				
-				System.IO.File.WriteAllText(fsPath, codeEdit.Text);
-				outputText.Text = $"Archivo guardado exitosamente en: {fsPath}";
-				GD.Print($"Archivo guardado: {fsPath}");
+				File.WriteAllText(fsPath, codeEdit.Text);
+				outputText.Text = $"File saved successfully to: {fsPath}";
+				GD.Print($"File saved: {fsPath}");
 			}
 			catch (Exception ex)
 			{
-				outputText.Text = $"Error al guardar el archivo: {ex.Message}";
-				GD.PrintErr($"Error al guardar el archivo: {ex.Message}");
+				outputText.Text = $"Error saving file: {ex.Message}";
+				GD.PrintErr($"Error saving file: {ex.Message}");
 			}
 		}
 		
+		/// <summary>
+		/// Maneja el evento cuando se selecciona un archivo en el diálogo de carga.
+		/// Carga el contenido del archivo en el editor de código.
+		/// </summary>
+		/// <param name="path">La ruta del archivo seleccionado.</param>
 		void OnLoadFileSelected(string path)
 		{
 			try
 			{
 				string fsPath = ConvertGodotPathToFilesystemPath(path);
-				GD.Print($"Intentando cargar archivo desde: {fsPath}");
+				GD.Print($"Attempting to load file from: {fsPath}");
 				
-				if (!System.IO.File.Exists(fsPath))
+				if (!File.Exists(fsPath))
 				{
-					outputText.Text = $"Error: El archivo '{fsPath}' no existe";
-					GD.PrintErr($"Error: El archivo '{fsPath}' no existe");
+					outputText.Text = $"Error: The file '{fsPath}' does not exist";
+					GD.PrintErr($"Error: The file '{fsPath}' does not exist");
 					return;
 				}
 				
-				string content = System.IO.File.ReadAllText(fsPath);
+				string content = File.ReadAllText(fsPath);
 				codeEdit.Text = content;
-				outputText.Text = $"Archivo cargado exitosamente: {fsPath}";
-				GD.Print($"Archivo cargado: {fsPath}");
+				outputText.Text = $"File loaded successfully: {fsPath}";
+				GD.Print($"File loaded: {fsPath}");
 			}
 			catch (Exception ex)
 			{
-				outputText.Text = $"Error al cargar el archivo: {ex.Message}";
-				GD.PrintErr($"Error al cargar el archivo: {ex.Message}");
+				outputText.Text = $"Error loading file: {ex.Message}";
+				GD.PrintErr($"Error loading file: {ex.Message}");
 			}
 		}
 
+		/// <summary>
+		/// Convierte una ruta de archivo de Godot a una ruta del sistema de archivos.
+		/// </summary>
+		/// <param name="path">La ruta de archivo de Godot.</param>
+		/// <returns>La ruta del sistema de archivos correspondiente.</returns>
 		private string ConvertGodotPathToFilesystemPath(string path)
 		{
 			if (path.StartsWith("res://"))
 			{
-				string projectDir = System.IO.Directory.GetCurrentDirectory();
+				string projectDir = Directory.GetCurrentDirectory();
 				string relativePath = path.Substring(6); 
-				return System.IO.Path.Combine(projectDir, relativePath);
+				return Path.Combine(projectDir, relativePath);
 			}
 			return path;
 		}

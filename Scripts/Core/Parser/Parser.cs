@@ -147,6 +147,11 @@ namespace EPainter.Core
             return new Stmt.DrawLine(dirX, dirY, distance);
         }
 
+        /// <summary>
+        /// Analiza una sentencia DrawCircle.
+        /// </summary>
+        /// <returns>Una nueva sentencia DrawCircle.</returns>
+        /// <exception cref="ParseError">Se lanza si la sintaxis es incorrecta.</exception>
         private Stmt DrawCircleStatement()
         {
             Consume(TokenType.LEFT_PAREN, "Expect '(' after 'DrawCircle'.");
@@ -161,6 +166,11 @@ namespace EPainter.Core
         }
 
 
+        /// <summary>
+        /// Analiza una sentencia DrawRectangle.
+        /// </summary>
+        /// <returns>Una nueva sentencia DrawRectangle.</returns>
+        /// <exception cref="ParseError">Se lanza si la sintaxis es incorrecta.</exception>
         private Stmt DrawRectangleStatement()
         {
             Consume(TokenType.LEFT_PAREN, "Expect '(' after 'DrawRectangle'.");
@@ -178,6 +188,11 @@ namespace EPainter.Core
             return new Stmt.DrawRectangle(dirX, dirY, distance, width, height);
         }
 
+        /// <summary>
+        /// Analiza una sentencia Fill.
+        /// </summary>
+        /// <returns>Una nueva sentencia Fill.</returns>
+        /// <exception cref="ParseError">Se lanza si la sintaxis es incorrecta.</exception>
         private Stmt FillStatement()
         {
             Consume(TokenType.LEFT_PAREN, "Expect '(' after 'Fill'.");
@@ -187,6 +202,11 @@ namespace EPainter.Core
         }
 
 
+        /// <summary>
+        /// Analiza una sentencia GoTo para el control de flujo condicional.
+        /// </summary>
+        /// <returns>Una nueva sentencia GoTo.</returns>
+        /// <exception cref="ParseError">Se lanza si la sintaxis es incorrecta.</exception>
         private Stmt GotoStatement()
         {
             Consume(TokenType.LEFT_BRACKET, "Expect '[' after  'GoTo'.");
@@ -199,6 +219,11 @@ namespace EPainter.Core
             return new Stmt.Goto(label.Lexeme, condition);
         }
         
+        /// <summary>
+        /// Determina si un identificador es una etiqueta o una asignación.
+        /// </summary>
+        /// <returns>Una sentencia Label o Assignment dependiendo del contexto.</returns>
+        /// <exception cref="ParseError">Se lanza si la sintaxis es incorrecta.</exception>
         private Stmt MaybeLabelOrAssignment()
         {
             var identifierToken = Previous();
@@ -229,11 +254,19 @@ namespace EPainter.Core
         #endregion
 
         #region Expr
+        /// <summary>
+        /// Punto de entrada para analizar expresiones.
+        /// </summary>
+        /// <returns>Una expresión analizada.</returns>
         private Expr Expression()
         {
             return LogicalAnd();
         }
 
+        /// <summary>
+        /// Analiza expresiones lógicas AND.
+        /// </summary>
+        /// <returns>Una expresión lógica AND o una expresión de nivel inferior.</returns>
         private Expr LogicalAnd()
         {
             Expr expr = LogicalOr();
@@ -248,6 +281,10 @@ namespace EPainter.Core
             return expr;
         }
 
+        /// <summary>
+        /// Analiza expresiones lógicas OR.
+        /// </summary>
+        /// <returns>Una expresión lógica OR o una expresión de nivel inferior.</returns>
         private Expr LogicalOr()
         {
             Expr expr = Equality();
@@ -262,6 +299,10 @@ namespace EPainter.Core
             return expr;
         }
 
+        /// <summary>
+        /// Analiza expresiones de igualdad (== y !=).
+        /// </summary>
+        /// <returns>Una expresión de igualdad o una expresión de nivel inferior.</returns>
         private Expr Equality()
         {
             Expr expr = Comparison();
@@ -276,6 +317,10 @@ namespace EPainter.Core
             return expr;
         }
 
+        /// <summary>
+        /// Analiza expresiones de comparación (>, >=, <, <=).
+        /// </summary>
+        /// <returns>Una expresión de comparación o una expresión de nivel inferior.</returns>
         private Expr Comparison()
         {
             Expr expr = Term();
@@ -291,6 +336,10 @@ namespace EPainter.Core
         }
 
 
+        /// <summary>
+        /// Analiza expresiones de términos (suma y resta).
+        /// </summary>
+        /// <returns>Una expresión de término o una expresión de nivel inferior.</returns>
         private Expr Term()
         {
             Expr expr = Factor();
@@ -306,6 +355,10 @@ namespace EPainter.Core
         }
 
 
+        /// <summary>
+        /// Analiza expresiones de factores (multiplicación, división y módulo).
+        /// </summary>
+        /// <returns>Una expresión de factor o una expresión de nivel inferior.</returns>
         private Expr Factor()
         {
             Expr expr = Unary();
@@ -320,6 +373,10 @@ namespace EPainter.Core
             return expr;
         }
 
+        /// <summary>
+        /// Analiza expresiones unarias (negativos).
+        /// </summary>
+        /// <returns>Una expresión unaria o una expresión de nivel inferior.</returns>
         private Expr Unary()
         {
             if (Match(TokenType.MIN, TokenType.BANG_EQUAL))
@@ -332,6 +389,10 @@ namespace EPainter.Core
             return Primary();
         }
 
+        /// <summary>
+        /// Analiza expresiones de potencia.
+        /// </summary>
+        /// <returns>Una expresión de potencia o una expresión primaria.</returns>
         private Expr Pow()
         {
             Expr Expr = Primary();
@@ -346,6 +407,10 @@ namespace EPainter.Core
             return Expr;
         }
 
+        /// <summary>
+        /// Analiza expresiones primarias (literales, agrupaciones, variables).
+        /// </summary>
+        /// <returns>Una expresión primaria.</returns>
         private Expr Primary()
         {
             if (Match(TokenType.NUMBER)) return new Expr.Literal(Previous().Literal);
@@ -375,6 +440,11 @@ namespace EPainter.Core
         }
 
 
+        /// <summary>
+        /// Analiza una llamada a función.
+        /// </summary>
+        /// <param name="name">El nombre de la función.</param>
+        /// <returns>Una expresión de llamada a función.</returns>
         private Expr FunctionCall(string name)
         {
             Consume(TokenType.LEFT_PAREN, $"Expected '(' after {name}.");
@@ -394,6 +464,11 @@ namespace EPainter.Core
         #endregion
 
         #region Utils
+        /// <summary>
+        /// Verifica si el token actual coincide con alguno de los tipos especificados y avanza al siguiente token si hay coincidencia.
+        /// </summary>
+        /// <param name="types">Los tipos de token a comprobar.</param>
+        /// <returns>True si hay coincidencia, false en caso contrario.</returns>
         private bool Match(params TokenType[] types)
         {
             foreach (var type in types)
@@ -407,45 +482,84 @@ namespace EPainter.Core
             return false;
         }
 
+        /// <summary>
+        /// Verifica si el token actual es del tipo especificado sin avanzar al siguiente token.
+        /// </summary>
+        /// <param name="type">El tipo de token a comprobar.</param>
+        /// <returns>True si el token actual es del tipo especificado, false en caso contrario.</returns>
         private bool Check(TokenType type)
         {
             if (IsAtEnd()) return false;
             return Peek().Type == type;
         }
 
+        /// <summary>
+        /// Avanza al siguiente token y devuelve el token anterior.
+        /// </summary>
+        /// <returns>El token anterior.</returns>
         private Token Advance()
         {
             if (!IsAtEnd()) current++;
             return Previous();
         }
 
+        /// <summary>
+        /// Verifica si se ha alcanzado el final de la lista de tokens.
+        /// </summary>
+        /// <returns>True si se ha alcanzado el fin de la lista, false en caso contrario.</returns>
         private bool IsAtEnd()
         {
             return Peek().Type == TokenType.EOF;
         }
 
+        /// <summary>
+        /// Devuelve el token actual sin avanzar.
+        /// </summary>
+        /// <returns>El token actual.</returns>
         private Token Peek()
         {
             return Tokens[current];
         }
 
+        /// <summary>
+        /// Devuelve el token anterior al actual.
+        /// </summary>
+        /// <returns>El token anterior al actual.</returns>
         private Token Previous()
         {
             return Tokens[current - 1];
         }
 
+        /// <summary>
+        /// Consume el token actual si es del tipo especificado, avanzando al siguiente token.
+        /// Si no coincide, lanza un error con el mensaje especificado.
+        /// </summary>
+        /// <param name="type">El tipo de token esperado.</param>
+        /// <param name="message">El mensaje de error en caso de no coincidencia.</param>
+        /// <returns>El token consumido.</returns>
+        /// <exception cref="ParseError">Se lanza si el token actual no es del tipo esperado.</exception>
         private Token Consume(TokenType type, string message)
         {
             if (Check(type)) return Advance();
             throw Error(Peek(), message);
         }
 
+        /// <summary>
+        /// Crea y reporta un error de análisis sintáctico.
+        /// </summary>
+        /// <param name="token">El token donde ocurrió el error.</param>
+        /// <param name="message">El mensaje de error.</param>
+        /// <returns>Una nueva instancia de ParseError.</returns>
         private ParseError Error(Token token, string message)
         {
             ErrorReporter.Error(token, message);
             return new ParseError();
         }
 
+        /// <summary>
+        /// Sincroniza el parser después de un error para continuar el análisis.
+        /// Avanza hasta encontrar el inicio de una nueva sentencia.
+        /// </summary>
         private void Synchronize()
         {
             Advance();

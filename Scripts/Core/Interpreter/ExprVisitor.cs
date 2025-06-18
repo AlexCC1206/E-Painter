@@ -67,7 +67,7 @@ namespace EPainter.Core
                 case TokenType.DIV:
                     CheckNumberOperand(expr.Op, left, right);
                     if (Convert.ToInt32(right) == 0) {
-                        RuntimeError divError = new RuntimeError(expr.Op, "División por cero.");
+                        RuntimeError divError = new RuntimeError(expr.Op, "Division by zero.");
                         ErrorReporter.RuntimeError(divError);
                         throw divError;
                     }
@@ -100,7 +100,7 @@ namespace EPainter.Core
                     return IsTruthy(left) || IsTruthy(right);
 
                 default:
-                    RuntimeError binOpError = new RuntimeError(expr.Op, "Operador desconocido: " + expr.Op.Lexeme);
+                    RuntimeError binOpError = new RuntimeError(expr.Op, "Unknown operator: " + expr.Op.Lexeme);
                     ErrorReporter.RuntimeError(binOpError);
                     throw binOpError;
             }
@@ -122,7 +122,7 @@ namespace EPainter.Core
                     CheckNumberOperand(expr.Op, right);
                     return -Convert.ToInt32(right);
                 default:
-                    RuntimeError unaryOpError = new RuntimeError(expr.Op, "Operador unario desconocido: " + expr.Op.Lexeme);
+                    RuntimeError unaryOpError = new RuntimeError(expr.Op, "Unknown unary operator: " + expr.Op.Lexeme);
                     ErrorReporter.RuntimeError(unaryOpError);
                     throw unaryOpError;
             }
