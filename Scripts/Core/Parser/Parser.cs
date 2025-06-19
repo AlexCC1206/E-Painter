@@ -209,14 +209,22 @@ namespace EPainter.Core
         /// <exception cref="ParseError">Se lanza si la sintaxis es incorrecta.</exception>
         private Stmt GotoStatement()
         {
-            Consume(TokenType.LEFT_BRACKET, "Expect '[' after  'GoTo'.");
-            var label = Consume(TokenType.IDENTIFIER, "Expect label name inside brackets.");
-            Consume(TokenType.RIGHT_BRACKET, "Expect ']' after label name.");
-            Consume(TokenType.LEFT_PAREN, "Expect '(' before condition.");
-            Expr condition = Expression();
-            Consume(TokenType.RIGHT_PAREN, "Expect ')' after condition.");
-            Consume(TokenType.NEWLINE, "Expected newline after 'GoTo[label](condition)'.");
-            return new Stmt.Goto(label.Lexeme, condition);
+            try {
+                Consume(TokenType.LEFT_BRACKET, "Expect '[' after 'GoTo'.");
+                var label = Consume(TokenType.IDENTIFIER, "Expect label name inside brackets.");
+                Consume(TokenType.RIGHT_BRACKET, "Expect ']' after label name.");
+                Consume(TokenType.LEFT_PAREN, "Expect '(' before condition.");
+                Expr condition = Expression();
+                Consume(TokenType.RIGHT_PAREN, "Expect ')' after condition.");
+                Consume(TokenType.NEWLINE, "Expected newline after 'GoTo[label](condition)'.");
+                return new Stmt.Goto(label.Lexeme, condition);
+            }
+            catch (ParseError error) {
+                // Creamos un token dummy para el reporte de error más detallado
+                var token = Previous();
+                ErrorReporter.ReportTokenError(token, "Error en sentencia GoTo: " + error.Message);
+                throw;
+            }
         }
         
         /// <summary>
@@ -420,6 +428,63 @@ namespace EPainter.Core
             if (Match(TokenType.TRUE)) return new Expr.Literal(true);
             if (Match(TokenType.FALSE)) return new Expr.Literal(false);
 
+            // Manejo específico para funciones sin argumentos
+            if (Match(TokenType.GET_ACTUAL_X, TokenType.GET_ACTUAL_Y, TokenType.GET_CANVAS_SIZE))
+            {
+                string functionName = Previous().Lexeme;
+                Consume(TokenType.LEFT_PAREN, $"Expect '(' after {functionName}.");
+                Consume(TokenType.RIGHT_PAREN, $"Expect ')' after {functionName}().");
+                return new Expr.Call(functionName, new List<Expr>());
+            }
+
+            // Manejo específico para IsBrushColor
+            if (Match(TokenType.IS_BRUSH_COLOR))
+            {
+                Consume(TokenType.LEFT_PAREN, "Expect '(' after IsBrushColor.");
+                Expr colorArg = Expression();
+                Consume(TokenType.RIGHT_PAREN, "Expect ')' after IsBrushColor parameter.");
+                return new Expr.Call("IsBrushColor", new List<Expr> { colorArg });
+            }
+
+            // Manejo específico para IsBrushSize
+            if (Match(TokenType.IS_BRUSH_SIZE))
+            {
+                Consume(TokenType.LEFT_PAREN, "Expect '(' after IsBrushSize.");
+                Expr sizeArg = Expression();
+                Consume(TokenType.RIGHT_PAREN, "Expect ')' after IsBrushSize parameter.");
+                return new Expr.Call("IsBrushSize", new List<Expr> { sizeArg });
+            }
+
+            // Manejo específico para IsCanvasColor
+            if (Match(TokenType.IS_CANVAS_COLOR))
+            {
+                Consume(TokenType.LEFT_PAREN, "Expect '(' after IsCanvasColor.");
+                Expr colorArg = Expression();
+                Consume(TokenType.COMMA, "Expect ',' after color parameter.");
+                Expr xArg = Expression();
+                Consume(TokenType.COMMA, "Expect ',' after x parameter.");
+                Expr yArg = Expression();
+                Consume(TokenType.RIGHT_PAREN, "Expect ')' after IsCanvasColor parameters.");
+                return new Expr.Call("IsCanvasColor", new List<Expr> { colorArg, xArg, yArg });
+            }
+
+            // Manejo específico para GetColorCount
+            if (Match(TokenType.GET_COLOR_COUNT))
+            {
+                Consume(TokenType.LEFT_PAREN, "Expect '(' after GetColorCount.");
+                Expr colorArg = Expression();
+                Consume(TokenType.COMMA, "Expect ',' after color parameter.");
+                Expr x1Arg = Expression();
+                Consume(TokenType.COMMA, "Expect ',' after x1 parameter.");
+                Expr y1Arg = Expression();
+                Consume(TokenType.COMMA, "Expect ',' after y1 parameter.");
+                Expr x2Arg = Expression();
+                Consume(TokenType.COMMA, "Expect ',' after x2 parameter.");
+                Expr y2Arg = Expression();
+                Consume(TokenType.RIGHT_PAREN, "Expect ')' after GetColorCount parameters.");
+                return new Expr.Call("GetColorCount", new List<Expr> { colorArg, x1Arg, y1Arg, x2Arg, y2Arg });
+            }
+
             if (Match(TokenType.IDENTIFIER))
             {
                 if (Peek().Type == TokenType.LEFT_PAREN)
@@ -454,7 +519,17 @@ namespace EPainter.Core
             {
                 do
                 {
-                    arguments.Add(Expression());
+                    if ((name == "GetActualX" || name == "GetActualY" || name == "GetCanvasSize") && arguments.Count == 0)
+                    {
+                        if (!Check(TokenType.RIGHT_PAREN))
+                        {
+                            throw Error(Peek(), $"Function {name}() does not accept arguments");
+                        }
+                    }
+                    else
+                    {
+                        arguments.Add(Expression());
+                    }
                 } while (Match(TokenType.COMMA));
             }
 
