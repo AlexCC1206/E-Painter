@@ -52,12 +52,12 @@ El núcleo del proyecto está organizado en varios módulos:
 ## Características del Lenguaje E-Painter
 
 ### Comandos Principales
-- `Spawn(x, y)`: Establece la posición inicial del cursor.
-- `Color(color)`: Cambia el color del pincel.
-- `Size(k)`: Establece el tamaño del pincel.
-- `DrawLine(dirX, dirY, distancia)`: Dibuja una línea.
-- `DrawCircle(dirX, dirY, radio)`: Dibuja un círculo.
-- `DrawRectangle(dirX, dirY, distancia, ancho, alto)`: Dibuja un rectángulo.
+- `Spawn(int x, int y)`: Establece la posición inicial del cursor.
+- `Color(string color)`: Cambia el color del pincel.
+- `Size(int k)`: Establece el tamaño del pincel.
+- `DrawLine(int dirX, int dirY, int distancia)`: Dibuja una línea.
+- `DrawCircle(int dirX, int dirY, int radius)`: Dibuja un círculo.
+- `DrawRectangle(int dirX, int dirY, int distancia, int width, int heigth)`: Dibuja un rectángulo.
 - `Fill()`: Rellena una forma cerrada.
 
 ### Control de Flujo
@@ -74,10 +74,10 @@ El núcleo del proyecto está organizado en varios módulos:
 - `GetActualX()`: Obtiene la coordenada X actual.
 - `GetActualY()`: Obtiene la coordenada Y actual.
 - `GetCanvasSize()`: Obtiene el tamaño del lienzo.
-- `GetColorCount()`: Obtiene el número de colores utilizados.
-- `IsBrushColor(color)`: Verifica el color actual del pincel.
-- `IsBrushSize(tamaño)`: Verifica el tamaño actual del pincel.
-- `IsCanvasColor(x, y, color)`: Verifica el color de un píxel específico.
+- `GetColorCount(string color, int x1, int y1, int x2, int y2)`: Obtiene el número de colores utilizados.
+- `IsBrushColor(string color)`: Verifica el color actual del pincel.
+- `IsBrushSize(int size)`: Verifica el tamaño actual del pincel.
+- `IsCanvasColor(string color, int vertical, int horizontal)`: Verifica el color de un píxel específico.
 
 ## Requisitos del Sistema
 - .NET 8.0
