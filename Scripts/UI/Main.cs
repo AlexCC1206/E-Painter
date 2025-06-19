@@ -73,18 +73,18 @@ namespace EPainter.UI
 				Scanner scanner = new Scanner(code);
 				var tokens = scanner.scanTokens();
 
-				if (ErrorReporter.HasErrors)
+				if (ErrorReporter.HasCompilationErrors)
 				{
-					outputText.Text = "Lexical analysis errors:\n" + String.Join("\n", ErrorReporter.errors);
+					outputText.Text = "Lexical analysis errors:\n" + String.Join("\n", ErrorReporter.CompilationErrors);
 					return;
 				}
 
 				Parser parser = new Parser(tokens);
 				var statements = parser.Parse();
 
-				if (ErrorReporter.HasErrors)
+				if (ErrorReporter.HasCompilationErrors)
 				{
-					outputText.Text = "Parsing errors:\n" + String.Join("\n", ErrorReporter.errors);
+					outputText.Text = "Parsing errors:\n" + String.Join("\n", ErrorReporter.CompilationErrors);
 					return;
 				}
 
@@ -95,7 +95,7 @@ namespace EPainter.UI
 
 					if (ErrorReporter.HasRuntimeErrors)
 					{
-						outputText.Text = "Runtime errors:\n" + String.Join("\n", ErrorReporter.runtimeErrors);
+						outputText.Text = "Runtime errors:\n" + String.Join("\n", ErrorReporter.RuntimeErrors);
 					}
 					else
 					{

@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace EPainter.Core
 {
@@ -13,22 +12,22 @@ namespace EPainter.Core
         /// El código fuente a analizar.
         /// </summary>
         private string Source;
-        
+
         /// <summary>
         /// Lista de tokens encontrados durante el análisis.
         /// </summary>
         private List<Token> tokens = new List<Token>();
-        
+
         /// <summary>
         /// Índice de inicio del token actual.
         /// </summary>
         private int start = 0;
-        
+
         /// <summary>
         /// Índice actual en el código fuente.
         /// </summary>
         private int current = 0;
-        
+
         /// <summary>
         /// Número de línea actual en el código fuente.
         /// </summary>
@@ -46,7 +45,7 @@ namespace EPainter.Core
             {"DrawCircle", TokenType.DRAW_CIRCLE},
             {"DrawRectangle", TokenType.DRAW_RECTANGLE },
             {"Fill", TokenType.FILL},
-            
+
             {"GetActualX", TokenType.GET_ACTUAL_X},
             {"GetActualY", TokenType.GET_ACTUAL_Y},
             {"GetCanvasSize", TokenType.GET_CANVAS_SIZE},
@@ -54,9 +53,9 @@ namespace EPainter.Core
             {"IsBrushColor", TokenType.IS_BRUSH_COLOR},
             {"IsBrushSize", TokenType.IS_BRUSH_SIZE},
             {"IsCanvasColor", TokenType.IS_CANVAS_COLOR},
-            
+
             {"GoTo", TokenType.GOTO},
-            
+
             {"True", TokenType.TRUE},
             {"False", TokenType.FALSE}
         };
@@ -73,13 +72,25 @@ namespace EPainter.Core
         /// <summary>
         /// Escanea todos los tokens del código fuente.
         /// </summary>
+        /// <remarks>
+        /// Esta implementación permite detectar múltiples errores durante el análisis léxico.
+        /// Cuando encuentra un error, lo reporta y continúa el análisis en lugar de detenerse.
+        /// </remarks>
         /// <returns>Lista de tokens encontrados.</returns>
         public List<Token> scanTokens()
         {
             while (!IsAtEnd())
             {
                 start = current;
-                ScanTokens();
+                try
+                {
+                    ScanTokens();
+                }
+                catch (Exception ex)
+                {
+                    Error(line, $"Unexpected error: {ex.Message}");
+                    Synchronize();
+                }
             }
 
             tokens.Add(new Token(TokenType.EOF, "", null, line));
@@ -89,7 +100,6 @@ namespace EPainter.Core
         /// <summary>
         /// Analiza y añade el siguiente token del código fuente.
         /// </summary>
-        /// <exception cref="ScannerException">Se lanza si se encuentra un caracter inesperado.</exception>
         private void ScanTokens()
         {
             char c = Advance();
@@ -173,7 +183,8 @@ namespace EPainter.Core
                     }
                     else
                     {
-                        throw new ScannerException(line, $"Unexpected character: '{c}'");
+                        Error(line, $"Unexpected character", c);
+                        Synchronize();
                     }
                     break;
             }
@@ -183,12 +194,13 @@ namespace EPainter.Core
         /// <summary>
         /// Analiza un identificador en el código fuente.
         /// </summary>
-        /// <exception cref="ScannerException">Se lanza si el identificador comienza con guión bajo.</exception>
         private void Identifier()
         {
             if (Source[start] == '_')
             {
-                throw new ScannerException(line, "Identifiers cannot start with underscore (_)");
+                Error(line, "Identifiers cannot start with underscore (_)");
+                Synchronize();
+                return;
             }
             while (IsAlphaNumeric(Peek())) Advance();
 
@@ -217,7 +229,6 @@ namespace EPainter.Core
         /// <summary>
         /// Analiza un literal de color entre comillas dobles en el código fuente.
         /// </summary>
-        /// <exception cref="ScannerException">Se lanza si el string no está terminado o si el color no es válido.</exception>
         private void ColorLiteral()
         {
             while (Peek() != '"' && !IsAtEnd())
@@ -231,7 +242,8 @@ namespace EPainter.Core
 
             if (IsAtEnd())
             {
-                throw new ScannerException(line, "Undeterminated string");
+                Error(line, "Undeterminated string");
+                return;
             }
 
             Advance();
@@ -239,7 +251,8 @@ namespace EPainter.Core
             string color = Source.Substring(start + 1, current - start - 2);
             if (!ValidColors.Contains(color))
             {
-                throw new ScannerException(line, $"Invalid color: '{color}'");
+                Error(line, $"Invalid color: '{color}'");
+                return;
             }
 
             AddToken(TokenType.COLOR_LITERAL, color);
@@ -337,6 +350,47 @@ namespace EPainter.Core
         {
             string text = Source.Substring(start, current - start);
             tokens.Add(new Token(type, text, literal, line));
+        }
+
+        /// <summary>
+        /// Reporta un error del scanner pero no lanza una excepción, permitiendo que el análisis continúe.
+        /// </summary>
+        /// <param name="line">Línea donde ocurrió el error.</param>
+        /// <param name="message">Mensaje descriptivo del error.</param>
+        /// <param name="character">Carácter problemático (opcional).</param>
+        private void Error(int line, string message, char? character = null)
+        {
+            ErrorReporter.ReportScannerError(line, message, character);
+        }
+        
+        /// <summary>
+        /// Método de sincronización para recuperarse de un error y continuar el análisis.
+        /// </summary>
+        private void Synchronize()
+        {
+            Advance();
+            
+            while (!IsAtEnd()) 
+            {
+                if (Peek() == '\n') return;
+                
+                switch (Peek())
+                {
+                    case '(':
+                    case ')':
+                    case '[':
+                    case ']':
+                    case ',':
+                    case '+':
+                    case '-':
+                    case '*':
+                    case '/':
+                    case '"':
+                        return;
+                }
+                
+                Advance();
+            }
         }
     }
 }

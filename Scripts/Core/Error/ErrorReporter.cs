@@ -11,17 +11,22 @@ namespace EPainter.Core
         /// <summary>
         /// Lista de errores de compilación.
         /// </summary>
-        public static List<string> errors = new List<string>();
+        private static List<string> compilationErrors = new List<string>();
         
         /// <summary>
         /// Lista de errores en tiempo de ejecución.
         /// </summary>
-        public static List<string> runtimeErrors = new List<string>();
+        private static List<string> runtimeErrors = new List<string>();
+        
+        /// <summary>
+        /// Lista de errores específicos del scanner.
+        /// </summary>
+        private static List<string> scannerErrors = new List<string>();
         
         /// <summary>
         /// Indica si hay errores de compilación.
         /// </summary>
-        public static bool HasErrors => errors.Count > 0;
+        public static bool HasCompilationErrors => compilationErrors.Count > 0;
         
         /// <summary>
         /// Indica si hay errores en tiempo de ejecución.
@@ -29,9 +34,14 @@ namespace EPainter.Core
         public static bool HasRuntimeErrors => runtimeErrors.Count > 0;
 
         /// <summary>
+        /// Indica si hay errores específicos del scanner.
+        /// </summary>
+        public static bool HasScannerErrors => scannerErrors.Count > 0;
+
+        /// <summary>
         /// Proporciona una lista de solo lectura con todos los errores de compilación.
         /// </summary>
-        public static IReadOnlyList<string> Errors => errors.AsReadOnly();
+        public static IReadOnlyList<string> CompilationErrors => compilationErrors.AsReadOnly();
         
         /// <summary>
         /// Proporciona una lista de solo lectura con todos los errores en tiempo de ejecución.
@@ -39,79 +49,81 @@ namespace EPainter.Core
         public static IReadOnlyList<string> RuntimeErrors => runtimeErrors.AsReadOnly();
 
         /// <summary>
+        /// Proporciona una lista de solo lectura con todos los errores del scanner.
+        /// </summary>
+        public static IReadOnlyList<string> ScannerErrors => scannerErrors.AsReadOnly();
+
+        /// <summary>
         /// Restablece todas las listas de errores, eliminando todos los errores registrados.
         /// </summary>
         public static void Reset()
         {
-            errors.Clear();
+            compilationErrors.Clear();
             runtimeErrors.Clear();
+            scannerErrors.Clear();
         }
 
         /// <summary>
         /// Reporta un error de compilación.
         /// </summary>
-        /// <param name="line">La línea donde ocurrió el error.</param>
-        /// <param name="where">Contexto adicional sobre la ubicación del error.</param>
-        /// <param name="message">El mensaje de error.</param>
-        public static void ReportError(int line, string where, string message)
+        /// <param name="error">El error a reportar.</param>
+        public static void ReportCompilationError(string error)
         {
-            string error = $"[line {line}] Error{where}: {message}";
-            errors.Add(error);
+            compilationErrors.Add(error);
             Console.Error.WriteLine(error);
-        }
+        } 
 
         /// <summary>
         /// Reporta un error asociado con un token específico.
         /// </summary>
         /// <param name="token">El token donde ocurrió el error.</param>
         /// <param name="message">El mensaje de error.</param>
-        public static void Error(Token token, string message)
+        public static void ReportTokenError(Token token, string message)
         {
+            string error;
             if (token.Type == TokenType.EOF)
             {
-                ReportError(token.Line, "at end", message);
+                error = $"[Line {token.Line}] Error at end: {message}";
             }
             else
             {
-                ReportError(token.Line, $"in '{token.Lexeme}'", message);
+                error = $"[Line {token.Line}] Error in '{token.Lexeme}': {message}";
             }
+
+            ReportCompilationError(error);
+        }
+
+        /// <summary>
+        /// Reporta un error específico del scanner.
+        /// </summary>
+        /// <param name="line">Línea donde ocurrió el error.</param>
+        /// <param name="message">Mensaje descriptivo del error.</param>
+        /// <param name="character">Carácter problemático (opcional).</param>
+        public static void ReportScannerError(int line, string message, char? character = null)
+        {
+            string error;
+            if (character.HasValue)
+            {
+                error = $"[Line {line}] Error at '{character}': {message}";
+            }
+            else
+            {
+                error = $"[Line {line}] Error: {message}";
+            }
+            
+            scannerErrors.Add(error);
+            ReportCompilationError(error);
         }
 
         /// <summary>
         /// Reporta un error en tiempo de ejecución.
         /// </summary>
         /// <param name="error">El objeto de error en tiempo de ejecución.</param>
-        public static void RuntimeError(RuntimeError error)
+        public static void RuntimeError(EPainterException error)
         {
-            string errorMsg = $"[Line {error.Token?.Line ?? 0}] Runtime error: {error.Message}";
+            string errorMsg = error.ToString();
             runtimeErrors.Add(errorMsg);
             Console.Error.WriteLine(errorMsg);
-        }
-
-        /// <summary>
-        /// Reporta un error de resolución asociado con un nombre específico.
-        /// </summary>
-        /// <param name="name">El token que representa el nombre con el problema.</param>
-        /// <param name="message">El mensaje de error.</param>
-        public static void ResolutionError(Token name, string message)
-        {
-            Error(name, message);
-        }
-
-        /// <summary>
-        /// Imprime todos los errores registrados en la consola.
-        /// </summary>
-        public static void PrintAllErrors()
-        {
-            foreach (var error in errors)
-            {
-                Console.Error.WriteLine(error);
-            }
-
-            foreach (var runtimeError in runtimeErrors)
-            {
-                Console.Error.WriteLine(runtimeError);
-            }
         }
     }
 }

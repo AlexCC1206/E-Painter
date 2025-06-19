@@ -97,7 +97,7 @@ namespace EPainter.Core
             Consume(TokenType.COMMA, "Expect ',' after X coordinate.");
             Expr y = Expression();
             Consume(TokenType.RIGHT_PAREN, "Expect ')' after Y coordinate.");
-            Consume(TokenType.NEWLINE, "Expected newline after 'Spawn(...)'.");
+            Consume(TokenType.NEWLINE, "Expected newline after 'Spawn(int x, int y)'.");
             return new Stmt.Spawn(x, y);
         }
 
@@ -111,7 +111,7 @@ namespace EPainter.Core
             Consume(TokenType.LEFT_PAREN, "Expect '(' after 'Color'.");
             var color = Expression();
             Consume(TokenType.RIGHT_PAREN, "Expect ')' after color.");
-            Consume(TokenType.NEWLINE, "Expected newline after 'Color(...)'.");
+            Consume(TokenType.NEWLINE, "Expected newline after 'Color(string color)'.");
             return new Stmt.Color(color);
         }
 
@@ -125,7 +125,7 @@ namespace EPainter.Core
             Consume(TokenType.LEFT_PAREN, "Expect '(' after 'Size'");
             var size = Expression();
             Consume(TokenType.RIGHT_PAREN, "Expect ')' after size.");
-            Consume(TokenType.NEWLINE, "Expected newline after 'Size(...)'.");
+            Consume(TokenType.NEWLINE, "Expected newline after 'Size(int k)'.");
             return new Stmt.Size(size);
         }
 
@@ -143,7 +143,7 @@ namespace EPainter.Core
             Consume(TokenType.COMMA, "Expect ',' after direction Y.");
             Expr distance = Expression();
             Consume(TokenType.RIGHT_PAREN, "Expect ')' after distance.");
-            Consume(TokenType.NEWLINE, "Expected newline after 'DrawLine(...)'.");
+            Consume(TokenType.NEWLINE, "Expected newline after 'DrawLine(int dirX, int dirY, int distance)'.");
             return new Stmt.DrawLine(dirX, dirY, distance);
         }
 
@@ -161,7 +161,7 @@ namespace EPainter.Core
             Consume(TokenType.COMMA, "Expect ',' after direction Y.");
             Expr radius = Expression();
             Consume(TokenType.RIGHT_PAREN, "Expect ')' after radius.");
-            Consume(TokenType.NEWLINE, "Expected newline after 'DrawCircle(...)'.");
+            Consume(TokenType.NEWLINE, "Expected newline after 'DrawCircle(int dirX, int dirY, int rsdius)'.");
             return new Stmt.DrawCircle(dirX, dirY, radius);
         }
 
@@ -184,7 +184,7 @@ namespace EPainter.Core
             Consume(TokenType.COMMA, "Expect ',' after width.");
             Expr height = Expression();
             Consume(TokenType.RIGHT_PAREN, "Expect ')' after height.");
-            Consume(TokenType.NEWLINE, "Expected newline after 'DrawRectangle(...)'.");
+            Consume(TokenType.NEWLINE, "Expected newline after 'DrawRectangle(int dirX, int dirY, int distance, int width, int height)'.");
             return new Stmt.DrawRectangle(dirX, dirY, distance, width, height);
         }
 
@@ -215,7 +215,7 @@ namespace EPainter.Core
             Consume(TokenType.LEFT_PAREN, "Expect '(' before condition.");
             Expr condition = Expression();
             Consume(TokenType.RIGHT_PAREN, "Expect ')' after condition.");
-            Consume(TokenType.NEWLINE, "Expected newline after 'GoTo[...](...)'.");
+            Consume(TokenType.NEWLINE, "Expected newline after 'GoTo[label](condition)'.");
             return new Stmt.Goto(label.Lexeme, condition);
         }
         
@@ -483,6 +483,18 @@ namespace EPainter.Core
         }
 
         /// <summary>
+        /// Crea un error de análisis sintáctico con el token y mensaje proporcionados.
+        /// </summary>
+        /// <param name="token">El token donde ocurrió el error.</param>
+        /// <param name="message">El mensaje de error.</param>
+        /// <returns>Un objeto ParseError.</returns>
+        private ParseError Error(Token token, string message)
+        {
+            ErrorReporter.ReportTokenError(token, message);
+            return new ParseError(message, token.Line);
+        }
+
+        /// <summary>
         /// Verifica si el token actual es del tipo especificado sin avanzar al siguiente token.
         /// </summary>
         /// <param name="type">El tipo de token a comprobar.</param>
@@ -542,18 +554,6 @@ namespace EPainter.Core
         {
             if (Check(type)) return Advance();
             throw Error(Peek(), message);
-        }
-
-        /// <summary>
-        /// Crea y reporta un error de análisis sintáctico.
-        /// </summary>
-        /// <param name="token">El token donde ocurrió el error.</param>
-        /// <param name="message">El mensaje de error.</param>
-        /// <returns>Una nueva instancia de ParseError.</returns>
-        private ParseError Error(Token token, string message)
-        {
-            ErrorReporter.Error(token, message);
-            return new ParseError();
         }
 
         /// <summary>

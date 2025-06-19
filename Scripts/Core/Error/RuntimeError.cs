@@ -5,7 +5,7 @@ namespace EPainter.Core
     /// <summary>
     /// Representa una excepción que ocurre durante la ejecución del programa E-Painter.
     /// </summary>
-    public class RuntimeError : Exception
+    public class RuntimeError : EPainterException
     {
         /// <summary>
         /// Obtiene el token asociado con este error en tiempo de ejecución.
@@ -17,7 +17,7 @@ namespace EPainter.Core
         /// </summary>
         /// <param name="token">El token donde ocurrió el error.</param>
         /// <param name="message">El mensaje descriptivo del error.</param>
-        public RuntimeError(Token token, string message) : base(message)
+        public RuntimeError(Token token, string message) : base(message, token?.Line)
         {
             Token = token;
         }
@@ -30,5 +30,10 @@ namespace EPainter.Core
         {
             Token = null;
         }
+        
+        /// <summary>
+        /// Obtiene el tipo de error específico para mostrar en mensajes.
+        /// </summary>
+        protected override string GetErrorType() => "Runtime Error";
     }
 }
