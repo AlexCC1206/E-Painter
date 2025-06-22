@@ -8,11 +8,14 @@ namespace EPainter.Core
     /// </summary>
     public class StmtVisitor : IStmtVisitor<object>
     {
+        #region Campos
         /// <summary>
         /// La instancia del intérprete que utiliza este visitante.
         /// </summary>
         private Interpreter interpreter;
+        #endregion
 
+        #region Inicialización
         /// <summary>
         /// Inicializa una nueva instancia de la clase StmtVisitor.
         /// </summary>
@@ -21,7 +24,9 @@ namespace EPainter.Core
         {
             this.interpreter = interpreter;
         }
+        #endregion
 
+        #region Visitas de Sentencias Básicas
         /// <summary>
         /// Procesa una sentencia de asignación de variable.
         /// </summary>
@@ -33,7 +38,35 @@ namespace EPainter.Core
             interpreter.SetVariable(stmt.Name, value);
             return null;
         }
+
+        /// <summary>
+        /// Procesa una sentencia GoTo que salta a una etiqueta.
+        /// </summary>
+        /// <param name="stmt">La sentencia GoTo a procesar.</param>
+        /// <returns>Null (las sentencias no devuelven valores).</returns>
+        /// <exception cref="GotoException">Lanza una excepción para indicar un salto a una etiqueta.</exception>
+        public object VisitGoto(Goto stmt)
+        {
+            bool condition = (bool)interpreter.Evaluate(stmt.Condition);
+            if (condition)
+            {
+                throw new GotoException(stmt.LabelName);
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Procesa una sentencia Label que define una etiqueta.
+        /// </summary>
+        /// <param name="stmt">La sentencia Label a procesar.</param>
+        /// <returns>Null (las sentencias no devuelven valores).</returns>
+        public object VisitLabel(Label stmt)
+        {
+            return null;
+        }
+        #endregion
         
+        #region Visitas de Sentencias de Dibujo
         /// <summary>
         /// Procesa una sentencia Spawn que establece la posición inicial.
         /// </summary>
@@ -125,31 +158,6 @@ namespace EPainter.Core
             interpreter.Fill();
             return null;
         }
-        
-        /// <summary>
-        /// Procesa una sentencia GoTo que salta a una etiqueta.
-        /// </summary>
-        /// <param name="stmt">La sentencia GoTo a procesar.</param>
-        /// <returns>Null (las sentencias no devuelven valores).</returns>
-        /// <exception cref="GotoException">Lanza una excepción para indicar un salto a una etiqueta.</exception>
-        public object VisitGoto(Goto stmt)
-        {
-            bool condition = (bool)interpreter.Evaluate(stmt.Condition);
-            if (condition)
-            {
-                throw new GotoException(stmt.LabelName);
-            }
-            return null;
-        }
-
-        /// <summary>
-        /// Procesa una sentencia Label que define una etiqueta.
-        /// </summary>
-        /// <param name="stmt">La sentencia Label a procesar.</param>
-        /// <returns>Null (las sentencias no devuelven valores).</returns>
-        public object VisitLabel(Label stmt)
-        {
-            return null;
-        }
+        #endregion
     }
 }

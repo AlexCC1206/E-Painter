@@ -11,49 +11,112 @@ namespace EPainter.UI
 	/// </summary>
 	public partial class Main : Control
 	{
+		#region Campos y Propiedades
 		/// <summary>
 		/// Editor de código para escribir programas E-Painter.
 		/// </summary>
 		[Export] CodeEdit codeEdit;
-		
+
 		/// <summary>
 		/// Componente que maneja la visualización del lienzo donde se dibujan los gráficos.
 		/// </summary>
 		[Export] Rayitas rayitas;
-		
+
 		/// <summary>
 		/// Control para ajustar el tamaño del lienzo.
 		/// </summary>
 		[Export] SpinBox sizeInput;
-		
+
 		/// <summary>
 		/// Área de texto para mostrar mensajes de salida y errores.
 		/// </summary>
 		[Export] TextEdit outputText;
-		
+
 		/// <summary>
 		/// Diálogo para guardar archivos de código E-Painter.
 		/// </summary>
 		[Export] FileDialog saveFileDialog;
-		
+
 		/// <summary>
 		/// Diálogo para cargar archivos de código E-Painter.
 		/// </summary>
 		[Export] FileDialog loadFileDialog;
-		
+
+		/// <summary>
+		/// Temporizador para retrasar la validación del código mientras el usuario escribe.
+		/// Evita validaciones continuas que podrían afectar el rendimiento.
+		/// </summary>
+		private Timer validationTimer;
+		#endregion
+
+		#region Inicialización y Eventos
 		/// <summary>
 		/// Inicializa el nodo cuando entra en el árbol de escena.
 		/// </summary>
 		public override void _Ready()
 		{
+			codeEdit.TextChanged += OnCodeTextChanged;
 		}
-
 		/// <summary>
-		/// Llamado en cada frame para procesar la lógica del nodo.
-		/// </summary>
-		/// <param name="delta">Tiempo transcurrido desde el último frame en segundos.</param>
-		public override void _Process(double delta)
+		/// Se activa cuando el texto del editor de código cambia.
+		/// Inicia un temporizador que validará el código después de un breve retraso.
+		/// </summary>		
+		private void OnCodeTextChanged()
 		{
+			if (validationTimer == null)
+			{
+				validationTimer = new Timer();
+				validationTimer.OneShot = true;
+				validationTimer.WaitTime = 0.5f;
+				validationTimer.Timeout += ValidateCodeOnly;
+				AddChild(validationTimer);
+			}
+
+			validationTimer.Stop();
+			validationTimer.Start();
+		}
+		#endregion
+
+		#region Validación y Ejecución de Código
+		/// <summary>
+		/// Valida la sintaxis del código E-Painter sin ejecutarlo.
+		/// Muestra errores léxicos y sintácticos mientras el usuario escribe.
+		/// </summary>
+		private void ValidateCodeOnly()
+		{
+			string code = codeEdit.Text;
+
+			try
+			{
+				ErrorReporter.Reset();
+
+				// Análisis léxico
+				Scanner scanner = new Scanner(code);
+				var tokens = scanner.scanTokens();
+
+				if (ErrorReporter.HasCompilationErrors)
+				{
+					ShowErrorMessage("Lexical errors:\n" + String.Join("\n", ErrorReporter.CompilationErrors));
+					return;
+				}
+
+				// Análisis sintáctico
+				Parser parser = new Parser(tokens);
+				parser.Parse();
+
+				if (ErrorReporter.HasCompilationErrors)
+				{
+					ShowErrorMessage("Parsing errors:\n" + String.Join("\n", ErrorReporter.CompilationErrors));
+					return;
+				}
+
+				outputText.Text = "Code syntax is valid";
+				outputText.Modulate = new Color(0.7f, 0.9f, 1.0f);
+			}
+			catch (Exception ex)
+			{
+				ShowErrorMessage($"Validation error: {ex.Message}");
+			}
 		}
 
 		/// <summary>
@@ -63,10 +126,11 @@ namespace EPainter.UI
 		/// </summary>
 		void Run()
 		{
-			ErrorReporter.Reset();
-			outputText.Text = "Executing code...";
-
 			string code = codeEdit.Text;
+
+			ErrorReporter.Reset();
+			ShowInfoMessage("Executing code...");
+
 
 			try
 			{
@@ -75,7 +139,7 @@ namespace EPainter.UI
 
 				if (ErrorReporter.HasCompilationErrors)
 				{
-					outputText.Text = "Lexical analysis errors:\n" + String.Join("\n", ErrorReporter.CompilationErrors);
+					ShowErrorMessage("Lexical analysis errors:\n" + String.Join("\n", ErrorReporter.CompilationErrors));
 					return;
 				}
 
@@ -84,7 +148,7 @@ namespace EPainter.UI
 
 				if (ErrorReporter.HasCompilationErrors)
 				{
-					outputText.Text = "Parsing errors:\n" + String.Join("\n", ErrorReporter.CompilationErrors);
+					ShowErrorMessage("Parsing errors:\n" + String.Join("\n", ErrorReporter.CompilationErrors));
 					return;
 				}
 
@@ -95,11 +159,11 @@ namespace EPainter.UI
 
 					if (ErrorReporter.HasRuntimeErrors)
 					{
-						outputText.Text = "Runtime errors:\n" + String.Join("\n", ErrorReporter.RuntimeErrors);
+						ShowErrorMessage("Runtime errors:\n" + String.Join("\n", ErrorReporter.RuntimeErrors));
 					}
 					else
 					{
-						outputText.Text = "Code executed successfully.";
+						ShowSuccessMessage("Code executed successfully.");
 					}
 				}
 				catch (Exception ex)
@@ -107,12 +171,12 @@ namespace EPainter.UI
 					if (ex is RuntimeError runtimeError)
 					{
 						ErrorReporter.RuntimeError(runtimeError);
-						outputText.Text = $"Runtime error: {runtimeError.Message}";
+						ShowErrorMessage($"Runtime error: {runtimeError.Message}");
 						GD.PrintErr($"Runtime error: {runtimeError.Message}");
 					}
 					else
 					{
-						outputText.Text = $"Runtime error: {ex.Message}";
+						ShowErrorMessage($"Runtime error: {ex.Message}");
 						GD.PrintErr($"Runtime error: {ex.Message}");
 						GD.PrintErr($"Stack trace: {ex.StackTrace}");
 					}
@@ -122,7 +186,7 @@ namespace EPainter.UI
 			}
 			catch (Exception ex)
 			{
-				outputText.Text = $"Unexpected error: {ex.Message}";
+				ShowErrorMessage($"Unexpected error: {ex.Message}");
 				GD.PrintErr($"Unexpected error: {ex.Message}");
 			}
 		}
@@ -136,9 +200,11 @@ namespace EPainter.UI
 			int newSize = (int)sizeInput.Value;
 			GD.Print($"Changing canvas size to {newSize}");
 			rayitas.ResizeCanvas(newSize);
-			outputText.Text = $"Canvas resized to {newSize}x{newSize}";
+			ShowInfoMessage($"Canvas resized to {newSize}x{newSize}");
 		}
+		#endregion
 
+		#region Gestión de Archivos
 		/// <summary>
 		/// Muestra el diálogo para guardar el código actual en un archivo.
 		/// </summary>
@@ -153,7 +219,7 @@ namespace EPainter.UI
 			}
 			else
 			{
-				outputText.Text = "Error: Could not find save dialog";
+				ShowErrorMessage("Error: Could not find save dialog");
 				GD.PrintErr("Error: saveFileDialog is null");
 			}
 		}
@@ -166,9 +232,9 @@ namespace EPainter.UI
 			if (loadFileDialog != null)
 				loadFileDialog.Visible = true;
 			else
-				outputText.Text = "Error: Could not find load dialog";
+				ShowErrorMessage("Error: Could not find load dialog");
 		}
-		
+
 		/// <summary>
 		/// Maneja el evento cuando se selecciona un archivo en el diálogo de guardado.
 		/// Guarda el contenido del editor de código en el archivo seleccionado.
@@ -179,25 +245,25 @@ namespace EPainter.UI
 			try
 			{
 				string fsPath = ConvertGodotPathToFilesystemPath(path);
-				
+
 				if (!fsPath.EndsWith(".pw", StringComparison.OrdinalIgnoreCase))
 				{
 					fsPath += ".pw";
 				}
-				
+
 				GD.Print($"Saving file to: {fsPath}");
-				
+
 				File.WriteAllText(fsPath, codeEdit.Text);
-				outputText.Text = $"File saved successfully to: {fsPath}";
+				ShowSuccessMessage($"File saved successfully to: {fsPath}");
 				GD.Print($"File saved: {fsPath}");
 			}
 			catch (Exception ex)
 			{
-				outputText.Text = $"Error saving file: {ex.Message}";
+				ShowErrorMessage($"Error saving file: {ex.Message}");
 				GD.PrintErr($"Error saving file: {ex.Message}");
 			}
 		}
-		
+
 		/// <summary>
 		/// Maneja el evento cuando se selecciona un archivo en el diálogo de carga.
 		/// Carga el contenido del archivo en el editor de código.
@@ -209,22 +275,22 @@ namespace EPainter.UI
 			{
 				string fsPath = ConvertGodotPathToFilesystemPath(path);
 				GD.Print($"Attempting to load file from: {fsPath}");
-				
+
 				if (!File.Exists(fsPath))
 				{
-					outputText.Text = $"Error: The file '{fsPath}' does not exist";
+					ShowErrorMessage($"Error: The file '{fsPath}' does not exist");
 					GD.PrintErr($"Error: The file '{fsPath}' does not exist");
 					return;
 				}
-				
+
 				string content = File.ReadAllText(fsPath);
 				codeEdit.Text = content;
-				outputText.Text = $"File loaded successfully: {fsPath}";
+				ShowSuccessMessage($"File loaded successfully: {fsPath}");
 				GD.Print($"File loaded: {fsPath}");
 			}
 			catch (Exception ex)
 			{
-				outputText.Text = $"Error loading file: {ex.Message}";
+				ShowErrorMessage($"Error loading file: {ex.Message}");
 				GD.PrintErr($"Error loading file: {ex.Message}");
 			}
 		}
@@ -239,11 +305,44 @@ namespace EPainter.UI
 			if (path.StartsWith("res://"))
 			{
 				string projectDir = Directory.GetCurrentDirectory();
-				string relativePath = path.Substring(6); 
+				string relativePath = path.Substring(6);
 				return Path.Combine(projectDir, relativePath);
 			}
 			return path;
 		}
+		#endregion
+
+		#region Utiliidades de UI
+		/// <summary>
+		/// Muestra un mensaje de error en color rojo.
+		/// </summary>
+		/// <param name="message">El mensaje de error a mostrar.</param>
+		private void ShowErrorMessage(string message)
+		{
+			outputText.Text = message;
+			outputText.Modulate = Colors.Red;
+		}
+
+		/// <summary>
+		/// Muestra un mensaje de éxito en color verde.
+		/// </summary>
+		/// <param name="message">El mensaje de éxito a mostrar.</param>
+		private void ShowSuccessMessage(string message)
+		{
+			outputText.Text = message;
+			outputText.Modulate = Colors.Green;
+		}
+
+		/// <summary>
+		/// Muestra un mensaje informativo en color por defecto.
+		/// </summary>
+		/// <param name="message">El mensaje informativo a mostrar.</param>
+		private void ShowInfoMessage(string message)
+		{
+			outputText.Text = message;
+			outputText.SelfModulate = Colors.White;
+		}
+		#endregion
 	}
 }
 

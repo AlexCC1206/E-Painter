@@ -8,11 +8,14 @@ namespace EPainter.Core
     /// </summary>
     public class ExprVisitor : IExprVisitor<object>
     {
+        #region Campos
         /// <summary>
         /// La instancia del intérprete que utiliza este visitante.
         /// </summary>
         private readonly Interpreter interpreter;
+        #endregion
 
+        #region Inicialización
         /// <summary>
         /// Inicializa una nueva instancia de la clase ExprVisitor.
         /// </summary>
@@ -21,7 +24,9 @@ namespace EPainter.Core
         {
             this.interpreter = interpreter;
         }
+        #endregion
 
+        #region Evaluación de Expresiones
         /// <summary>
         /// Evalúa una expresión literal.
         /// </summary>
@@ -66,7 +71,8 @@ namespace EPainter.Core
                     return Convert.ToInt32(left) * Convert.ToInt32(right);
                 case TokenType.DIV:
                     CheckNumberOperand(expr.Op, left, right);
-                    if (Convert.ToInt32(right) == 0) {
+                    if (Convert.ToInt32(right) == 0)
+                    {
                         RuntimeError divError = new RuntimeError(expr.Op, "Division by zero.");
                         ErrorReporter.RuntimeError(divError);
                         throw divError;
@@ -178,7 +184,9 @@ namespace EPainter.Core
                     throw funcError;
             }
         }
+        #endregion
 
+        #region Utilidades
         /// <summary>
         /// Verifica que el operando sea un número.
         /// </summary>
@@ -230,5 +238,6 @@ namespace EPainter.Core
         {
             return expr.Accept(this);
         }
+        #endregion
     }
 }

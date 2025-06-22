@@ -1,6 +1,4 @@
-using System;
 using System.Collections.Generic;
-using System.Reflection.Emit;
 
 namespace EPainter.Core
 {
@@ -9,6 +7,7 @@ namespace EPainter.Core
     /// </summary>
     public class Parser
     {
+        #region Campos
         /// <summary>
         /// Lista de tokens a analizar.
         /// </summary>
@@ -18,7 +17,9 @@ namespace EPainter.Core
         /// Índice del token actual.
         /// </summary>
         private int current = 0;
+        #endregion
 
+        #region Inicialización
         /// <summary>
         /// Inicializa una nueva instancia de la clase Parser.
         /// </summary>
@@ -47,8 +48,9 @@ namespace EPainter.Core
 
             return statements;
         }
+        #endregion
 
-        #region Stmt 
+        #region Análisis de Sentencias
         /// <summary>
         /// Analiza y devuelve la siguiente sentencia de declaración.
         /// </summary>
@@ -57,10 +59,10 @@ namespace EPainter.Core
         {
             try
             {
-                while (Match(TokenType.NEWLINE));
-                
+                while (Match(TokenType.NEWLINE)) ;
+
                 if (IsAtEnd()) return null;
-                
+
                 if (Match(TokenType.SPAWN)) return SpawnStatement();
                 if (Match(TokenType.COLOR)) return ColorStatement();
                 if (Match(TokenType.SIZE)) return SizeStatement();
@@ -72,7 +74,7 @@ namespace EPainter.Core
 
                 if (Check(TokenType.IDENTIFIER))
                 {
-                    Advance(); 
+                    Advance();
                     return MaybeLabelOrAssignment();
                 }
 
@@ -260,7 +262,7 @@ namespace EPainter.Core
         }
         #endregion
 
-        #region Expr
+        #region Análisis de Expresiones
         /// <summary>
         /// Punto de entrada para analizar expresiones.
         /// </summary>
@@ -485,11 +487,7 @@ namespace EPainter.Core
             }
 
             if (Match(TokenType.IDENTIFIER))
-            {/*
-                if (Peek().Type == TokenType.LEFT_PAREN)
-                {
-                    return FunctionCall(Previous().Lexeme);
-                }*/
+            {
                 return new Expr.Variable(Previous().Lexeme);
             }
 
@@ -502,41 +500,9 @@ namespace EPainter.Core
 
             throw Error(Peek(), "Expected expression");
         }
-/*
-        /// <summary>
-        /// Analiza una llamada a función.
-        /// </summary>
-        /// <param name="name">El nombre de la función.</param>
-        /// <returns>Una expresión de llamada a función.</returns>
-        private Expr FunctionCall(string name)
-        {
-            Consume(TokenType.LEFT_PAREN, $"Expected '(' after {name}.");
-
-            var arguments = new List<Expr>();
-            if (!Check(TokenType.RIGHT_PAREN))
-            {
-                do
-                {
-                    if ((name == "GetActualX" || name == "GetActualY" || name == "GetCanvasSize") && arguments.Count == 0)
-                    {
-                        if (!Check(TokenType.RIGHT_PAREN))
-                        {
-                            throw Error(Peek(), $"Function {name}() does not accept arguments");
-                        }
-                    }
-                    else
-                    {
-                        arguments.Add(Expression());
-                    }
-                } while (Match(TokenType.COMMA));
-            }
-
-            Consume(TokenType.RIGHT_PAREN, "Expect ')' after function arguments");
-            return new Expr.Call(name, arguments);
-        }*/
         #endregion
 
-        #region Utils
+        #region Utilidades del Parser
         /// <summary>
         /// Verifica si el token actual coincide con alguno de los tipos especificados y avanza al siguiente token si hay coincidencia.
         /// </summary>

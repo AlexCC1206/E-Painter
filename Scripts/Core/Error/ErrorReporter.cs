@@ -8,26 +8,27 @@ namespace EPainter.Core
     /// </summary>
     public static class ErrorReporter
     {
+        #region Campos
         /// <summary>
         /// Lista de errores de compilación.
         /// </summary>
         private static List<string> compilationErrors = new List<string>();
-        
+
         /// <summary>
         /// Lista de errores en tiempo de ejecución.
         /// </summary>
         private static List<string> runtimeErrors = new List<string>();
-        
+
         /// <summary>
         /// Lista de errores específicos del scanner.
         /// </summary>
         private static List<string> scannerErrors = new List<string>();
-        
+
         /// <summary>
         /// Indica si hay errores de compilación.
         /// </summary>
         public static bool HasCompilationErrors => compilationErrors.Count > 0;
-        
+
         /// <summary>
         /// Indica si hay errores en tiempo de ejecución.
         /// </summary>
@@ -42,7 +43,7 @@ namespace EPainter.Core
         /// Proporciona una lista de solo lectura con todos los errores de compilación.
         /// </summary>
         public static IReadOnlyList<string> CompilationErrors => compilationErrors.AsReadOnly();
-        
+
         /// <summary>
         /// Proporciona una lista de solo lectura con todos los errores en tiempo de ejecución.
         /// </summary>
@@ -52,7 +53,9 @@ namespace EPainter.Core
         /// Proporciona una lista de solo lectura con todos los errores del scanner.
         /// </summary>
         public static IReadOnlyList<string> ScannerErrors => scannerErrors.AsReadOnly();
+        #endregion
 
+        #region Gestión de Estado
         /// <summary>
         /// Restablece todas las listas de errores, eliminando todos los errores registrados.
         /// </summary>
@@ -62,7 +65,9 @@ namespace EPainter.Core
             runtimeErrors.Clear();
             scannerErrors.Clear();
         }
+        #endregion
 
+        #region Reporte de Errores de Compilación
         /// <summary>
         /// Reporta un error de compilación.
         /// </summary>
@@ -71,7 +76,7 @@ namespace EPainter.Core
         {
             compilationErrors.Add(error);
             Console.Error.WriteLine(error);
-        } 
+        }
 
         /// <summary>
         /// Reporta un error asociado con un token específico.
@@ -110,11 +115,13 @@ namespace EPainter.Core
             {
                 error = $"[Line {line}] Error: {message}";
             }
-            
+
             scannerErrors.Add(error);
             ReportCompilationError(error);
         }
+        #endregion
 
+        #region Reporte de Errores en Tiempo de Ejecución
         /// <summary>
         /// Reporta un error en tiempo de ejecución.
         /// </summary>
@@ -125,5 +132,6 @@ namespace EPainter.Core
             runtimeErrors.Add(errorMsg);
             Console.Error.WriteLine(errorMsg);
         }
+        #endregion
     }
 }

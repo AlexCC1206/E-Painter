@@ -215,5 +215,6 @@ filters = PackedStringArray("*.pw ; PW Files")
 [connection signal="pressed" from="Panel/TopBar/Load" to="." method="Load"]
 [connection signal="pressed" from="Panel/TopBar/Save" to="." method="Save"]
 [connection signal="pressed" from="Panel/TopBar/Run" to="." method="Run"]
+[connection signal="text_changed" from="Panel/HSplitContainer/LeftPanel/VSplitContainer/ConsoleOutput" to="." method="OnCodeTextChanged"]
 [connection signal="file_selected" from="Panel/SaveFileDialog" to="." method="OnSaveFileSelected"]
 [connection signal="file_selected" from="Panel/LoadFileDialog" to="." method="OnLoadFileSelected"]

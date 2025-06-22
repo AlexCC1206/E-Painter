@@ -8,6 +8,7 @@ namespace EPainter.Core
     /// </summary>
     public class Scanner
     {
+        #region Campos
         /// <summary>
         /// El código fuente a analizar.
         /// </summary>
@@ -32,6 +33,15 @@ namespace EPainter.Core
         /// Número de línea actual en el código fuente.
         /// </summary>
         private int line = 1;
+
+        /// <summary>
+        /// Conjunto de colores válidos permitidos en el lenguaje.
+        /// </summary>
+        private static readonly HashSet<string> ValidColors = new()
+        {
+            "Red", "Blue", "Green", "Yellow", "Orange",
+            "Purple", "Black", "White", "Transparent"
+        };
 
         /// <summary>
         /// Diccionario que mapea palabras clave a sus tipos de tokens correspondientes.
@@ -59,7 +69,9 @@ namespace EPainter.Core
             {"True", TokenType.TRUE},
             {"False", TokenType.FALSE}
         };
+        #endregion
 
+        #region Initialización
         /// <summary>
         /// Inicializa una nueva instancia de la clase Scanner.
         /// </summary>
@@ -68,7 +80,9 @@ namespace EPainter.Core
         {
             Source = source;
         }
+        #endregion
 
+        #region Análisis Léxico Principal
         /// <summary>
         /// Escanea todos los tokens del código fuente.
         /// </summary>
@@ -189,7 +203,9 @@ namespace EPainter.Core
                     break;
             }
         }
+        #endregion
 
+        #region Reconocimiento de Tokens Específicos
         /// <summary>
         /// Analiza un identificador en el código fuente.
         /// </summary>
@@ -256,16 +272,9 @@ namespace EPainter.Core
 
             AddToken(TokenType.COLOR_LITERAL, color);
         }
+        #endregion
 
-        /// <summary>
-        /// Conjunto de colores válidos permitidos en el lenguaje.
-        /// </summary>
-        private static readonly HashSet<string> ValidColors = new()
-        {
-            "Red", "Blue", "Green", "Yellow", "Orange",
-            "Purple", "Black", "White", "Transparent"
-        };
-
+        #region Utilidades del Scanner
         /// <summary>
         /// Verifica si el caracter actual coincide con el esperado y avanza si es así.
         /// </summary>
@@ -361,18 +370,18 @@ namespace EPainter.Core
         {
             ErrorReporter.ReportScannerError(line, message, character);
         }
-        
+
         /// <summary>
         /// Método de sincronización para recuperarse de un error y continuar el análisis.
         /// </summary>
         private void Synchronize()
         {
             Advance();
-            
-            while (!IsAtEnd()) 
+
+            while (!IsAtEnd())
             {
                 if (Peek() == '\n') return;
-                
+
                 switch (Peek())
                 {
                     case '(':
@@ -387,9 +396,10 @@ namespace EPainter.Core
                     case '"':
                         return;
                 }
-                
+
                 Advance();
             }
         }
+        #endregion
     }
 }
