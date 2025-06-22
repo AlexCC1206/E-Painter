@@ -4,94 +4,87 @@ using System;
 
 public partial class Rayitas : TextureRect
 {
-	[Export] int gridsize = 32;
-	Color Color = new Color(0, 0, 0, 0.1f);
-	float space = 0;
-	public Canvas Canvas;
+	[Export] int gridSize = 32;
+	[Export] Color gridColor = new Color(0, 0, 0, 0.1f);
+
+	public Canvas Canvas { get; private set; }
+	private float cellSize = 0;
+	
 	
 	public override void _Ready()
 	{
-		Canvas = new Canvas(gridsize);
-		
-		CustomMinimumSize = new Vector2(400, 400);
-		
-		var newTexture = new ImageTexture();
-		var image = Image.CreateEmpty(gridsize, gridsize, false, Image.Format.Rgba8);
-		newTexture.SetImage(image);
-		Texture = newTexture;
-		
-		space = CustomMinimumSize.X / gridsize;
-		
-		GD.Print($"Canvas initialized with size {gridsize}x{gridsize}, space = {space}");
+		InitializeCanvas();
 	}
 
-	public override void _Process(double delta)
+    public void ResizeCanvas(int newSize)
 	{
+		gridSize = newSize;
+		InitializeCanvas();
+		GD.Print($"Canvas resized to {gridSize}x{gridSize}, with cellSize = {cellSize}");
 	}
-	
-	public void ResizeCanvas(int newSize)
+
+	private void InitializeCanvas()
 	{
-		gridsize = newSize;
-		Canvas = new Canvas(gridsize);
-		
+		Canvas = new Canvas(gridSize);
+
+		CustomMinimumSize = new Vector2(400, 400);
+
 		var newTexture = new ImageTexture();
-		var image = Image.CreateEmpty(gridsize, gridsize, false, Image.Format.Rgba8);
-		
+		var image = Image.CreateEmpty(gridSize, gridSize, false, Image.Format.Rgba8);
 		newTexture.SetImage(image);
 		Texture = newTexture;
-		
-		CustomMinimumSize = new Vector2(400, 400);
-		
-		space = CustomMinimumSize.X / gridsize;
-		
+
+		RecalculateCellSize();
 		QueueRedraw();
-		
-		GD.Print($"Canvas resized to {gridsize}x{gridsize}, with space = {space}");
+    }
+
+    private void RecalculateCellSize()
+    {
+        float effectiveWidth = Mathf.Max(Size.X, CustomMinimumSize.X);
+        cellSize = effectiveWidth / gridSize;
+    }
+
+    public override void _Draw()
+	{
+		RecalculateCellSize();
+		DrawCanvas(Canvas);
+		DrawGrid();
 	}
 	
-	public override void _Draw()
-	{
-		float effectiveWidth = Mathf.Max(Size.X, CustomMinimumSize.X);
-		space = effectiveWidth / gridsize;
-		
-		DrawCanvas(Canvas);
-		DrawLines();
-	}
 	void DrawCanvas(Canvas canvas)
 	{
-		string[,] Rosalia = canvas.Pixels;
+		string[,] pixels = canvas.Pixels;
 		
-		if (space <= 0)
+		if (cellSize <= 0)
 		{
-			space = Mathf.Max(Size.X, CustomMinimumSize.X) / gridsize;
+			cellSize = Mathf.Max(Size.X, CustomMinimumSize.X) / gridSize;
 		}
 
-		for (var i = 0; i < Rosalia.GetLength(0); i++)
+		for (var i = 0; i < pixels.GetLength(0); i++)
 		{
-			for (var j = 0; j < Rosalia.GetLength(1); j++)
+			for (var j = 0; j < pixels.GetLength(1); j++)
 			{
-				Color color = CheckColor(Rosalia[i, j]);
-				Rect2 rect = new Rect2(i * space, j * space, space, space);
+				Color color = ConvertStringToColor(pixels[i, j]);
+				Rect2 rect = new Rect2(i * cellSize, j * cellSize, cellSize, cellSize);
 				DrawRect(rect, color);
 			}
 		}
 	}
 	
-	void DrawLines()
+	void DrawGrid()
 	{
 		float effectiveWidth = Mathf.Max(Size.X, CustomMinimumSize.X);
-		float effectiveHeight = Mathf.Max(Size.Y, CustomMinimumSize.Y);
-		space = effectiveWidth / gridsize;
+            float effectiveHeight = Mathf.Max(Size.Y, CustomMinimumSize.Y);
 
-		for (var i = 0; i <= gridsize; i++)
-		{
-			float c = i * space;
-			DrawLine(new Vector2(0, c), new Vector2(effectiveWidth, c), Color, 1f);
-			DrawLine(new Vector2(c, 0), new Vector2(c, effectiveHeight), Color, 1f);
-		}
+            for (var i = 0; i <= gridSize; i++)
+            {
+                float position = i * cellSize;
+                DrawLine(new Vector2(0, position), new Vector2(effectiveWidth, position), gridColor, 1f);
+                DrawLine(new Vector2(position, 0), new Vector2(position, effectiveHeight), gridColor, 1f);
+            }
 	}
 	
-	Color CheckColor(string color)
+	private Color ConvertStringToColor(string color)
 	{
 		switch (color)
 		{
@@ -103,7 +96,6 @@ public partial class Rayitas : TextureRect
 			case "Purple": return new Color(0.627f, 0.125f, 0.941f);
 			case "Black": return new Color(0, 0, 0);
 			case "White": return new Color(1, 1, 1);
-
 			default: return new Color(0, 0, 0, 0); // Transparent
 		}
 	}
