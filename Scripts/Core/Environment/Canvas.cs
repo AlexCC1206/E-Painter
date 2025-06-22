@@ -77,26 +77,5 @@ namespace EPainter.Core
         {
             return IsValidPosition(x, y) ? Pixels[x, y] : null;
         }
-
-        /// <summary>
-        /// Imprime una representación visual del lienzo en la consola.
-        /// </summary>
-        public void Print()
-        {
-            for (int y = 0; y < Size; y++)
-            {
-                for (int x = 0; x < Size; x++)
-                {
-                    string color = GetPixel(x, y);
-                    if (color == "Black")
-                        Console.Write("■ ");
-                    else if (color == "White")
-                        Console.Write("□ ");
-                    else
-                        Console.Write("  ");
-                }
-                Console.WriteLine();
-            }
-        }
     }
 }

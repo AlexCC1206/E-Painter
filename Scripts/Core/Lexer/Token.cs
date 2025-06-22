@@ -39,15 +39,6 @@ namespace EPainter.Core
             Literal = literal;
             Line = line;
         }
-        
-        /// <summary>
-        /// Devuelve una representación en cadena de este token.
-        /// </summary>
-        /// <returns>Una cadena con el tipo, lexema y valor literal del token.</returns>
-        public override string ToString()
-        {
-            return $"{Type} {Lexeme} {Literal}";
-        }
     }
 }
 

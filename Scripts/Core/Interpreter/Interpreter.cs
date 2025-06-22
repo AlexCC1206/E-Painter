@@ -50,7 +50,7 @@ namespace EPainter.Core
             InitializeLabels();
             ExecuteAll();
         }
-        
+
         /// <summary>
         /// Valida que haya exactamente un comando Spawn al inicio del programa.
         /// Las etiquetas pueden aparecer antes del Spawn, pero no otras instrucciones.
@@ -61,23 +61,6 @@ namespace EPainter.Core
             bool foundSpawn = false;
             int firstSpawnIndex = -1;
 
-            if (!foundSpawn)
-            {
-                var error = new RuntimeError("The program must start with a Spawn command.");
-                ErrorReporter.RuntimeError(error);
-                throw error;
-            }
-            
-            for (int i = 0; i < firstSpawnIndex; i++)
-            {
-                if (!(statements[i] is Label))
-                {
-                    var error = new RuntimeError("The Spawn command must be the first command in the program (labels can appear before).");
-                    ErrorReporter.RuntimeError(error);
-                    throw error;
-                }
-            }
-            
             for (int i = 0; i < statements.Count; i++)
             {
                 if (statements[i] is Spawn)
@@ -93,6 +76,23 @@ namespace EPainter.Core
                         ErrorReporter.RuntimeError(error);
                         throw error;
                     }
+                }
+            }
+            
+            if (!foundSpawn)
+            {
+                var error = new RuntimeError("The program must start with a Spawn command.");
+                ErrorReporter.RuntimeError(error);
+                throw error;
+            }
+            
+            for (int i = 0; i < firstSpawnIndex; i++)
+            {
+                if (!(statements[i] is Label))
+                {
+                    var error = new RuntimeError("The Spawn command must be the first command in the program (labels can appear before).");
+                    ErrorReporter.RuntimeError(error);
+                    throw error;
                 }
             }
         }
