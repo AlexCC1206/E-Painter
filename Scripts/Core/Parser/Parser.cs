@@ -94,9 +94,9 @@ namespace EPainter.Core
         {
             Consume(TokenType.LEFT_PAREN, "Expect '(' after 'Spawn'.");
             Expr x = Expression();
-            Consume(TokenType.COMMA, "Expect ',' after X coordinate.");
+            Consume(TokenType.COMMA, "Expect ',' after int x.");
             Expr y = Expression();
-            Consume(TokenType.RIGHT_PAREN, "Expect ')' after Y coordinate.");
+            Consume(TokenType.RIGHT_PAREN, "Expect ')' after int y.");
             Consume(TokenType.NEWLINE, "Expected newline after 'Spawn(int x, int y)'.");
             return new Stmt.Spawn(x, y);
         }
@@ -110,7 +110,7 @@ namespace EPainter.Core
         {
             Consume(TokenType.LEFT_PAREN, "Expect '(' after 'Color'.");
             var color = Expression();
-            Consume(TokenType.RIGHT_PAREN, "Expect ')' after color.");
+            Consume(TokenType.RIGHT_PAREN, "Expect ')' after string color.");
             Consume(TokenType.NEWLINE, "Expected newline after 'Color(string color)'.");
             return new Stmt.Color(color);
         }
@@ -122,9 +122,9 @@ namespace EPainter.Core
         /// <exception cref="ParseError">Se lanza si la sintaxis es incorrecta.</exception>
         private Stmt SizeStatement()
         {
-            Consume(TokenType.LEFT_PAREN, "Expect '(' after 'Size'");
+            Consume(TokenType.LEFT_PAREN, "Expect '(' after 'Size'.");
             var size = Expression();
-            Consume(TokenType.RIGHT_PAREN, "Expect ')' after size.");
+            Consume(TokenType.RIGHT_PAREN, "Expect ')' after int k.");
             Consume(TokenType.NEWLINE, "Expected newline after 'Size(int k)'.");
             return new Stmt.Size(size);
         }
@@ -138,11 +138,11 @@ namespace EPainter.Core
         {
             Consume(TokenType.LEFT_PAREN, "Expect '(' after 'DrawLine'.");
             Expr dirX = Expression();
-            Consume(TokenType.COMMA, "Expect ',' after direction X.");
+            Consume(TokenType.COMMA, "Expect ',' after int dirX.");
             Expr dirY = Expression();
-            Consume(TokenType.COMMA, "Expect ',' after direction Y.");
+            Consume(TokenType.COMMA, "Expect ',' after int dirY.");
             Expr distance = Expression();
-            Consume(TokenType.RIGHT_PAREN, "Expect ')' after distance.");
+            Consume(TokenType.RIGHT_PAREN, "Expect ')' after int distance.");
             Consume(TokenType.NEWLINE, "Expected newline after 'DrawLine(int dirX, int dirY, int distance)'.");
             return new Stmt.DrawLine(dirX, dirY, distance);
         }
@@ -156,12 +156,12 @@ namespace EPainter.Core
         {
             Consume(TokenType.LEFT_PAREN, "Expect '(' after 'DrawCircle'.");
             Expr dirX = Expression();
-            Consume(TokenType.COMMA, "Expect ',' after direction X.");
+            Consume(TokenType.COMMA, "Expect ',' after int dirX.");
             Expr dirY = Expression();
-            Consume(TokenType.COMMA, "Expect ',' after direction Y.");
+            Consume(TokenType.COMMA, "Expect ',' after int dirY.");
             Expr radius = Expression();
-            Consume(TokenType.RIGHT_PAREN, "Expect ')' after radius.");
-            Consume(TokenType.NEWLINE, "Expected newline after 'DrawCircle(int dirX, int dirY, int rsdius)'.");
+            Consume(TokenType.RIGHT_PAREN, "Expect ')' after int radius.");
+            Consume(TokenType.NEWLINE, "Expected newline after 'DrawCircle(int dirX, int dirY, int radius)'.");
             return new Stmt.DrawCircle(dirX, dirY, radius);
         }
 
@@ -175,15 +175,15 @@ namespace EPainter.Core
         {
             Consume(TokenType.LEFT_PAREN, "Expect '(' after 'DrawRectangle'.");
             Expr dirX = Expression();
-            Consume(TokenType.COMMA, "Expect ',' after direction X.");
+            Consume(TokenType.COMMA, "Expect ',' after int dirX.");
             Expr dirY = Expression();
-            Consume(TokenType.COMMA, "Expect ',' after direction Y.");
+            Consume(TokenType.COMMA, "Expect ',' after int dirY.");
             Expr distance = Expression();
-            Consume(TokenType.COMMA, "Expect ',' after distance.");
+            Consume(TokenType.COMMA, "Expect ',' after int distance.");
             Expr width = Expression();
-            Consume(TokenType.COMMA, "Expect ',' after width.");
+            Consume(TokenType.COMMA, "Expect ',' after int width.");
             Expr height = Expression();
-            Consume(TokenType.RIGHT_PAREN, "Expect ')' after height.");
+            Consume(TokenType.RIGHT_PAREN, "Expect ')' after int height.");
             Consume(TokenType.NEWLINE, "Expected newline after 'DrawRectangle(int dirX, int dirY, int distance, int width, int height)'.");
             return new Stmt.DrawRectangle(dirX, dirY, distance, width, height);
         }
@@ -196,7 +196,7 @@ namespace EPainter.Core
         private Stmt FillStatement()
         {
             Consume(TokenType.LEFT_PAREN, "Expect '(' after 'Fill'.");
-            Consume(TokenType.RIGHT_PAREN, "Expect ')' after Fill.");
+            Consume(TokenType.RIGHT_PAREN, "Expect ')'.");
             Consume(TokenType.NEWLINE, "Expected newline after 'Fill()'.");
             return new Stmt.Fill();
         }
@@ -220,9 +220,8 @@ namespace EPainter.Core
                 return new Stmt.Goto(label.Lexeme, condition);
             }
             catch (ParseError error) {
-                // Creamos un token dummy para el reporte de error más detallado
                 var token = Previous();
-                ErrorReporter.ReportTokenError(token, "Error en sentencia GoTo: " + error.Message);
+                ErrorReporter.ReportTokenError(token, "Error in GoTo statement: " + error.Message);
                 throw;
             }
         }
@@ -315,7 +314,7 @@ namespace EPainter.Core
         {
             Expr expr = Comparison();
 
-            while (Match(TokenType.EQUAL_EQUAL))
+            while (Match(TokenType.EQUAL_EQUAL, TokenType.BANG_EQUAL))
             {
                 Token op = Previous();
                 Expr right = Comparison();
@@ -387,7 +386,7 @@ namespace EPainter.Core
         /// <returns>Una expresión unaria o una expresión de nivel inferior.</returns>
         private Expr Unary()
         {
-            if (Match(TokenType.MIN, TokenType.BANG_EQUAL))
+            if (Match(TokenType.MIN))
             {
                 Token op = Previous();
                 Expr right = Pow();
@@ -428,69 +427,69 @@ namespace EPainter.Core
             if (Match(TokenType.TRUE)) return new Expr.Literal(true);
             if (Match(TokenType.FALSE)) return new Expr.Literal(false);
 
-            // Manejo específico para funciones sin argumentos
             if (Match(TokenType.GET_ACTUAL_X, TokenType.GET_ACTUAL_Y, TokenType.GET_CANVAS_SIZE))
             {
                 string functionName = Previous().Lexeme;
-                Consume(TokenType.LEFT_PAREN, $"Expect '(' after {functionName}.");
-                Consume(TokenType.RIGHT_PAREN, $"Expect ')' after {functionName}().");
+                Consume(TokenType.LEFT_PAREN, $"Expect '(' after '{functionName}'.");
+                Consume(TokenType.RIGHT_PAREN, $"Expect ')'.");
+                Consume(TokenType.NEWLINE, $"Expected newline after '{functionName}()'.");
                 return new Expr.Call(functionName, new List<Expr>());
             }
 
-            // Manejo específico para IsBrushColor
             if (Match(TokenType.IS_BRUSH_COLOR))
             {
-                Consume(TokenType.LEFT_PAREN, "Expect '(' after IsBrushColor.");
+                Consume(TokenType.LEFT_PAREN, "Expect '(' after 'IsBrushColor'.");
                 Expr colorArg = Expression();
-                Consume(TokenType.RIGHT_PAREN, "Expect ')' after IsBrushColor parameter.");
+                Consume(TokenType.RIGHT_PAREN, "Expect ')' after string color.");
+                Consume(TokenType.NEWLINE, $"Expected newline after 'IsBrushColor(string color)'.");
                 return new Expr.Call("IsBrushColor", new List<Expr> { colorArg });
             }
 
-            // Manejo específico para IsBrushSize
             if (Match(TokenType.IS_BRUSH_SIZE))
             {
-                Consume(TokenType.LEFT_PAREN, "Expect '(' after IsBrushSize.");
+                Consume(TokenType.LEFT_PAREN, "Expect '(' after 'IsBrushSize'.");
                 Expr sizeArg = Expression();
-                Consume(TokenType.RIGHT_PAREN, "Expect ')' after IsBrushSize parameter.");
+                Consume(TokenType.RIGHT_PAREN, "Expect ')' after int size.");
+                Consume(TokenType.NEWLINE, $"Expected newline after 'IsBrushSize(int size)'.");
                 return new Expr.Call("IsBrushSize", new List<Expr> { sizeArg });
             }
 
-            // Manejo específico para IsCanvasColor
             if (Match(TokenType.IS_CANVAS_COLOR))
             {
-                Consume(TokenType.LEFT_PAREN, "Expect '(' after IsCanvasColor.");
+                Consume(TokenType.LEFT_PAREN, "Expect '(' after 'IsCanvasColor'.");
                 Expr colorArg = Expression();
-                Consume(TokenType.COMMA, "Expect ',' after color parameter.");
-                Expr xArg = Expression();
-                Consume(TokenType.COMMA, "Expect ',' after x parameter.");
+                Consume(TokenType.COMMA, "Expect ',' after string color.");
                 Expr yArg = Expression();
-                Consume(TokenType.RIGHT_PAREN, "Expect ')' after IsCanvasColor parameters.");
-                return new Expr.Call("IsCanvasColor", new List<Expr> { colorArg, xArg, yArg });
+                Consume(TokenType.RIGHT_PAREN, "Expect ')' after int vertical.");
+                Expr xArg = Expression();
+                Consume(TokenType.COMMA, "Expect ',' after int horizontal.");
+                Consume(TokenType.NEWLINE, $"Expected newline after 'IsCanvasColor(string color, int vertical, int horizontal)'.");
+                return new Expr.Call("IsCanvasColor", new List<Expr> { colorArg, yArg, xArg });
             }
 
-            // Manejo específico para GetColorCount
             if (Match(TokenType.GET_COLOR_COUNT))
             {
-                Consume(TokenType.LEFT_PAREN, "Expect '(' after GetColorCount.");
+                Consume(TokenType.LEFT_PAREN, "Expect '(' after 'GetColorCount'.");
                 Expr colorArg = Expression();
-                Consume(TokenType.COMMA, "Expect ',' after color parameter.");
+                Consume(TokenType.COMMA, "Expect ',' after string color.");
                 Expr x1Arg = Expression();
-                Consume(TokenType.COMMA, "Expect ',' after x1 parameter.");
+                Consume(TokenType.COMMA, "Expect ',' after int x1.");
                 Expr y1Arg = Expression();
-                Consume(TokenType.COMMA, "Expect ',' after y1 parameter.");
+                Consume(TokenType.COMMA, "Expect ',' after int y1.");
                 Expr x2Arg = Expression();
-                Consume(TokenType.COMMA, "Expect ',' after x2 parameter.");
+                Consume(TokenType.COMMA, "Expect ',' after int x2.");
                 Expr y2Arg = Expression();
-                Consume(TokenType.RIGHT_PAREN, "Expect ')' after GetColorCount parameters.");
+                Consume(TokenType.RIGHT_PAREN, "Expect ')' after int y2.");
+                Consume(TokenType.NEWLINE, $"Expected newline after 'GetColorCount(string color, int x1, int y1, int x2, int y2)'.");
                 return new Expr.Call("GetColorCount", new List<Expr> { colorArg, x1Arg, y1Arg, x2Arg, y2Arg });
             }
 
             if (Match(TokenType.IDENTIFIER))
-            {
+            {/*
                 if (Peek().Type == TokenType.LEFT_PAREN)
                 {
                     return FunctionCall(Previous().Lexeme);
-                }
+                }*/
                 return new Expr.Variable(Previous().Lexeme);
             }
 
@@ -503,8 +502,7 @@ namespace EPainter.Core
 
             throw Error(Peek(), "Expected expression");
         }
-
-
+/*
         /// <summary>
         /// Analiza una llamada a función.
         /// </summary>
@@ -535,7 +533,7 @@ namespace EPainter.Core
 
             Consume(TokenType.RIGHT_PAREN, "Expect ')' after function arguments");
             return new Expr.Call(name, arguments);
-        }
+        }*/
         #endregion
 
         #region Utils

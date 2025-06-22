@@ -15,9 +15,32 @@ shadow_color = Color(0.129412, 0.145098, 0.168627, 1)
 
 [sub_resource type="CodeHighlighter" id="CodeHighlighter_ly247"]
 number_color = Color(0.819608, 0.603922, 0.4, 1)
-symbol_color = Color(0.337255, 0.713726, 0.760784, 1)
+symbol_color = Color(0.670588, 0.698039, 0.74902, 1)
 function_color = Color(0.380392, 0.686275, 0.937255, 1)
 member_variable_color = Color(0.878431, 0.423529, 0.458824, 1)
+keyword_colors = {
+"Color": Color(0.776471, 0.470588, 0.866667, 1),
+"DrawCircle": Color(0.776471, 0.470588, 0.866667, 1),
+"DrawLine": Color(0.776471, 0.470588, 0.866667, 1),
+"DrawRectangle": Color(0.776471, 0.470588, 0.866667, 1),
+"False": Color(0.776471, 0.470588, 0.866667, 1),
+"Fill": Color(0.776471, 0.470588, 0.866667, 1),
+"GoTo": Color(0.776471, 0.470588, 0.866667, 1),
+"Size": Color(0.776471, 0.470588, 0.866667, 1),
+"Spawn": Color(0.776471, 0.470588, 0.866667, 1),
+"True": Color(0.776471, 0.470588, 0.866667, 1)
+}
+member_keyword_colors = {
+&"Black": Color(0.596078, 0.764706, 0.47451, 1),
+&"Blue": Color(0.596078, 0.764706, 0.47451, 1),
+&"Green": Color(0.596078, 0.764706, 0.47451, 1),
+&"Orange": Color(0.596078, 0.764706, 0.47451, 1),
+&"Purple": Color(0.596078, 0.764706, 0.47451, 1),
+&"Red": Color(0.596078, 0.764706, 0.47451, 1),
+&"Transparent": Color(0.596078, 0.764706, 0.47451, 1),
+&"White": Color(0.596078, 0.764706, 0.47451, 1),
+&"Yellow": Color(0.596078, 0.764706, 0.47451, 1)
+}
 
 [sub_resource type="CanvasTexture" id="CanvasTexture_nr04c"]
 
@@ -147,6 +170,8 @@ theme_override_colors/completion_selected_color = Color(0.172549, 0.192157, 0.22
 theme_override_colors/completion_existing_color = Color(0.670588, 0.698039, 0.74902, 1)
 scroll_smooth = true
 syntax_highlighter = SubResource("CodeHighlighter_ly247")
+highlight_all_occurrences = true
+highlight_current_line = true
 gutters_draw_line_numbers = true
 
 [node name="ConsoleOutput" type="TextEdit" parent="Panel/HSplitContainer/LeftPanel/VSplitContainer"]

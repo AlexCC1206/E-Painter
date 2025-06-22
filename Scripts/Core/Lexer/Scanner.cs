@@ -190,7 +190,6 @@ namespace EPainter.Core
             }
         }
 
-
         /// <summary>
         /// Analiza un identificador en el código fuente.
         /// </summary>

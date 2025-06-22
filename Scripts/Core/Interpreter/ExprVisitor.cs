@@ -173,7 +173,7 @@ namespace EPainter.Core
                         (int)Visit(expr.Arguments[4])
                     );
                 default:
-                    RuntimeError funcError = new RuntimeError($"Función '{expr.FunctionName}' no encontrada.");
+                    RuntimeError funcError = new RuntimeError($"Function '{expr.FunctionName}' not found.");
                     ErrorReporter.RuntimeError(funcError);
                     throw funcError;
             }
@@ -188,7 +188,7 @@ namespace EPainter.Core
         private void CheckNumberOperand(Token op, object operand)
         {
             if (operand is int) return;
-            RuntimeError typeError = new RuntimeError(op, "El operando debe ser un número");
+            RuntimeError typeError = new RuntimeError(op, "The operand must be a number");
             ErrorReporter.RuntimeError(typeError);
             throw typeError;
         }
@@ -203,7 +203,7 @@ namespace EPainter.Core
         private void CheckNumberOperand(Token op, object left, object right)
         {
             if (left is int && right is int) return;
-            RuntimeError typeError = new RuntimeError(op, "Los operandos deben ser números");
+            RuntimeError typeError = new RuntimeError(op, "Operands must be numbers");
             ErrorReporter.RuntimeError(typeError);
             throw typeError;
         }
