@@ -13,7 +13,7 @@ config_version=5
 config/name="E-Painter"
 run/main_scene="uid://b7ejf85dch6ca"
 config/features=PackedStringArray("4.4", "C#", "Forward Plus")
-config/icon="res://icon.svg"
+config/icon="res://icon.png"
 
 [display]
 
