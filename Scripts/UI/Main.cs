@@ -49,7 +49,28 @@ namespace EPainter.UI
 					return;
 				}
 
+				// Integración del Resolver: análisis semántico
 				var interpreter = new Interpreter();
+				var resolver = new Resolver(interpreter, rayitas.Canvas.Size);
+				
+				try
+				{
+					resolver.Resolve(statements);
+					
+					if (ErrorReporter.HasSemanticErrors)
+					{
+						outputText.Text = "Errores de análisis semántico:\n" + String.Join("\n", ErrorReporter.semanticErrors);
+						return;
+					}
+				}
+				catch (Exception ex)
+				{
+					outputText.Text = $"Error durante el análisis semántico: {ex.Message}";
+					GD.PrintErr($"Error durante el análisis semántico: {ex.Message}");
+					return;
+				}
+				
+				// Fase de interpretación
 				try
 				{
 					interpreter.Interpret(rayitas.Canvas, statements);

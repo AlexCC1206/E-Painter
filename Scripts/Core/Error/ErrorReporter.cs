@@ -6,16 +6,20 @@ namespace EPainter.Core
     public static class ErrorReporter
     {
         public static List<string> errors = new List<string>();
+        public static List<string> semanticErrors = new List<string>();
         public static List<string> runtimeErrors = new List<string>();
         public static bool HasErrors => errors.Count > 0;
+        public static bool HasSemanticErrors => semanticErrors.Count > 0;
         public static bool HasRuntimeErrors => runtimeErrors.Count > 0;
 
         public static IReadOnlyList<string> Errors => errors.AsReadOnly();
+        public static IReadOnlyList<string> SemanticErrors => semanticErrors.AsReadOnly();
         public static IReadOnlyList<string> RuntimeErrors => runtimeErrors.AsReadOnly();
 
         public static void Reset()
         {
             errors.Clear();
+            semanticErrors.Clear();
             runtimeErrors.Clear();
         }
 
@@ -45,6 +49,13 @@ namespace EPainter.Core
             Console.Error.WriteLine(errorMsg);
         }
 
+        public static void SemanticError(int line, string message)
+        {
+            string errorMsg = $"[Línea {line}] Error semántico: {message}";
+            semanticErrors.Add(errorMsg);
+            Console.Error.WriteLine(errorMsg);
+        }
+        
         public static void ResolutionError(Token name, string message)
         {
             Error(name, message);
@@ -55,6 +66,11 @@ namespace EPainter.Core
             foreach (var error in errors)
             {
                 Console.Error.WriteLine(error);
+            }
+            
+            foreach (var semanticError in semanticErrors)
+            {
+                Console.Error.WriteLine(semanticError);
             }
 
             foreach (var runtimeError in runtimeErrors)
