@@ -8,7 +8,11 @@ namespace EPainter.Core
     public class Interpreter
     {
         private Dictionary<string, object> Variables = new Dictionary<string, object>();
-        private Dictionary<string, int> Labels = new Dictionary<string, int>();
+
+        /// <summary>
+        /// Diccionario que mapea nombres de etiquetas a índices en la lista de sentencias.
+        /// </summary>
+        public Dictionary<string, int> Labels = new Dictionary<string, int>();
 
         private EPainterState state;
         public Canvas canvas;
