@@ -21,6 +21,11 @@ namespace EPainter.Core
         public Dictionary<string, int> Labels = new Dictionary<string, int>();
 
         /// <summary>
+        /// Diccionario que mapea nombres de etiquetas a índices en la lista de sentencias.
+        /// </summary>
+        public Dictionary<string, int> Labels = new Dictionary<string, int>();
+
+        /// <summary>
         /// Estado actual del intérprete que incluye posición, color y tamaño del pincel.
         /// </summary>
         private EPainterState state;
