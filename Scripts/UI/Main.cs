@@ -47,6 +47,8 @@ namespace EPainter.UI
 		/// Evita validaciones continuas que podrían afectar el rendimiento.
 		/// </summary>
 		private Timer validationTimer;
+
+		private Interpreter interpreter;
 		#endregion
 
 		#region Inicialización y Eventos
@@ -152,7 +154,10 @@ namespace EPainter.UI
 					return;
 				}
 
-				var interpreter = new Interpreter();
+				var resolver = new Resolver(interpreter);
+				resolver.Resolve(statements);
+
+				//var interpreter = new Interpreter();
 				try
 				{
 					interpreter.Interpret(rayitas.Canvas, statements);

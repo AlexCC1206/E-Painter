@@ -155,22 +155,70 @@ namespace EPainter.Core
             switch (expr.FunctionName)
             {
                 case "GetActualX":
+                    if (expr.Arguments.Count != 0)
+                    {
+                        RuntimeError error = new RuntimeError("'GetActualX()' no acepta argumentos.");
+                        ErrorReporter.RuntimeError(error);
+                        throw error;
+                    }
                     return interpreter.GetActualX();
+
                 case "GetActualY":
+                    if (expr.Arguments.Count != 0)
+                    {
+                        RuntimeError error = new RuntimeError("'GetActualY()' no acepta argumentos.");
+                        ErrorReporter.RuntimeError(error);
+                        throw error;
+                    }
                     return interpreter.GetActualY();
+
                 case "GetCanvasSize":
+                    if (expr.Arguments.Count != 0)
+                    {
+                        RuntimeError error = new RuntimeError("'GetCanvasSize()' no acepta argumentos.");
+                        ErrorReporter.RuntimeError(error);
+                        throw error;
+                    }
                     return interpreter.GetCanvasSize();
+
                 case "IsBrushColor":
+                    if (expr.Arguments.Count != 1 || !(Visit(expr.Arguments[0]) is string))
+                    {
+                        RuntimeError error = new RuntimeError("'IsBrushColor(string color)' no acepta argumentos.");
+                        ErrorReporter.RuntimeError(error);
+                        throw error;
+                    }
                     return interpreter.IsBrushColor((string)Visit(expr.Arguments[0]));
+
                 case "IsBrushSize":
+                    if (expr.Arguments.Count != 1 || !(Visit(expr.Arguments[0]) is int))
+                    {
+                        RuntimeError error = new RuntimeError("'IsBrushSize(int size)' no acepta argumentos.");
+                        ErrorReporter.RuntimeError(error);
+                        throw error;
+                    }
                     return interpreter.IsBrushSize((int)Visit(expr.Arguments[0]));
+
                 case "IsCanvasColor":
+                    if (expr.Arguments.Count != 3 || !(Visit(expr.Arguments[0]) is string) || !(Visit(expr.Arguments[1]) is int) || !(Visit(expr.Arguments[2]) is int))
+                    {
+                        RuntimeError error = new RuntimeError("'IsCanvasColor(string color, int vertical, int horizontal)' no acepta argumentos.");
+                        ErrorReporter.RuntimeError(error);
+                        throw error;
+                    }
                     return interpreter.IsCanvasColor(
                         (string)Visit(expr.Arguments[0]),
                         (int)Visit(expr.Arguments[1]),
                         (int)Visit(expr.Arguments[2])
                     );
+
                 case "GetColorCount":
+                    if (expr.Arguments.Count != 5 || !(Visit(expr.Arguments[0]) is string) || !(Visit(expr.Arguments[1]) is int) || !(Visit(expr.Arguments[2]) is int) || !(Visit(expr.Arguments[3]) is int) || !(Visit(expr.Arguments[4]) is int))
+                    {
+                        RuntimeError error = new RuntimeError("'GetColorCount (string color, int x1, int y1, int x2, int y2)' no acepta argumentos.");
+                        ErrorReporter.RuntimeError(error);
+                        throw error;
+                    }
                     return interpreter.GetColorCount(
                         (string)Visit(expr.Arguments[0]),
                         (int)Visit(expr.Arguments[1]),

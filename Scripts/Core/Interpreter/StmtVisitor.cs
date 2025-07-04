@@ -87,7 +87,7 @@ namespace EPainter.Core
         /// <returns>Null (las sentencias no devuelven valores).</returns>
         public object VisitColor(Color stmt)
         {
-            string color = (string)interpreter.Evaluate(stmt.ColorName);
+            string color = Convert.ToString(interpreter.Evaluate(stmt.ColorName));
             interpreter.SetBrushColor(color);
             return null;
         }

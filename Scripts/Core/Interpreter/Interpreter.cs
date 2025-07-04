@@ -18,7 +18,7 @@ namespace EPainter.Core
         /// <summary>
         /// Diccionario que mapea nombres de etiquetas a índices en la lista de sentencias.
         /// </summary>
-        private Dictionary<string, int> Labels = new Dictionary<string, int>();
+        public Dictionary<string, int> Labels = new Dictionary<string, int>();
 
         /// <summary>
         /// Estado actual del intérprete que incluye posición, color y tamaño del pincel.
@@ -34,6 +34,8 @@ namespace EPainter.Core
         /// La lista de sentencias a ejecutar.
         /// </summary>
         private List<Stmt> statements;
+
+        public bool spawned = false;
         #endregion
 
         #region Interpretación Principal
@@ -47,58 +49,58 @@ namespace EPainter.Core
             this.canvas = canvas;
             statements = stmts;
 
-            ValidateSpawnIsFirstAndUnique();
+            //ValidateSpawnIsFirstAndUnique();
 
             state = new EPainterState(0, 0);
             InitializeLabels();
             ExecuteAll();
         }
-
-        /// <summary>
-        /// Valida que haya exactamente un comando Spawn al inicio del programa.
-        /// Las etiquetas pueden aparecer antes del Spawn, pero no otras instrucciones.
-        /// </summary>
-        /// <exception cref="RuntimeError">Se lanza si no se cumple la validación.</exception>
-        private void ValidateSpawnIsFirstAndUnique()
-        {
-            bool foundSpawn = false;
-            int firstSpawnIndex = -1;
-
-            for (int i = 0; i < statements.Count; i++)
-            {
-                if (statements[i] is Spawn)
+        /*
+                /// <summary>
+                /// Valida que haya exactamente un comando Spawn al inicio del programa.
+                /// Las etiquetas pueden aparecer antes del Spawn, pero no otras instrucciones.
+                /// </summary>
+                /// <exception cref="RuntimeError">Se lanza si no se cumple la validación.</exception>
+                private void ValidateSpawnIsFirstAndUnique()
                 {
+                    bool foundSpawn = false;
+                    int firstSpawnIndex = -1;
+
+                    for (int i = 0; i < statements.Count; i++)
+                    {
+                        if (statements[i] is Spawn)
+                        {
+                            if (!foundSpawn)
+                            {
+                                foundSpawn = true;
+                                firstSpawnIndex = i;
+                            }
+                            else
+                            {
+                                var error = new RuntimeError($"Multiple Spawn commands found. There should be only one Spawn command at the beginning of the program.");
+                                ErrorReporter.RuntimeError(error);
+                                throw error;
+                            }
+                        }
+                    }
+
                     if (!foundSpawn)
                     {
-                        foundSpawn = true;
-                        firstSpawnIndex = i;
-                    }
-                    else
-                    {
-                        var error = new RuntimeError($"Multiple Spawn commands found. There should be only one Spawn command at the beginning of the program.");
+                        var error = new RuntimeError("The program must start with a Spawn command.");
                         ErrorReporter.RuntimeError(error);
                         throw error;
                     }
-                }
-            }
 
-            if (!foundSpawn)
-            {
-                var error = new RuntimeError("The program must start with a Spawn command.");
-                ErrorReporter.RuntimeError(error);
-                throw error;
-            }
-
-            for (int i = 0; i < firstSpawnIndex; i++)
-            {
-                if (!(statements[i] is Label))
-                {
-                    var error = new RuntimeError("The Spawn command must be the first command in the program (labels can appear before).");
-                    ErrorReporter.RuntimeError(error);
-                    throw error;
-                }
-            }
-        }
+                    for (int i = 0; i < firstSpawnIndex; i++)
+                    {
+                        if (!(statements[i] is Label))
+                        {
+                            var error = new RuntimeError("The Spawn command must be the first command in the program (labels can appear before).");
+                            ErrorReporter.RuntimeError(error);
+                            throw error;
+                        }
+                    }
+                }*/
 
         /// <summary>
         /// Inicializa el diccionario de etiquetas, escaneando todas las sentencias Label.
@@ -301,12 +303,17 @@ namespace EPainter.Core
         /// <returns>La cantidad de píxeles del color en el área especificada.</returns>
         public int GetColorCount(string color, int x1, int y1, int x2, int y2)
         {
-            int count = 0;
             int startX = Math.Min(x1, x2);
             int endX = Math.Max(x1, x2);
             int startY = Math.Min(y1, y2);
             int endY = Math.Max(y1, y2);
 
+            if (!canvas.IsValidPosition(startX,startY) || !canvas.IsValidPosition(endX,endY))
+            {
+                return 0;
+            }
+
+            int count = 0;
             for (int x = startX; x <= endX; x++)
             {
                 for (int y = startY; y <= endY; y++)
@@ -328,13 +335,29 @@ namespace EPainter.Core
         /// <param name="y">Coordenada Y de la nueva posición.</param>
         public void Spawn(int x, int y)
         {
+            if (!spawned && statements.Count > 0 && statements[0] is not Stmt.Spawn)
+            {
+                var error = new RuntimeError("The program must start with a 'Spawn(int x, int y)' command.");
+                ErrorReporter.RuntimeError(error);
+                throw error;
+            }
+
+            if (spawned)
+            {
+                var error = new RuntimeError($"Multiple Spawn commands found. There should be only one Spawn command at the beginning of the program.");
+                ErrorReporter.RuntimeError(error);
+                throw error;
+            }
+
             if (!canvas.IsValidPosition(x, y))
             {
                 var spawnError = new RuntimeError($"Spawn position ({x}, {y}) out of bounds.");
                 ErrorReporter.RuntimeError(spawnError);
                 throw spawnError;
             }
+
             state = new EPainterState(x, y);
+            spawned = true;
         }
 
         /// <summary>
@@ -374,9 +397,9 @@ namespace EPainter.Core
             int centerY = state.Y;
             int brushSize = state.BrushSize / 2;
 
-            if ((dirX == 0 && dirY == 0) || (Math.Abs(dirX) > 1 || Math.Abs(dirY) > 1))
+            if (dirX < -1 || dirX > 1 || dirY < -1 || dirY > 1)
             {
-                var dirError = new RuntimeError("Invalid direction for DrawLine");
+                var dirError = new RuntimeError($"Dirección inválida ({dirX}, {dirY}). Deben ser -1, 0 o 1.");
                 ErrorReporter.RuntimeError(dirError);
                 throw dirError;
             }
@@ -535,7 +558,7 @@ namespace EPainter.Core
 
             if (!canvas.IsValidPosition(rectCenterX, rectCenterY))
             {
-                var rectError = new RuntimeError("Rectangle center out of bounds");
+                var rectError = new RuntimeError($"Rectangle center out of bounds at ({rectCenterX}, {rectCenterY})");
                 ErrorReporter.RuntimeError(rectError);
                 throw rectError;
             }
