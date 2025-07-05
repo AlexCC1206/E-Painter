@@ -9,16 +9,11 @@ namespace EPainter.Core
     /// </summary>
     public class Interpreter
     {
-        #region Campos
+        #region Fields and Properties
         /// <summary>
         /// Diccionario que almacena las variables definidas durante la ejecución.
         /// </summary>
-        private Dictionary<string, object> Variables = new Dictionary<string, object>();
-
-        /// <summary>
-        /// Diccionario que mapea nombres de etiquetas a índices en la lista de sentencias.
-        /// </summary>
-        public Dictionary<string, int> Labels = new Dictionary<string, int>();
+        public Dictionary<string, object> Variables = new Dictionary<string, object>();
 
         /// <summary>
         /// Diccionario que mapea nombres de etiquetas a índices en la lista de sentencias.
@@ -41,9 +36,11 @@ namespace EPainter.Core
         private List<Stmt> statements;
 
         public bool spawned = false;
+        private readonly List<string> Errors = new();
+        public IEnumerable<string> GetErrors() => Errors;
         #endregion
 
-        #region Interpretación Principal
+        #region Constructor
         /// <summary>
         /// Inicia la interpretación de un programa E-Painter.
         /// </summary>
@@ -53,6 +50,7 @@ namespace EPainter.Core
         {
             this.canvas = canvas;
             statements = stmts;
+            Errors.Clear();
 
             //ValidateSpawnIsFirstAndUnique();
 
@@ -60,6 +58,7 @@ namespace EPainter.Core
             InitializeLabels();
             ExecuteAll();
         }
+        #endregion
         /*
                 /// <summary>
                 /// Valida que haya exactamente un comando Spawn al inicio del programa.
@@ -107,6 +106,7 @@ namespace EPainter.Core
                     }
                 }*/
 
+        #region Label Management
         /// <summary>
         /// Inicializa el diccionario de etiquetas, escaneando todas las sentencias Label.
         /// </summary>
@@ -121,7 +121,49 @@ namespace EPainter.Core
                 }
             }
         }
+        #endregion
 
+        /*
+                private void ExecuteAll()
+                {
+                    int i = 0;
+                    while (i < _statements.Count)
+                    {
+                        var stmt = _statements[i];
+
+                        if (stmt is LabelStmt)
+                        {
+                            i++;
+                            continue;
+                        }
+
+                        if (stmt is GotoStmt gotoStmt)
+                        {
+                            var condition = Evaluate(gotoStmt.Condition);
+                            if ((bool)condition)
+                            {
+                                if (!Labels.TryGetValue(gotoStmt.LabelName, out int targetLine))
+                                    Error(gotoStmt.LabelName, $"GoTo to undeclared label '{gotoStmt.LabelName}'.", i + 1);
+                                else
+                                    i = targetLine;
+                                continue;
+                            }
+                        }
+
+                        try
+                        {
+                            stmt.Accept(new StmtVisitor(this));
+                        }
+                        catch (Exception e)
+                        {
+                            Error(e.Message, i + 1);
+                        }
+
+                        i++;
+                    }
+                }*/
+
+        #region Execution Loop
         /// <summary>
         /// Ejecuta todas las sentencias en secuencia, manejando los saltos entre etiquetas.
         /// </summary>
@@ -129,9 +171,7 @@ namespace EPainter.Core
         private void ExecuteAll()
         {
             int currentStatement = 0;
-
             Dictionary<string, int> labelJumpCounts = new Dictionary<string, int>();
-
             const int MAX_JUMPS_TO_SAME_LABEL = 1000;
 
             while (currentStatement < statements.Count)
@@ -179,6 +219,7 @@ namespace EPainter.Core
                 }
             }
         }
+        #endregion
 
         /// <summary>
         /// Ejecuta una sentencia individual.
@@ -198,9 +239,9 @@ namespace EPainter.Core
         {
             return expr.Accept(new ExprVisitor(this));
         }
-        #endregion
 
-        #region Gestión de Variables
+
+        #region Variable Management
         /// <summary>
         /// Obtiene el valor de una variable del entorno.
         /// </summary>
@@ -229,7 +270,7 @@ namespace EPainter.Core
         }
         #endregion
 
-        #region Funciones y Consultas
+        #region Built-in Functions
         /// <summary>
         /// Obtiene el tamaño del lienzo.
         /// </summary>
@@ -313,7 +354,7 @@ namespace EPainter.Core
             int startY = Math.Min(y1, y2);
             int endY = Math.Max(y1, y2);
 
-            if (!canvas.IsValidPosition(startX,startY) || !canvas.IsValidPosition(endX,endY))
+            if (!canvas.IsValidPosition(startX, startY) || !canvas.IsValidPosition(endX, endY))
             {
                 return 0;
             }
@@ -332,7 +373,7 @@ namespace EPainter.Core
         }
         #endregion
 
-        #region Operaciones de Dibujo
+        #region Graphic Commands
         /// <summary>
         /// Crea una nueva "instancia" del lápiz en la posición dada.
         /// </summary>
@@ -340,25 +381,31 @@ namespace EPainter.Core
         /// <param name="y">Coordenada Y de la nueva posición.</param>
         public void Spawn(int x, int y)
         {
-            if (!spawned && statements.Count > 0 && statements[0] is not Stmt.Spawn)
+            if (!spawned && statements.Count > 0 && statements[0] is not Spawn)
             {
+                Error(1, "Spawn(int x, int y) must be the first command.");
+                /*
                 var error = new RuntimeError("The program must start with a 'Spawn(int x, int y)' command.");
                 ErrorReporter.RuntimeError(error);
-                throw error;
+                throw error;*/
             }
 
             if (spawned)
             {
+                Error(1, "Spawn(int x, int y) can only be used once.");
+                /*
                 var error = new RuntimeError($"Multiple Spawn commands found. There should be only one Spawn command at the beginning of the program.");
                 ErrorReporter.RuntimeError(error);
-                throw error;
+                throw error;*/
             }
 
             if (!canvas.IsValidPosition(x, y))
             {
+                Error(1, $"Spawn({x}, {y}) out of bounds.");
+                /*
                 var spawnError = new RuntimeError($"Spawn position ({x}, {y}) out of bounds.");
                 ErrorReporter.RuntimeError(spawnError);
-                throw spawnError;
+                throw spawnError;*/
             }
 
             state = new EPainterState(x, y);
@@ -382,9 +429,12 @@ namespace EPainter.Core
         {
             if (size <= 0)
             {
+                Error(1, $"Brush size must be positive. Value provided: {size}");
+                return;
+                /*
                 var sizeError = new RuntimeError($"Brush size must be positive. Value provided: {size}");
                 ErrorReporter.RuntimeError(sizeError);
-                throw sizeError;
+                throw sizeError;*/
             }
 
             state.BrushSize = size % 2 == 0 ? size - 1 : size;
@@ -402,11 +452,14 @@ namespace EPainter.Core
             int centerY = state.Y;
             int brushSize = state.BrushSize / 2;
 
-            if (dirX < -1 || dirX > 1 || dirY < -1 || dirY > 1)
+            if ((dirX < -1 || dirX > 1) || (dirY < -1 || dirY > 1))
             {
+                Error(1, $"Invalid direction ({dirX}, {dirY}). Must be -1, 0 or 1.");
+                return;
+                /*
                 var dirError = new RuntimeError($"Dirección inválida ({dirX}, {dirY}). Deben ser -1, 0 o 1.");
                 ErrorReporter.RuntimeError(dirError);
-                throw dirError;
+                throw dirError;*/
             }
 
             for (var i = 0; i <= distance; i++)
@@ -414,13 +467,18 @@ namespace EPainter.Core
                 int x = centerX + dirX * i;
                 int y = centerY + dirY * i;
 
-                for (int dx = -brushSize; dx <= brushSize; dx++)
+                if (x < 0 || x >= canvas.Size || y < 0 || y >= canvas.Size)
                 {
-                    for (int dy = -brushSize; dy <= brushSize; dy++)
-                    {
-                        canvas.SetPixel(x + dx, y + dy, state.BrushColor);
-                    }
+                    Error(1, $"Position ({x}, {y}) out of canvas (size {canvas.Size}x{canvas.Size}).");
                 }
+
+                for (int dx = -brushSize; dx <= brushSize; dx++)
+                    {
+                        for (int dy = -brushSize; dy <= brushSize; dy++)
+                        {
+                            canvas.SetPixel(x + dx, y + dy, state.BrushColor);
+                        }
+                    }
             }
 
             state.X = centerX + dirX * distance;
@@ -443,9 +501,11 @@ namespace EPainter.Core
 
             if (!canvas.IsValidPosition(circleCenterX, circleCenterY))
             {
+                Error(1, $"Circle center out of bounds at ({circleCenterX}, {circleCenterY})");
+                /*
                 var circleError = new RuntimeError($"Circle center out of bounds at ({circleCenterX}, {circleCenterY})");
                 ErrorReporter.RuntimeError(circleError);
-                throw circleError;
+                throw circleError;*/
             }
 
             if (!canvas.IsValidPosition(circleCenterX + radius, circleCenterY) ||
@@ -460,9 +520,11 @@ namespace EPainter.Core
 
                 if (maxRadius <= 0)
                 {
+                    Error(1, $"Cannot draw circle, radius: {radius} too large for canvas");
+                    /*
                     var radiusError = new RuntimeError($"Cannot draw circle, radius too large for canvas");
                     ErrorReporter.RuntimeError(radiusError);
-                    throw radiusError;
+                    throw radiusError;*/
                 }
 
                 radius = Math.Min(radius, maxRadius);
@@ -563,9 +625,11 @@ namespace EPainter.Core
 
             if (!canvas.IsValidPosition(rectCenterX, rectCenterY))
             {
+                Error(1, $"Rectangle center out of bounds at ({rectCenterX}, {rectCenterY})");
+                /*
                 var rectError = new RuntimeError($"Rectangle center out of bounds at ({rectCenterX}, {rectCenterY})");
                 ErrorReporter.RuntimeError(rectError);
-                throw rectError;
+                throw rectError;*/
             }
 
             int halfWidth = width / 2;
@@ -630,6 +694,13 @@ namespace EPainter.Core
                     }
                 }
             }
+        }
+        #endregion
+
+        #region Error Handling
+        public void Error(int line, string message)
+        {
+            Errors.Add($"[line {line}] Runtime error: {message}");
         }
         #endregion
     }

@@ -8,7 +8,7 @@ namespace EPainter.Core
     /// </summary>
     public class Scanner
     {
-        #region Campos
+        #region Fields and Properties
         /// <summary>
         /// El código fuente a analizar.
         /// </summary>
@@ -17,31 +17,25 @@ namespace EPainter.Core
         /// <summary>
         /// Lista de tokens encontrados durante el análisis.
         /// </summary>
-        private List<Token> tokens = new List<Token>();
+        private List<Token> Tokens = new List<Token>();
 
         /// <summary>
         /// Índice de inicio del token actual.
         /// </summary>
-        private int start = 0;
+        private int Start = 0;
 
         /// <summary>
         /// Índice actual en el código fuente.
         /// </summary>
-        private int current = 0;
+        private int Current = 0;
 
         /// <summary>
         /// Número de línea actual en el código fuente.
         /// </summary>
-        private int line = 1;
+        private int Line = 1;
 
-        /// <summary>
-        /// Conjunto de colores válidos permitidos en el lenguaje.
-        /// </summary>
-        private static readonly HashSet<string> ValidColors = new()
-        {
-            "Red", "Blue", "Green", "Yellow", "Orange",
-            "Purple", "Black", "White", "Transparent"
-        };
+        private readonly List<string> Errors = new();
+        public IEnumerable<string> GetErrors() => Errors;
 
         /// <summary>
         /// Diccionario que mapea palabras clave a sus tipos de tokens correspondientes.
@@ -69,9 +63,18 @@ namespace EPainter.Core
             {"True", TokenType.TRUE},
             {"False", TokenType.FALSE}
         };
+
+        /// <summary>
+        /// Conjunto de colores válidos permitidos en el lenguaje.
+        /// </summary>
+        private static readonly HashSet<string> ValidColors = new()
+        {
+            "Red", "Blue", "Green", "Yellow", "Orange",
+            "Purple", "Black", "White", "Transparent"
+        };
         #endregion
 
-        #region Initialización
+        #region Constructor
         /// <summary>
         /// Inicializa una nueva instancia de la clase Scanner.
         /// </summary>
@@ -82,7 +85,7 @@ namespace EPainter.Core
         }
         #endregion
 
-        #region Análisis Léxico Principal
+        #region Scanning Methods
         /// <summary>
         /// Escanea todos los tokens del código fuente.
         /// </summary>
@@ -95,20 +98,24 @@ namespace EPainter.Core
         {
             while (!IsAtEnd())
             {
-                start = current;
+
+                Start = Current;
+                ScanTokens();
+                /*
                 try
                 {
                     ScanTokens();
                 }
                 catch (Exception ex)
                 {
-                    Error(line, $"Unexpected error: {ex.Message}");
+                    Error(Line, $"Unexpected error: {ex.Message}");
                     Synchronize();
-                }
+                } */
+
             }
 
-            tokens.Add(new Token(TokenType.EOF, "", null, line));
-            return tokens;
+            Tokens.Add(new Token(TokenType.EOF, "", null, Line));
+            return Tokens;
         }
 
         /// <summary>
@@ -150,9 +157,17 @@ namespace EPainter.Core
                 // Operadores de comparación
                 case '=':
                     if (Match('=')) AddToken(TokenType.EQUAL_EQUAL);
+                    else
+                    {
+                        Error(Line, "Expected '=' after '='.");
+                    }
                     break;
                 case '!':
                     if (Match('=')) AddToken(TokenType.BANG_EQUAL);
+                    else
+                    {
+                        Error(Line, "Expected '=' after '!'.");
+                    }
                     break;
                 case '<':
                     if (Match('-')) AddToken(TokenType.ARROW);
@@ -167,17 +182,27 @@ namespace EPainter.Core
 
                 case '&':
                     if (Match('&')) AddToken(TokenType.AND);
+                    else
+                    {
+                        Error(Line, "Expected '&' after '&'.");
+                    }
                     break;
                 case '|':
                     if (Match('|')) AddToken(TokenType.OR);
+                    else
+                    {
+                        Error(Line, "Expected '|' after '|'.");
+                    }
                     break;
 
 
-                case '"': ColorLiteral(); break;
+                case '"':
+                    ColorLiteral();
+                    break;
 
 
                 case '\n':
-                    line++;
+                    Line++;
                     AddToken(TokenType.NEWLINE);
                     break;
 
@@ -197,96 +222,27 @@ namespace EPainter.Core
                     }
                     else
                     {
-                        Error(line, $"Unexpected character", c);
-                        Synchronize();
+                        Error(Line, $"Unexpected character '{c}'.");
+                        /*
+                        Error(Line, $"Unexpected character", c);
+                        Synchronize();*/
                     }
                     break;
             }
         }
         #endregion
 
-        #region Reconocimiento de Tokens Específicos
+        #region Token Recognition
         /// <summary>
-        /// Analiza un identificador en el código fuente.
+        /// Avanza al siguiente caracter y devuelve el actual.
         /// </summary>
-        private void Identifier()
+        /// <returns>El caracter actual antes de avanzar.</returns>
+        private char Advance()
         {
-            if (Source[start] == '_')
-            {
-                Error(line, "Identifiers cannot start with underscore (_)");
-                Synchronize();
-                return;
-            }
-            while (IsAlphaNumeric(Peek())) Advance();
-
-            string text = Source.Substring(start, current - start);
-
-            if (Keywords.TryGetValue(text, out TokenType type))
-            {
-                AddToken(type);
-            }
-            else
-            {
-                AddToken(TokenType.IDENTIFIER);
-            }
-        }
-
-        /// <summary>
-        /// Analiza un literal numérico en el código fuente.
-        /// </summary>
-        private void Number()
-        {
-            while (IsDigit(Peek())) Advance();
-
-            AddToken(TokenType.NUMBER, int.Parse(Source.Substring(start, current - start)));
-        }
-
-        /// <summary>
-        /// Analiza un literal de color entre comillas dobles en el código fuente.
-        /// </summary>
-        private void ColorLiteral()
-        {
-            while (Peek() != '"' && !IsAtEnd())
-            {
-                if (Peek() == '\n')
-                {
-                    line++;
-                }
-                Advance();
-            }
-
-            if (IsAtEnd())
-            {
-                Error(line, "Undeterminated string");
-                return;
-            }
-
-            Advance();
-
-            string color = Source.Substring(start + 1, current - start - 2);
-            if (!ValidColors.Contains(color))
-            {
-                Error(line, $"Invalid color: '{color}'");
-                return;
-            }
-
-            AddToken(TokenType.COLOR_LITERAL, color);
-        }
-        #endregion
-
-        #region Utilidades del Scanner
-        /// <summary>
-        /// Verifica si el caracter actual coincide con el esperado y avanza si es así.
-        /// </summary>
-        /// <param name="expected">El caracter esperado.</param>
-        /// <returns>True si hay coincidencia, false en caso contrario.</returns>
-        private bool Match(char expected)
-        {
-            if (IsAtEnd()) return false;
-            if (Source[current] != expected) return false;
-
-            current++;
-            return true;
+            /*
+            Current++;
+            return Source[Current - 1];*/
+            return Source[Current++];
         }
 
         /// <summary>
@@ -296,26 +252,21 @@ namespace EPainter.Core
         public char Peek()
         {
             if (IsAtEnd()) return '\0';
-            return Source[current];
+            return Source[Current];
         }
 
         /// <summary>
-        /// Verifica si se ha llegado al final del código fuente.
+        /// Verifica si el caracter actual coincide con el esperado y avanza si es así.
         /// </summary>
-        /// <returns>True si se ha llegado al final del código fuente, false en caso contrario.</returns>
-        private bool IsAtEnd()
+        /// <param name="expected">El caracter esperado.</param>
+        /// <returns>True si hay coincidencia, false en caso contrario.</returns>
+        private bool Match(char expected)
         {
-            return current >= Source.Length;
-        }
+            if (IsAtEnd()) return false;
+            if (Source[Current] != expected) return false;
 
-        /// <summary>
-        /// Avanza al siguiente caracter y devuelve el actual.
-        /// </summary>
-        /// <returns>El caracter actual antes de avanzar.</returns>
-        private char Advance()
-        {
-            current++;
-            return Source[current - 1];
+            Current++;
+            return true;
         }
 
         /// <summary>
@@ -336,7 +287,7 @@ namespace EPainter.Core
         private bool IsAlpha(char c)
         {
             return (c >= 'a' && c <= 'z') ||
-                    (c >= 'A' && c <= 'Z');
+                    (c >= 'A' && c <= 'Z') || c == '_';
         }
 
         /// <summary>
@@ -350,56 +301,151 @@ namespace EPainter.Core
         }
 
         /// <summary>
+        /// Analiza un identificador en el código fuente.
+        /// </summary>
+        private void Identifier()
+        {
+            /*
+            if (Source[Start] == '_')
+            {
+                Error(Line, "Identifiers cannot start with underscore (_)");
+                Synchronize();
+                return;
+            }*/
+            while (IsAlphaNumeric(Peek())) Advance();
+
+            string text = Source.Substring(Start, Current - Start);
+
+            if (Keywords.TryGetValue(text, out TokenType type))
+            {
+                AddToken(type);
+            }
+            else
+            {
+                AddToken(TokenType.IDENTIFIER);
+            }
+        }
+
+        /// <summary>
+        /// Analiza un literal numérico en el código fuente.
+        /// </summary>
+        private void Number()
+        {
+            while (IsDigit(Peek())) Advance();
+
+            string numberText = Source.Substring(Start, Current - Start);
+            //int value = int.Parse(numberText);
+            if (!int.TryParse(numberText, out int value))
+            {
+                Error(Line, $"Invalid number literal: '{numberText}'.");
+                return;
+            }
+            AddToken(TokenType.NUMBER, value);
+        }
+
+        /// <summary>
+        /// Analiza un literal de color entre comillas dobles en el código fuente.
+        /// </summary>
+        private void ColorLiteral()
+        {
+            while (Peek() != '"' && !IsAtEnd())
+            {
+                /*
+                if (Peek() == '\n')
+                {
+                    Line++;
+                }*/
+                Advance();
+            }
+
+            if (IsAtEnd())
+            {
+                Error(Line, "Undeterminated color literal");
+                return;
+            }
+
+            Advance();
+
+            string value = Source.Substring(Start + 1, Current - Start - 2);
+            if (!ValidColors.Contains(value))
+            {
+                Error(Line, $"Invalid color: '{value}'");
+                return;
+            }
+
+            AddToken(TokenType.COLOR_LITERAL, value);
+        }
+        #endregion
+
+        #region Error Handling
+        private void Error(int line, string message)
+        {
+            Errors.Add($"[line {line}] Error: {message}");
+        }
+        #endregion
+
+        #region Helper Methods
+        /// <summary>
+        /// Verifica si se ha llegado al final del código fuente.
+        /// </summary>
+        /// <returns>True si se ha llegado al final del código fuente, false en caso contrario.</returns>
+        private bool IsAtEnd()
+        {
+            return Current >= Source.Length;
+        }
+
+        /// <summary>
         /// Añade un token a la lista de tokens.
         /// </summary>
         /// <param name="type">El tipo de token.</param>
         /// <param name="literal">El valor literal del token, opcional.</param>
         private void AddToken(TokenType type, object literal = null)
         {
-            string text = Source.Substring(start, current - start);
-            tokens.Add(new Token(type, text, literal, line));
-        }
-
-        /// <summary>
-        /// Reporta un error del scanner pero no lanza una excepción, permitiendo que el análisis continúe.
-        /// </summary>
-        /// <param name="line">Línea donde ocurrió el error.</param>
-        /// <param name="message">Mensaje descriptivo del error.</param>
-        /// <param name="character">Carácter problemático (opcional).</param>
-        private void Error(int line, string message, char? character = null)
-        {
-            ErrorReporter.ReportScannerError(line, message, character);
-        }
-
-        /// <summary>
-        /// Método de sincronización para recuperarse de un error y continuar el análisis.
-        /// </summary>
-        private void Synchronize()
-        {
-            Advance();
-
-            while (!IsAtEnd())
-            {
-                if (Peek() == '\n') return;
-
-                switch (Peek())
-                {
-                    case '(':
-                    case ')':
-                    case '[':
-                    case ']':
-                    case ',':
-                    case '+':
-                    case '-':
-                    case '*':
-                    case '/':
-                    case '"':
-                        return;
-                }
-
-                Advance();
-            }
+            string text = Source.Substring(Start, Current - Start);
+            Tokens.Add(new Token(type, text, literal, Line));
         }
         #endregion
+        /*
+                /// <summary>
+                /// Reporta un error del scanner pero no lanza una excepción, permitiendo que el análisis continúe.
+                /// </summary>
+                /// <param name="line">Línea donde ocurrió el error.</param>
+                /// <param name="message">Mensaje descriptivo del error.</param>
+                /// <param name="character">Carácter problemático (opcional).</param>
+                private void Error(int line, string message, char? character = null)
+                {
+                    ErrorReporter.ReportScannerError(line, message, character);
+                }
+
+                /// <summary>
+                /// Método de sincronización para recuperarse de un error y continuar el análisis.
+                /// </summary>
+                private void Synchronize()
+                {
+                    Advance();
+
+                    while (!IsAtEnd())
+                    {
+                        if (Peek() == '\n') return;
+
+                        switch (Peek())
+                        {
+                            case '(':
+                            case ')':
+                            case '[':
+                            case ']':
+                            case ',':
+                            case '+':
+                            case '-':
+                            case '*':
+                            case '/':
+                            case '"':
+                                return;
+                        }
+
+                        Advance();
+                    }
+                }
+        */
     }
 }

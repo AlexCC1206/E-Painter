@@ -1,5 +1,4 @@
 using System;
-using static EPainter.Core.Expr;
 
 namespace EPainter.Core
 {
@@ -12,7 +11,7 @@ namespace EPainter.Core
         /// <summary>
         /// La instancia del intérprete que utiliza este visitante.
         /// </summary>
-        private readonly Interpreter interpreter;
+        private readonly Interpreter Interpreter;
         #endregion
 
         #region Inicialización
@@ -22,7 +21,7 @@ namespace EPainter.Core
         /// <param name="interpreter">La instancia del intérprete a utilizar.</param>
         public ExprVisitor(Interpreter interpreter)
         {
-            this.interpreter = interpreter;
+            Interpreter = interpreter;
         }
         #endregion
 
@@ -44,7 +43,13 @@ namespace EPainter.Core
         /// <returns>El valor almacenado en la variable.</returns>
         public object VisitVariable(Variable expr)
         {
-            return interpreter.GetVariable(expr.Name);
+            if (!Interpreter.Variables.TryGetValue(expr.Name, out var value))
+            {
+                Interpreter.Error(1 /*expr.Line*/, $"Undefined variable '{expr.Name}'.");
+                return null;
+            }
+
+            return value;
         }
 
         /// <summary>
@@ -73,9 +78,11 @@ namespace EPainter.Core
                     CheckNumberOperand(expr.Op, left, right);
                     if (Convert.ToInt32(right) == 0)
                     {
+                        
+                        /*
                         RuntimeError divError = new RuntimeError(expr.Op, "Division by zero.");
                         ErrorReporter.RuntimeError(divError);
-                        throw divError;
+                        throw divError;*/
                     }
                     return Convert.ToInt32(left) / Convert.ToInt32(right);
                 case TokenType.POW:
@@ -161,7 +168,7 @@ namespace EPainter.Core
                         ErrorReporter.RuntimeError(error);
                         throw error;
                     }
-                    return interpreter.GetActualX();
+                    return Interpreter.GetActualX();
 
                 case "GetActualY":
                     if (expr.Arguments.Count != 0)
@@ -170,7 +177,7 @@ namespace EPainter.Core
                         ErrorReporter.RuntimeError(error);
                         throw error;
                     }
-                    return interpreter.GetActualY();
+                    return Interpreter.GetActualY();
 
                 case "GetCanvasSize":
                     if (expr.Arguments.Count != 0)
@@ -179,7 +186,7 @@ namespace EPainter.Core
                         ErrorReporter.RuntimeError(error);
                         throw error;
                     }
-                    return interpreter.GetCanvasSize();
+                    return Interpreter.GetCanvasSize();
 
                 case "IsBrushColor":
                     if (expr.Arguments.Count != 1 || !(Visit(expr.Arguments[0]) is string))
@@ -188,7 +195,7 @@ namespace EPainter.Core
                         ErrorReporter.RuntimeError(error);
                         throw error;
                     }
-                    return interpreter.IsBrushColor((string)Visit(expr.Arguments[0]));
+                    return Interpreter.IsBrushColor((string)Visit(expr.Arguments[0]));
 
                 case "IsBrushSize":
                     if (expr.Arguments.Count != 1 || !(Visit(expr.Arguments[0]) is int))
@@ -197,7 +204,7 @@ namespace EPainter.Core
                         ErrorReporter.RuntimeError(error);
                         throw error;
                     }
-                    return interpreter.IsBrushSize((int)Visit(expr.Arguments[0]));
+                    return Interpreter.IsBrushSize((int)Visit(expr.Arguments[0]));
 
                 case "IsCanvasColor":
                     if (expr.Arguments.Count != 3 || !(Visit(expr.Arguments[0]) is string) || !(Visit(expr.Arguments[1]) is int) || !(Visit(expr.Arguments[2]) is int))
@@ -206,7 +213,7 @@ namespace EPainter.Core
                         ErrorReporter.RuntimeError(error);
                         throw error;
                     }
-                    return interpreter.IsCanvasColor(
+                    return Interpreter.IsCanvasColor(
                         (string)Visit(expr.Arguments[0]),
                         (int)Visit(expr.Arguments[1]),
                         (int)Visit(expr.Arguments[2])
@@ -219,7 +226,7 @@ namespace EPainter.Core
                         ErrorReporter.RuntimeError(error);
                         throw error;
                     }
-                    return interpreter.GetColorCount(
+                    return Interpreter.GetColorCount(
                         (string)Visit(expr.Arguments[0]),
                         (int)Visit(expr.Arguments[1]),
                         (int)Visit(expr.Arguments[2]),

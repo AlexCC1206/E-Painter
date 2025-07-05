@@ -147,7 +147,7 @@ namespace EPainter
             return null;
         }
 
-        public object VisitGoto(Goto stmt)
+        public object VisitGoto(GoTo stmt)
         {
             if (!Interpreter.Labels.ContainsKey(stmt.LabelName))
             {

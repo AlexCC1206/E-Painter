@@ -61,7 +61,7 @@ namespace EPainter.Core
         /// <param name="color">El color a establecer.</param>
         public void SetPixel(int x, int y, string color)
         {
-            if (IsValidPosition(x, y))
+            if (IsValidPosition(x, y) && color != "Transparent")
             {
                 Pixels[x, y] = color;
             }

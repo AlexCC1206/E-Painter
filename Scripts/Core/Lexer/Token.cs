@@ -9,17 +9,17 @@ namespace EPainter.Core
         /// Obtiene el tipo de token.
         /// </summary>
         public TokenType Type { get; }
-        
+
         /// <summary>
         /// Obtiene el lexema (texto original) que representa este token.
         /// </summary>
         public string Lexeme { get; }
-        
+
         /// <summary>
         /// Obtiene el valor literal asociado con este token, si existe.
         /// </summary>
         public object Literal { get; }
-        
+
         /// <summary>
         /// Obtiene el número de línea en el código fuente donde aparece este token.
         /// </summary>
@@ -38,6 +38,11 @@ namespace EPainter.Core
             Lexeme = lexeme;
             Literal = literal;
             Line = line;
+        }
+
+        public override string ToString()
+        {
+            return $"{Type} {Lexeme} {Literal}";
         }
     }
 }
