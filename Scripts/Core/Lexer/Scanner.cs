@@ -1,10 +1,9 @@
-using System;
 using System.Collections.Generic;
 
 namespace EPainter.Core
 {
     /// <summary>
-    /// Analizador léxico que convierte código fuente en una lista de tokens.
+    /// Analizador léxico que convierte código fuente en una lista de Tokens.
     /// </summary>
     public class Scanner
     {
@@ -15,24 +14,24 @@ namespace EPainter.Core
         private string Source;
 
         /// <summary>
-        /// Lista de tokens encontrados durante el análisis.
+        /// Lista de Tokens encontrados durante el análisis.
         /// </summary>
-        private List<Token> tokens = new List<Token>();
+        private List<Token> Tokens = new List<Token>();
 
         /// <summary>
         /// Índice de inicio del token actual.
         /// </summary>
-        private int start = 0;
+        private int Start = 0;
 
         /// <summary>
         /// Índice actual en el código fuente.
         /// </summary>
-        private int current = 0;
+        private int Current = 0;
 
         /// <summary>
         /// Número de línea actual en el código fuente.
         /// </summary>
-        private int line = 1;
+        private int Line = 1;
 
         /// <summary>
         /// Conjunto de colores válidos permitidos en el lenguaje.
@@ -44,7 +43,7 @@ namespace EPainter.Core
         };
 
         /// <summary>
-        /// Diccionario que mapea palabras clave a sus tipos de tokens correspondientes.
+        /// Diccionario que mapea palabras clave a sus tipos de Tokens correspondientes.
         /// </summary>
         private static readonly Dictionary<string, TokenType> Keywords = new Dictionary<string, TokenType>
         {
@@ -84,31 +83,24 @@ namespace EPainter.Core
 
         #region Análisis Léxico Principal
         /// <summary>
-        /// Escanea todos los tokens del código fuente.
+        /// Escanea todos los Tokens del código fuente.
         /// </summary>
         /// <remarks>
         /// Esta implementación permite detectar múltiples errores durante el análisis léxico.
         /// Cuando encuentra un error, lo reporta y continúa el análisis en lugar de detenerse.
         /// </remarks>
-        /// <returns>Lista de tokens encontrados.</returns>
+        /// <returns>Lista de Tokens encontrados.</returns>
         public List<Token> scanTokens()
         {
             while (!IsAtEnd())
             {
-                start = current;
-                try
-                {
-                    ScanTokens();
-                }
-                catch (Exception ex)
-                {
-                    Error(line, $"Unexpected error: {ex.Message}");
-                    Synchronize();
-                }
+                Start = Current;
+                ScanTokens();
+
             }
 
-            tokens.Add(new Token(TokenType.EOF, "", null, line));
-            return tokens;
+            Tokens.Add(new Token(TokenType.EOF, "", null, Line));
+            return Tokens;
         }
 
         /// <summary>
@@ -177,7 +169,7 @@ namespace EPainter.Core
 
 
                 case '\n':
-                    line++;
+                    Line++;
                     AddToken(TokenType.NEWLINE);
                     break;
 
@@ -197,8 +189,7 @@ namespace EPainter.Core
                     }
                     else
                     {
-                        Error(line, $"Unexpected character", c);
-                        Synchronize();
+                        ErrorReport.Error(Line, $"Unexpected character '{c}'");
                     }
                     break;
             }
@@ -211,15 +202,9 @@ namespace EPainter.Core
         /// </summary>
         private void Identifier()
         {
-            if (Source[start] == '_')
-            {
-                Error(line, "Identifiers cannot start with underscore (_)");
-                Synchronize();
-                return;
-            }
             while (IsAlphaNumeric(Peek())) Advance();
 
-            string text = Source.Substring(start, current - start);
+            string text = Source.Substring(Start, Current - Start);
 
             if (Keywords.TryGetValue(text, out TokenType type))
             {
@@ -238,7 +223,7 @@ namespace EPainter.Core
         {
             while (IsDigit(Peek())) Advance();
 
-            AddToken(TokenType.NUMBER, int.Parse(Source.Substring(start, current - start)));
+            AddToken(TokenType.NUMBER, int.Parse(Source.Substring(Start, Current - Start)));
         }
 
         /// <summary>
@@ -250,23 +235,23 @@ namespace EPainter.Core
             {
                 if (Peek() == '\n')
                 {
-                    line++;
+                    Line++;
                 }
                 Advance();
             }
 
             if (IsAtEnd())
             {
-                Error(line, "Undeterminated string");
+                ErrorReport.Error(Line, "Undeterminated color literal");
                 return;
             }
 
             Advance();
 
-            string color = Source.Substring(start + 1, current - start - 2);
+            string color = Source.Substring(Start + 1, Current - Start - 2);
             if (!ValidColors.Contains(color))
             {
-                Error(line, $"Invalid color: '{color}'");
+                ErrorReport.Error(Line, $"Invalid color: '{color}'");
                 return;
             }
 
@@ -283,9 +268,9 @@ namespace EPainter.Core
         private bool Match(char expected)
         {
             if (IsAtEnd()) return false;
-            if (Source[current] != expected) return false;
+            if (Source[Current] != expected) return false;
 
-            current++;
+            Current++;
             return true;
         }
 
@@ -296,7 +281,7 @@ namespace EPainter.Core
         public char Peek()
         {
             if (IsAtEnd()) return '\0';
-            return Source[current];
+            return Source[Current];
         }
 
         /// <summary>
@@ -305,7 +290,7 @@ namespace EPainter.Core
         /// <returns>True si se ha llegado al final del código fuente, false en caso contrario.</returns>
         private bool IsAtEnd()
         {
-            return current >= Source.Length;
+            return Current >= Source.Length;
         }
 
         /// <summary>
@@ -314,8 +299,8 @@ namespace EPainter.Core
         /// <returns>El caracter actual antes de avanzar.</returns>
         private char Advance()
         {
-            current++;
-            return Source[current - 1];
+            Current++;
+            return Source[Current - 1];
         }
 
         /// <summary>
@@ -350,55 +335,14 @@ namespace EPainter.Core
         }
 
         /// <summary>
-        /// Añade un token a la lista de tokens.
+        /// Añade un token a la lista de Tokens.
         /// </summary>
         /// <param name="type">El tipo de token.</param>
         /// <param name="literal">El valor literal del token, opcional.</param>
         private void AddToken(TokenType type, object literal = null)
         {
-            string text = Source.Substring(start, current - start);
-            tokens.Add(new Token(type, text, literal, line));
-        }
-
-        /// <summary>
-        /// Reporta un error del scanner pero no lanza una excepción, permitiendo que el análisis continúe.
-        /// </summary>
-        /// <param name="line">Línea donde ocurrió el error.</param>
-        /// <param name="message">Mensaje descriptivo del error.</param>
-        /// <param name="character">Carácter problemático (opcional).</param>
-        private void Error(int line, string message, char? character = null)
-        {
-            ErrorReporter.ReportScannerError(line, message, character);
-        }
-
-        /// <summary>
-        /// Método de sincronización para recuperarse de un error y continuar el análisis.
-        /// </summary>
-        private void Synchronize()
-        {
-            Advance();
-
-            while (!IsAtEnd())
-            {
-                if (Peek() == '\n') return;
-
-                switch (Peek())
-                {
-                    case '(':
-                    case ')':
-                    case '[':
-                    case ']':
-                    case ',':
-                    case '+':
-                    case '-':
-                    case '*':
-                    case '/':
-                    case '"':
-                        return;
-                }
-
-                Advance();
-            }
+            string text = Source.Substring(Start, Current - Start);
+            Tokens.Add(new Token(type, text, literal, Line));
         }
         #endregion
     }
