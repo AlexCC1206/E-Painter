@@ -100,7 +100,7 @@ namespace EPainter.Core
             Expr y = Expression();
             Consume(TokenType.RIGHT_PAREN, "Expect ')' after int y.");
             Consume(TokenType.NEWLINE, "Expected newline after 'Spawn(int x, int y)'.");
-            return new Stmt.Spawn(x, y);
+            return new Spawn(x, y);
         }
 
         /// <summary>
@@ -114,7 +114,7 @@ namespace EPainter.Core
             var color = Expression();
             Consume(TokenType.RIGHT_PAREN, "Expect ')' after string color.");
             Consume(TokenType.NEWLINE, "Expected newline after 'Color(string color)'.");
-            return new Stmt.Color(color);
+            return new Color(color);
         }
 
         /// <summary>
@@ -128,7 +128,7 @@ namespace EPainter.Core
             var size = Expression();
             Consume(TokenType.RIGHT_PAREN, "Expect ')' after int k.");
             Consume(TokenType.NEWLINE, "Expected newline after 'Size(int k)'.");
-            return new Stmt.Size(size);
+            return new Size(size);
         }
 
         /// <summary>
@@ -146,7 +146,7 @@ namespace EPainter.Core
             Expr distance = Expression();
             Consume(TokenType.RIGHT_PAREN, "Expect ')' after int distance.");
             Consume(TokenType.NEWLINE, "Expected newline after 'DrawLine(int dirX, int dirY, int distance)'.");
-            return new Stmt.DrawLine(dirX, dirY, distance);
+            return new DrawLine(dirX, dirY, distance);
         }
 
         /// <summary>
@@ -164,7 +164,7 @@ namespace EPainter.Core
             Expr radius = Expression();
             Consume(TokenType.RIGHT_PAREN, "Expect ')' after int radius.");
             Consume(TokenType.NEWLINE, "Expected newline after 'DrawCircle(int dirX, int dirY, int radius)'.");
-            return new Stmt.DrawCircle(dirX, dirY, radius);
+            return new DrawCircle(dirX, dirY, radius);
         }
 
 
@@ -187,7 +187,7 @@ namespace EPainter.Core
             Expr height = Expression();
             Consume(TokenType.RIGHT_PAREN, "Expect ')' after int height.");
             Consume(TokenType.NEWLINE, "Expected newline after 'DrawRectangle(int dirX, int dirY, int distance, int width, int height)'.");
-            return new Stmt.DrawRectangle(dirX, dirY, distance, width, height);
+            return new DrawRectangle(dirX, dirY, distance, width, height);
         }
 
         /// <summary>
@@ -200,7 +200,7 @@ namespace EPainter.Core
             Consume(TokenType.LEFT_PAREN, "Expect '(' after 'Fill'.");
             Consume(TokenType.RIGHT_PAREN, "Expect ')'.");
             Consume(TokenType.NEWLINE, "Expected newline after 'Fill()'.");
-            return new Stmt.Fill();
+            return new Fill();
         }
 
 
@@ -219,7 +219,7 @@ namespace EPainter.Core
                 Expr condition = Expression();
                 Consume(TokenType.RIGHT_PAREN, "Expect ')' after condition.");
                 Consume(TokenType.NEWLINE, "Expected newline after 'GoTo[label](condition)'.");
-                return new Stmt.Goto(label.Lexeme, condition);
+                return new Goto(label.Lexeme, condition);
             }
             catch (ParseError error) {
                 var token = Previous();
@@ -240,7 +240,7 @@ namespace EPainter.Core
             if (Peek().Type == TokenType.NEWLINE || Peek().Type == TokenType.EOF)
             {
                 Advance();
-                return new Stmt.Label(identifierToken.Lexeme);
+                return new Label(identifierToken.Lexeme);
             }
 
             if (Match(TokenType.ARROW))
@@ -255,7 +255,7 @@ namespace EPainter.Core
                 {
                     Consume(TokenType.NEWLINE, "Expected newline after assignment.");
                 }
-                return new Stmt.Assignment(identifierToken.Lexeme, value);
+                return new Assignment(identifierToken.Lexeme, value);
             }
 
             throw Error(Peek(), $"Unexpected token after '{identifierToken.Lexeme}'.");
@@ -284,7 +284,7 @@ namespace EPainter.Core
             {
                 Token op = Previous();
                 Expr right = LogicalOr();
-                expr = new Expr.Binary(expr, op, right);
+                expr = new Binary(expr, op, right);
             }
 
             return expr;
@@ -302,7 +302,7 @@ namespace EPainter.Core
             {
                 Token op = Previous();
                 Expr right = Equality();
-                expr = new Expr.Binary(expr, op, right);
+                expr = new Binary(expr, op, right);
             }
 
             return expr;
@@ -320,7 +320,7 @@ namespace EPainter.Core
             {
                 Token op = Previous();
                 Expr right = Comparison();
-                expr = new Expr.Binary(expr, op, right);
+                expr = new Binary(expr, op, right);
             }
 
             return expr;
@@ -338,7 +338,7 @@ namespace EPainter.Core
             {
                 Token op = Previous();
                 Expr right = Term();
-                expr = new Expr.Binary(expr, op, right);
+                expr = new Binary(expr, op, right);
             }
 
             return expr;
@@ -357,7 +357,7 @@ namespace EPainter.Core
             {
                 Token op = Previous();
                 Expr right = Factor();
-                expr = new Expr.Binary(expr, op, right);
+                expr = new Binary(expr, op, right);
             }
 
             return expr;
@@ -376,7 +376,7 @@ namespace EPainter.Core
             {
                 Token op = Previous();
                 Expr right = Unary();
-                expr = new Expr.Binary(expr, op, right);
+                expr = new Binary(expr, op, right);
             }
 
             return expr;
@@ -392,7 +392,7 @@ namespace EPainter.Core
             {
                 Token op = Previous();
                 Expr right = Pow();
-                return new Expr.Unary(op, right);
+                return new Unary(op, right);
             }
 
             return Primary();
@@ -410,7 +410,7 @@ namespace EPainter.Core
             {
                 Token op = Previous();
                 Expr right = Primary();
-                Expr = new Expr.Binary(Expr, op, right);
+                Expr = new Binary(Expr, op, right);
             }
 
             return Expr;
@@ -422,12 +422,12 @@ namespace EPainter.Core
         /// <returns>Una expresión primaria.</returns>
         private Expr Primary()
         {
-            if (Match(TokenType.NUMBER)) return new Expr.Literal(Previous().Literal);
+            if (Match(TokenType.NUMBER)) return new Literal(Previous().Literal);
 
-            if (Match(TokenType.COLOR_LITERAL)) return new Expr.Literal(Previous().Literal);
+            if (Match(TokenType.COLOR_LITERAL)) return new Literal(Previous().Literal);
 
-            if (Match(TokenType.TRUE)) return new Expr.Literal(true);
-            if (Match(TokenType.FALSE)) return new Expr.Literal(false);
+            if (Match(TokenType.TRUE)) return new Literal(true);
+            if (Match(TokenType.FALSE)) return new Literal(false);
 
             if (Match(TokenType.GET_ACTUAL_X, TokenType.GET_ACTUAL_Y, TokenType.GET_CANVAS_SIZE))
             {
@@ -435,7 +435,7 @@ namespace EPainter.Core
                 Consume(TokenType.LEFT_PAREN, $"Expect '(' after '{functionName}'.");
                 Consume(TokenType.RIGHT_PAREN, $"Expect ')'.");
                 Consume(TokenType.NEWLINE, $"Expected newline after '{functionName}()'.");
-                return new Expr.Call(functionName, new List<Expr>());
+                return new Call(functionName, new List<Expr>());
             }
 
             if (Match(TokenType.IS_BRUSH_COLOR))
@@ -444,7 +444,7 @@ namespace EPainter.Core
                 Expr colorArg = Expression();
                 Consume(TokenType.RIGHT_PAREN, "Expect ')' after string color.");
                 Consume(TokenType.NEWLINE, $"Expected newline after 'IsBrushColor(string color)'.");
-                return new Expr.Call("IsBrushColor", new List<Expr> { colorArg });
+                return new Call("IsBrushColor", new List<Expr> { colorArg });
             }
 
             if (Match(TokenType.IS_BRUSH_SIZE))
@@ -453,7 +453,7 @@ namespace EPainter.Core
                 Expr sizeArg = Expression();
                 Consume(TokenType.RIGHT_PAREN, "Expect ')' after int size.");
                 Consume(TokenType.NEWLINE, $"Expected newline after 'IsBrushSize(int size)'.");
-                return new Expr.Call("IsBrushSize", new List<Expr> { sizeArg });
+                return new Call("IsBrushSize", new List<Expr> { sizeArg });
             }
 
             if (Match(TokenType.IS_CANVAS_COLOR))
@@ -466,7 +466,7 @@ namespace EPainter.Core
                 Expr xArg = Expression();
                 Consume(TokenType.COMMA, "Expect ',' after int horizontal.");
                 Consume(TokenType.NEWLINE, $"Expected newline after 'IsCanvasColor(string color, int vertical, int horizontal)'.");
-                return new Expr.Call("IsCanvasColor", new List<Expr> { colorArg, yArg, xArg });
+                return new Call("IsCanvasColor", new List<Expr> { colorArg, yArg, xArg });
             }
 
             if (Match(TokenType.GET_COLOR_COUNT))
@@ -483,19 +483,19 @@ namespace EPainter.Core
                 Expr y2Arg = Expression();
                 Consume(TokenType.RIGHT_PAREN, "Expect ')' after int y2.");
                 Consume(TokenType.NEWLINE, $"Expected newline after 'GetColorCount(string color, int x1, int y1, int x2, int y2)'.");
-                return new Expr.Call("GetColorCount", new List<Expr> { colorArg, x1Arg, y1Arg, x2Arg, y2Arg });
+                return new Call("GetColorCount", new List<Expr> { colorArg, x1Arg, y1Arg, x2Arg, y2Arg });
             }
 
             if (Match(TokenType.IDENTIFIER))
             {
-                return new Expr.Variable(Previous().Lexeme);
+                return new Variable(Previous().Lexeme);
             }
 
             if (Match(TokenType.LEFT_PAREN))
             {
                 Expr expr = Expression();
                 Consume(TokenType.RIGHT_PAREN, "Expect ')' after expression");
-                return new Expr.Grouping(expr);
+                return new Grouping(expr);
             }
 
             throw Error(Peek(), "Expected expression");
@@ -527,11 +527,7 @@ namespace EPainter.Core
         /// <param name="token">El token donde ocurrió el error.</param>
         /// <param name="message">El mensaje de error.</param>
         /// <returns>Un objeto ParseError.</returns>
-        private ParseError Error(Token token, string message)
-        {
-            ErrorReporter.ReportTokenError(token, message);
-            return new ParseError(message, token.Line);
-        }
+        
 
         /// <summary>
         /// Verifica si el token actual es del tipo especificado sin avanzar al siguiente token.
@@ -593,6 +589,12 @@ namespace EPainter.Core
         {
             if (Check(type)) return Advance();
             throw Error(Peek(), message);
+        }
+
+        private ParseError Error(Token token, string message)
+        {
+            ErrorReport.ReportError(token, message);
+            return new ParseError(message, token.Line);
         }
 
         /// <summary>

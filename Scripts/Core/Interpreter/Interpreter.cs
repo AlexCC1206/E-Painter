@@ -21,11 +21,6 @@ namespace EPainter.Core
         public Dictionary<string, int> Labels = new Dictionary<string, int>();
 
         /// <summary>
-        /// Diccionario que mapea nombres de etiquetas a índices en la lista de sentencias.
-        /// </summary>
-        public Dictionary<string, int> Labels = new Dictionary<string, int>();
-
-        /// <summary>
         /// Estado actual del intérprete que incluye posición, color y tamaño del pincel.
         /// </summary>
         private EPainterState state;
@@ -340,7 +335,7 @@ namespace EPainter.Core
         /// <param name="y">Coordenada Y de la nueva posición.</param>
         public void Spawn(int x, int y)
         {
-            if (!spawned && statements.Count > 0 && statements[0] is not Stmt.Spawn)
+            if (!spawned && statements.Count > 0 && statements[0] is not Spawn)
             {
                 var error = new RuntimeError("The program must start with a 'Spawn(int x, int y)' command.");
                 ErrorReporter.RuntimeError(error);
